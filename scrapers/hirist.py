@@ -1,3 +1,8 @@
+# ==============================================================================
+# WATERMARK: Rajpal Singh Tanwar
+# Copyright (c) 2026 Rajpal Singh Tanwar. All rights reserved.
+# ==============================================================================
+
 """Hirist Tech public job search scraper (no login required).
 
 URL pattern reference (provided by user):
@@ -48,6 +53,16 @@ HIRIST_CITIES = {
     "Delhi":      "Delhi",
     "Noida":      "Noida",
     "Gurugram":   "Gurgaon",
+    "Indore":     "Indore",
+    "Ahmedabad":  "Ahmedabad",
+    "Nagpur":     "Nagpur",
+    "Chandigarh": "Chandigarh",
+    "Mohali":     "Mohali",
+    "Kochi":      "Kochi",
+    "Kolkata":    "Kolkata",
+    "Surat":      "Surat",
+    "Jaipur":     "Jaipur",
+    "Coimbatore": "Coimbatore",
 }
 
 # Experience range options surfaced in the UI

@@ -1,19 +1,19 @@
-# Job Scout
+# Job Radar
 
 A Flask + Playwright web app that scrapes recent job listings from eight job portals on demand. Pick a portal, fill in role + filters, get a sortable list of results in the browser, and download the run as an Excel file. No accounts, no API keys, no database.
 
 ## Supported portals
 
-| Portal | Notes |
-|---|---|
-| LinkedIn | Public job search. Filters: role, multiple locations, posted-within, apply type (Easy Apply / External). |
-| Glassdoor | City-based search with posted-age and apply preference. |
-| Indeed | City-based search with posted-age and apply preference. |
-| Hirist | Tech-only. Category-based (DevOps, Backend, Frontend, Full Stack, etc.). |
-| Naukri | India's largest portal. Experience + posted-within filters. |
-| Foundit | Formerly Monster India. Rich experience-range, location, skill data. |
-| Apna | Apna.co — fastest scraper in the set. Salary bands + experience. |
-| Shine | Shine.com — plain HTTP, multi-band experience filter. |
+| Portal    | Notes                                                                                                    |
+| --------- | -------------------------------------------------------------------------------------------------------- |
+| LinkedIn  | Public job search. Filters: role, multiple locations, posted-within, apply type (Easy Apply / External). |
+| Glassdoor | City-based search with posted-age and apply preference.                                                  |
+| Indeed    | City-based search with posted-age and apply preference.                                                  |
+| Hirist    | Tech-only. Category-based (DevOps, Backend, Frontend, Full Stack, etc.).                                 |
+| Naukri    | India's largest portal. Experience + posted-within filters.                                              |
+| Foundit   | Formerly Monster India. Rich experience-range, location, skill data.                                     |
+| Apna      | Apna.co — fastest scraper in the set. Salary bands + experience.                                         |
+| Shine     | Shine.com — plain HTTP, multi-band experience filter.                                                    |
 
 > **HiringCafe is temporarily disabled.** It sits behind Cloudflare Turnstile and the scraper hits a verification loop. The module and template are preserved in the repo for a later fix; the card is hidden from the landing page so you won't see it.
 

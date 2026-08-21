@@ -1,3 +1,8 @@
+# ==============================================================================
+# WATERMARK: Rajpal Singh Tanwar
+# Copyright (c) 2026 Rajpal Singh Tanwar. All rights reserved.
+# ==============================================================================
+
 """Apna (apna.co) public job search scraper (no login required).
 
 Apna.co is a Next.js app whose server-rendered page already contains the
@@ -29,9 +34,6 @@ from urllib.parse import quote_plus
 from datetime import datetime, timedelta
 
 
-# Display name -> Apna's internal city ObjectId.
-# Note: Apna does NOT have separate Gurugram/Noida cities — they roll up into
-# "Delhi-NCR" (slug new_delhi).
 APNA_CITIES = {
     "Bengaluru":  "64e4ad5bc35bd44248ca6899",   # Bengaluru/Bangalore
     "Mumbai":     "64e4ad5bc35bd44248ca6885",   # Mumbai/Bombay
@@ -41,6 +43,17 @@ APNA_CITIES = {
     "Pune":       "64e4ad3cc35bd44248ca5d52",
     "Kolkata":    "64e4ad63c35bd44248ca7735",   # Kolkata/Calcutta
     "Ahmedabad":  "64e4ad5bc35bd44248ca690b",
+    "Indore":     "64e4ad63c35bd44248ca7779",   # Fallback to Delhi NCR
+    "Nagpur":     "64e4ad3cc35bd44248ca5d52",   # Fallback to Pune
+    "Chandigarh": "64e4ad63c35bd44248ca7779",   # Fallback to Delhi NCR
+    "Mohali":     "64e4ad63c35bd44248ca7779",   # Fallback to Delhi NCR
+    "Kochi":      "64e4ad59c35bd44248ca63a1",   # Fallback to Chennai
+    "Surat":      "64e4ad5bc35bd44248ca690b",   # Fallback to Ahmedabad
+    "Jaipur":     "64e4ad63c35bd44248ca7779",   # Fallback to Delhi NCR
+    "Coimbatore": "64e4ad59c35bd44248ca63a1",   # Fallback to Chennai
+    "Delhi":      "64e4ad63c35bd44248ca7779",   # Fallback to Delhi NCR
+    "Noida":      "64e4ad63c35bd44248ca7779",   # Fallback to Delhi NCR
+    "Gurugram":   "64e4ad63c35bd44248ca7779",   # Fallback to Delhi NCR
 }
 
 # Display name on Apna's side (used in the URL's location_name param)
@@ -53,6 +66,17 @@ _APNA_CITY_NAME = {
     "Pune":       "Pune",
     "Kolkata":    "Kolkata/Calcutta",
     "Ahmedabad":  "Ahmedabad",
+    "Indore":     "Delhi-NCR",
+    "Nagpur":     "Pune",
+    "Chandigarh": "Delhi-NCR",
+    "Mohali":     "Delhi-NCR",
+    "Kochi":      "Chennai",
+    "Surat":      "Ahmedabad",
+    "Jaipur":     "Delhi-NCR",
+    "Coimbatore": "Chennai",
+    "Delhi":      "Delhi-NCR",
+    "Noida":      "Delhi-NCR",
+    "Gurugram":   "Delhi-NCR",
 }
 
 _UA = (
@@ -68,13 +92,20 @@ _NEXT_DATA_RE = re.compile(
 def _build_url(role, city, posted_in, min_exp, max_exp, page):
     city_id = APNA_CITIES[city]
     city_name = _APNA_CITY_NAME[city]
+    fallback_cities = {
+        "Indore", "Nagpur", "Chandigarh", "Mohali", "Kochi", "Surat", "Jaipur", "Coimbatore", "Delhi", "Noida", "Gurugram"
+    }
+    search_text = role
+    if city in fallback_cities:
+        search_text = f"{city} {role}"
+
     qs = [
         "location_id=0",
         f"location_identifier={city_id}",
         "location_type=NBCity",
         f"location_name={quote_plus(city_name)}",
         "search=true",
-        f"text={quote_plus(role)}",
+        f"text={quote_plus(search_text)}",
         "raw_text_correction=true",
     ]
     if posted_in:
@@ -176,100 +207,110 @@ def scrape_apna(role, city, posted_in_days=0, limit=25,
 
     all_jobs = []
     seen_ids = set()
-    page = 1
-    max_pages = 25  # 25*25 = 625 (more than enough)
+
+    # Support multiple job roles separated by commas
+    roles = [r.strip() for r in role.split(",") if r.strip()]
+    if not roles:
+        roles = [role]
 
     cutoff = None
     if posted_in_days and int(posted_in_days) > 0:
         cutoff = (datetime.today() - timedelta(days=int(posted_in_days))).date()
 
-    while len(all_jobs) < limit and page <= max_pages:
-        url = _build_url(role, city, posted_in_days,
-                         min_experience, max_experience, page)
-        print(f"[Apna] Fetching: {url}")
-        try:
-            resp = requests.get(url, headers=headers, timeout=25)
-        except Exception as e:
-            print(f"[Apna] Request error on page {page}: {e}")
-            break
-        if resp.status_code != 200:
-            print(f"[Apna] HTTP {resp.status_code} on page {page}; stopping.")
+    max_pages = 5
+    active_roles = list(roles)
+
+    for page_idx in range(max_pages):
+        if len(all_jobs) >= limit or not active_roles:
             break
 
-        data = _extract_next_data(resp.text)
-        if not data:
-            print(f"[Apna] No __NEXT_DATA__ on page {page}; stopping.")
-            break
+        page = page_idx + 1
+        next_active = []
 
-        pp = (data.get("props") or {}).get("pageProps") or {}
-        raw_jobs = pp.get("jobs") or []
-        total_pages = pp.get("totalPages") or 1
-        if not raw_jobs:
-            print(f"[Apna] Empty job list on page {page}; stopping.")
-            break
-
-        added_this_page = 0
-        for entry in raw_jobs:
+        for r in active_roles:
             if len(all_jobs) >= limit:
                 break
-            jd = (entry or {}).get("data") or {}
-            jid = jd.get("id")
-            if not jid or jid in seen_ids:
+
+            url = _build_url(r, city, posted_in_days,
+                             min_experience, max_experience, page)
+            print(f"[Apna] Fetching: {url}")
+            try:
+                resp = requests.get(url, headers=headers, timeout=25)
+            except Exception as e:
+                print(f"[Apna] Request error on page {page} for role '{r}': {e}")
                 continue
 
-            posted = _parse_last_updated(jd.get("last_updated"))
-            if cutoff and posted:
-                try:
-                    pd = datetime.strptime(posted, "%Y-%m-%d").date()
-                    if pd < cutoff:
-                        # past cutoff — Apna doesn't reliably filter SSR by
-                        # posted_in, so we post-filter ourselves.
-                        continue
-                except Exception:
-                    pass
+            if resp.status_code != 200:
+                print(f"[Apna] HTTP {resp.status_code} on page {page} for role '{r}'; skipping role.")
+                continue
 
-            org = jd.get("organization") or {}
-            addr = jd.get("address") or {}
-            skills, workplace, employment = _ui_tag_text(jd.get("ui_tags"))
+            data = _extract_next_data(resp.text)
+            if not data:
+                print(f"[Apna] No __NEXT_DATA__ on page {page} for role '{r}'")
+                continue
 
-            apply_link = jd.get("public_url") or ""
-            external = jd.get("external_job_url") or ""
-            is_external = bool(jd.get("is_external_job"))
+            pp = (data.get("props") or {}).get("pageProps") or {}
+            raw_jobs = pp.get("jobs") or []
+            total_pages = pp.get("totalPages") or 1
+            if not raw_jobs:
+                print(f"[Apna] Empty job list on page {page} for role '{r}'")
+                continue
 
-            seen_ids.add(jid)
-            all_jobs.append({
-                "Job Title": jd.get("title") or "",
-                "Company": org.get("name") or "N/A",
-                "Location": jd.get("location_name") or addr.get("line_1") or "",
-                "Posted": posted or "",
-                "Link": apply_link,
-                "Salary": jd.get("salary_detail") or "",
-                "Experience": _format_experience(
-                    jd.get("min_experience"), jd.get("max_experience")),
-                "Workplace": workplace,
-                "Skills": ", ".join(skills) if skills else "",
-                "Description": (employment + (" • " if employment and is_external else "")
-                                + ("External Apply" if is_external else "")).strip(" •"),
-                "Apply Type": "External Site" if is_external else "Apna Apply",
-                "Easy Apply": not is_external,
-                "Source ATS": external if is_external else "",
-            })
-            added_this_page += 1
+            added_this_page = 0
+            for entry in raw_jobs:
+                if len(all_jobs) >= limit:
+                    break
+                jd = (entry or {}).get("data") or {}
+                jid = jd.get("id")
+                if not jid or jid in seen_ids:
+                    continue
 
-        print(f"[Apna] Page {page}: kept {added_this_page} jobs "
-              f"(running total {len(all_jobs)} / {limit}; totalPages={total_pages})")
+                posted = _parse_last_updated(jd.get("last_updated"))
+                if cutoff and posted:
+                    try:
+                        pd = datetime.strptime(posted, "%Y-%m-%d").date()
+                        if pd < cutoff:
+                            continue
+                    except Exception:
+                        pass
 
-        if page >= total_pages:
-            break
-        if added_this_page == 0:
-            # All filtered out this page — try one more then bail to avoid
-            # infinite scan if posted_in filter is very tight.
-            if page >= 3:
-                break
-        page += 1
+                org = jd.get("organization") or {}
+                addr = jd.get("address") or {}
+                skills, workplace, employment = _ui_tag_text(jd.get("ui_tags"))
+
+                apply_link = jd.get("public_url") or ""
+                external = jd.get("external_job_url") or ""
+                is_external = bool(jd.get("is_external_job"))
+
+                seen_ids.add(jid)
+                all_jobs.append({
+                    "Job Title": jd.get("title") or "",
+                    "Company": org.get("name") or "N/A",
+                    "Location": jd.get("location_name") or addr.get("line_1") or "",
+                    "Posted": posted or "",
+                    "Link": apply_link,
+                    "Salary": jd.get("salary_detail") or "",
+                    "Experience": _format_experience(
+                        jd.get("min_experience"), jd.get("max_experience")),
+                    "Workplace": workplace,
+                    "Skills": ", ".join(skills) if skills else "",
+                    "Description": (employment + (" • " if employment and is_external else "")
+                                    + ("External Apply" if is_external else "")).strip(" •"),
+                    "Apply Type": "External Site" if is_external else "Apna Apply",
+                    "Easy Apply": not is_external,
+                    "Source ATS": external if is_external else "",
+                })
+                added_this_page += 1
+
+            print(f"[Apna] Page {page}: kept {added_this_page} jobs for role '{r}' "
+                  f"(running total {len(all_jobs)} / {limit}; totalPages={total_pages})")
+
+            if page < total_pages:
+                next_active.append(r)
+
+        active_roles = next_active
         time.sleep(0.6)  # be polite
 
-    # newest-first sort (blank posted dates sink to bottom)
     def sort_key(j):
         try:
             return datetime.strptime(j["Posted"][:10], "%Y-%m-%d")

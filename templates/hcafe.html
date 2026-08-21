@@ -1,9 +1,13 @@
+<!--
+  WATERMARK: Rajpal Singh Tanwar
+  Copyright (c) 2026 Rajpal Singh Tanwar. All rights reserved.
+-->
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>HiringCafe Job Finder</title>
+  <title>HiringRadar</title>
   <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -27,7 +31,7 @@
     <aside class="panel sidebar">
       <div class="header">
         <div class="brand-row">
-          <div class="brand">Cafe<span class="accent-green">Scout</span></div>
+          <div class="brand">Hiring<span>Radar</span></div>
           <div style="display:flex;gap:6px;">
             <a class="back-link" href="/">← Home</a>
             <button class="theme-btn" id="themeBtn" type="button" onclick="toggleTheme()">Dark Mode</button>
@@ -117,7 +121,20 @@
         </section>
 
         <section id="stLoading" class="state" style="display:none;">
-          <div class="loading"></div>
+          <div class="loader-container">
+            <div class="loader-card">
+              <div class="loader">
+                <p class="loading-text">loading</p>
+                <div class="words">
+                  <span class="word w-1">Jobs</span>
+                  <span class="word w-2">Jobs</span>
+                  <span class="word w-3">Jobs</span>
+                  <span class="word w-4">Jobs</span>
+                  <span class="word w-5">Jobs</span>
+                </div>
+              </div>
+            </div>
+          </div>
           <h2>Searching HiringCafe</h2>
           <p>Fetching aggregated listings. Usually under 5 seconds.</p>
         </section>
@@ -322,5 +339,6 @@
       if (e.key === "Enter") searchJobs();
     });
   </script>
+<div class="watermark-badge">Rajpal Singh Tanwar</div>
 </body>
 </html>

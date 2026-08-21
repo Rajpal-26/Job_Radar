@@ -1,3 +1,8 @@
+# ==============================================================================
+# WATERMARK: Rajpal Singh Tanwar
+# Copyright (c) 2026 Rajpal Singh Tanwar. All rights reserved.
+# ==============================================================================
+
 """Indeed public job search scraper (no login required).
 
 URL pattern reference (provided by user):
@@ -31,6 +36,16 @@ INDEED_CITIES = {
     "Delhi":      "Delhi, Delhi",
     "Noida":      "Noida, Uttar Pradesh",
     "Gurugram":   "Gurugram, Haryana",
+    "Indore":     "Indore, Madhya Pradesh",
+    "Ahmedabad":  "Ahmedabad, Gujarat",
+    "Nagpur":     "Nagpur, Maharashtra",
+    "Chandigarh": "Chandigarh, Chandigarh",
+    "Mohali":     "Mohali, Punjab",
+    "Kochi":      "Kochi, Kerala",
+    "Kolkata":    "Kolkata, West Bengal",
+    "Surat":      "Surat, Gujarat",
+    "Jaipur":     "Jaipur, Rajasthan",
+    "Coimbatore": "Coimbatore, Tamil Nadu",
 }
 
 
@@ -112,7 +127,7 @@ def _is_blocked(page):
 
 
 def _scrape_with(p, role, fromage_days, internal_limit, locations,
-                 apply_mode, headless):
+                 apply_mode, headless, experience=None):
     """One scraping pass with the given headless mode. Returns (jobs, blocked_flag)."""
     all_jobs = []
     seen_links = set()
@@ -121,36 +136,42 @@ def _scrape_with(p, role, fromage_days, internal_limit, locations,
     browser, context = _launch(p, headless=headless)
     page = context.new_page()
 
+    # Support multiple comma-separated job roles
+    roles = [r.strip() for r in role.split(",") if r.strip()]
+    if not roles:
+        roles = [role]
+
     try:
-        for city_key in locations:
-            if city_key not in INDEED_CITIES:
-                print(f"[Indeed] Skipping unknown city: {city_key}")
-                continue
-            if len(all_jobs) >= internal_limit:
+        max_pages = 5  # Indeed page safety limit (10 jobs per page)
+        active_combinations = [(city_key, r) for city_key in locations if city_key in INDEED_CITIES for r in roles]
+
+        for page_idx in range(max_pages):
+            if len(all_jobs) >= internal_limit or not active_combinations:
                 break
 
-            location_query = INDEED_CITIES[city_key]
-            start = 0
+            start = page_idx * 10
+            next_active = []
 
-            while len(all_jobs) < internal_limit:
-                url = _build_url(role, location_query, fromage_days, start)
+            for city_key, r in active_combinations:
+                if len(all_jobs) >= internal_limit:
+                    break
+
+                location_query = INDEED_CITIES[city_key]
+                url = _build_url(r, location_query, fromage_days, start)
                 print(f"[Indeed] Fetching: {url}")
 
-                # Bot-check retry: 1st attempt waits 20s for CF to clear,
-                # 2nd attempt waits 12s. Past page 1 Indeed often hard-blocks
-                # paginated requests — short retries avoid wasting minutes.
-                attempts_budget = 2 if start == 0 else 1
-                wait_budget = (20, 12)
+                # Bot-check retry
                 cleared = False
-                for attempt in range(attempts_budget):
+                for attempt in range(2):
                     try:
-                        page.goto(url, wait_until="domcontentloaded", timeout=30000)
+                        page.goto(url, wait_until="domcontentloaded", timeout=25000)
                     except Exception as e:
                         print(f"[Indeed] goto attempt {attempt+1} failed: {e}")
                         time.sleep(3)
                         continue
 
-                    deadline = time.time() + wait_budget[attempt]
+                    # Indeed bot check
+                    deadline = time.time() + (20 if attempt == 0 else 12)
                     while time.time() < deadline:
                         if not _is_blocked(page):
                             cleared = True
@@ -159,122 +180,113 @@ def _scrape_with(p, role, fromage_days, internal_limit, locations,
 
                     if cleared:
                         break
-                    print(f"[Indeed] Bot-check not cleared (attempt {attempt+1}/{attempts_budget})")
-                    if attempt + 1 < attempts_budget:
-                        time.sleep(random.uniform(3.0, 5.0))
+                    print(f"[Indeed] Bot check failed (attempt {attempt+1}/2)")
+                    time.sleep(random.uniform(4.0, 7.0))
 
                 if not cleared:
+                    print(f"[Indeed] Hard blocked at start={start} for '{r}' in '{city_key}'")
                     blocked_any = True
-                    break
+                    continue  # skip to next combination
 
                 try:
-                    page.wait_for_selector("div.job_seen_beacon, div[data-jk], li[data-empn]", timeout=20000)
-                except Exception:
-                    pass
-                time.sleep(random.uniform(2.0, 3.0))
-
-                page.evaluate("window.scrollTo(0, document.body.scrollHeight / 2)")
-                time.sleep(1.0)
-                page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
-                time.sleep(1.5)
-
-                cards = page.query_selector_all("div.job_seen_beacon")
-                if not cards:
-                    cards = page.query_selector_all("div[data-jk]")
-                if not cards:
-                    cards = page.query_selector_all("li[data-empn]")
-
-                if not cards:
-                    print(f"[Indeed] No cards for {city_key} start={start}")
-                    break
-
-                found_this_page = 0
-                for card in cards:
-                    if len(all_jobs) >= internal_limit:
-                        break
                     try:
-                        # ── Title + link ──
-                        title_link = (
-                            card.query_selector("h2.jobTitle a")
-                            or card.query_selector("a[data-jk]")
-                            or card.query_selector("a.jcs-JobTitle")
-                        )
-                        if not title_link:
+                        page.wait_for_selector(".jobsearch-ResultsList", timeout=12000)
+                    except Exception:
+                        pass
+                    time.sleep(random.uniform(2.0, 3.5))
+
+                    cards = page.query_selector_all("div.job_seen_beacon")
+                    if not cards:
+                        cards = page.query_selector_all("td.resultContent")
+                    if not cards:
+                        print(f"[Indeed] No cards for {city_key} role {r} start={start}")
+                        continue  # Exhausted
+
+                    found_this_page = 0
+                    for card in cards:
+                        if len(all_jobs) >= internal_limit:
+                            break
+                        try:
+                            # ── Title & Link ──
+                            title_el = (
+                                card.query_selector("h2.jobTitle a")
+                                or card.query_selector("a[class*='JobTitle']")
+                                or card.query_selector("h2 a")
+                            )
+                            title = title_el.inner_text().strip() if title_el else None
+                            if not title:
+                                continue
+
+                            href = (title_el.get_attribute("href") or "").strip()
+                            if href and not href.startswith("http"):
+                                link = "https://www.indeed.com" + href
+                            else:
+                                link = href
+                            link = link.split("?")[0].strip()
+
+                            if "/rc/clk" not in link and "/company/" not in link and "/jobs/" not in link:
+                                continue
+                            if link in seen_links:
+                                continue
+
+                            # ── Company ──
+                            comp_el = (
+                                card.query_selector("span[data-testid='company-name']")
+                                or card.query_selector("span.companyName")
+                            )
+                            company = comp_el.inner_text().strip() if comp_el else "N/A"
+
+                            # ── Location ──
+                            loc_el = (
+                                card.query_selector("[data-testid='text-location']")
+                                or card.query_selector("div.companyLocation")
+                            )
+                            loc_text = loc_el.inner_text().strip() if loc_el else location_query
+
+                            # ── Date ──
+                            date_el = (
+                                card.query_selector("[data-testid='myJobsStateDate']")
+                                or card.query_selector("span.date")
+                                or card.query_selector("[class*='date']")
+                            )
+                            posted = _parse_indeed_date(date_el.inner_text() if date_el else "")
+
+                            # ── Easy Apply ──
+                            card_text = (card.inner_text() or "").lower()
+                            easy_apply = ("easily apply" in card_text) or ("easy apply" in card_text)
+                            apply_type = "Easy Apply" if easy_apply else "External"
+
+                            if apply_mode == "only_external" and easy_apply:
+                                continue
+                            if apply_mode == "only_easy" and not easy_apply:
+                                continue
+
+                            seen_links.add(link)
+                            all_jobs.append({
+                                "Job Title": title,
+                                "Company": company,
+                                "Location": loc_text,
+                                "Posted": posted,
+                                "Link": link,
+                                "Easy Apply": easy_apply,
+                                "Apply Type": apply_type,
+                            })
+                            found_this_page += 1
+                        except Exception as e:
+                            print(f"[Indeed] Card error: {e}")
                             continue
 
-                        title_span = title_link.query_selector("span[title]") or title_link.query_selector("span")
-                        title = (title_span.inner_text().strip() if title_span
-                                 else title_link.inner_text().strip())
-                        if not title:
-                            continue
+                    print(f"[Indeed] Got {found_this_page} jobs from {city_key} role '{r}' start={start}")
+                    next_active.append((city_key, r))
+                    time.sleep(random.uniform(2.0, 3.5))
 
-                        href = (title_link.get_attribute("href") or "").strip()
-                        if not href:
-                            continue
-                        if not href.startswith("http"):
-                            href = "https://in.indeed.com" + href
-                        link = href.split("&")[0]
-                        # Build canonical viewjob URL from data-jk
-                        jk = title_link.get_attribute("data-jk") or card.get_attribute("data-jk")
-                        if jk:
-                            link = f"https://in.indeed.com/viewjob?jk={jk}"
+                except PWTimeout:
+                    print(f"[Indeed] Timeout for '{r}' in '{city_key}'")
+                except Exception as e:
+                    print(f"[Indeed] Error: {e}")
 
-                        if link in seen_links:
-                            continue
+            active_combinations = next_active
 
-                        # ── Company ──
-                        comp_el = (
-                            card.query_selector("[data-testid='company-name']")
-                            or card.query_selector("span.companyName")
-                            or card.query_selector("span[data-testid='company-name']")
-                        )
-                        company = comp_el.inner_text().strip() if comp_el else "N/A"
-
-                        # ── Location ──
-                        loc_el = (
-                            card.query_selector("[data-testid='text-location']")
-                            or card.query_selector("div.companyLocation")
-                        )
-                        loc_text = loc_el.inner_text().strip() if loc_el else location_query
-
-                        # ── Date ──
-                        date_el = (
-                            card.query_selector("[data-testid='myJobsStateDate']")
-                            or card.query_selector("span.date")
-                            or card.query_selector("[class*='date']")
-                        )
-                        posted = _parse_indeed_date(date_el.inner_text() if date_el else "")
-
-                        # ── Easy Apply (card-level signal) ──
-                        card_text = (card.inner_text() or "").lower()
-                        easy_apply = ("easily apply" in card_text) or ("easy apply" in card_text)
-                        apply_type = "Easy Apply" if easy_apply else "External"
-
-                        if apply_mode == "only_external" and easy_apply:
-                            continue
-                        if apply_mode == "only_easy" and not easy_apply:
-                            continue
-
-                        seen_links.add(link)
-                        all_jobs.append({
-                            "Job Title": title,
-                            "Company": company,
-                            "Location": loc_text,
-                            "Posted": posted,
-                            "Link": link,
-                            "Easy Apply": easy_apply,
-                            "Apply Type": apply_type,
-                        })
-                        found_this_page += 1
-                    except Exception as e:
-                        print(f"[Indeed] Card error: {e}")
-                        continue
-
-                print(f"[Indeed] Got {found_this_page} jobs from {city_key} start={start}")
-                if found_this_page == 0:
-                    break
-                start += 10
-                time.sleep(random.uniform(2.0, 3.5))
     finally:
         try:
             browser.close()
@@ -284,7 +296,36 @@ def _scrape_with(p, role, fromage_days, internal_limit, locations,
     return all_jobs, blocked_any
 
 
-def scrape_indeed(role, fromage_days, limit, locations, apply_mode="include_easy"):
+def _filter_by_experience(jobs, exp_key):
+    if not exp_key:
+        return jobs
+    keywords = {
+        "fresher": [r"\bfresher\b", r"\bentry\b", r"\bjunior\b", r"\b0-1\b", r"\bgrad\b"],
+        "0-1": [r"\bfresher\b", r"\bentry\b", r"\bjunior\b", r"\b0-1\b", r"\b1\b", r"\bgrad\b"],
+        "0-6m": [r"\bintern\b", r"\bfresher\b", r"\bco-op\b"],
+        "internship": [r"\bintern\b", r"\bco-op\b", r"\bstudent\b"],
+        "1-2": [r"\bjunior\b", r"\b1-2\b", r"\b2\b", r"\bassociate\b"],
+        "1-3": [r"\bjunior\b", r"\b1-3\b", r"\b2\b", r"\b3\b", r"\bassociate\b"],
+        "3-5": [r"\bmid\b", r"\b3-5\b", r"\b3\b", r"\b4\b", r"\b5\b", r"\bsenior\b"],
+        "5-7": [r"\bsenior\b", r"\b5-7\b", r"\b5\b", r"\b6\b", r"\b7\b", r"\bsr\b"],
+        "7-10": [r"\bsenior\b", r"\blead\b", r"\b7-10\b", r"\b8\b", r"\b9\b", r"\b10\b", r"\bmanager\b"],
+        "10+": [r"\blead\b", r"\bmanager\b", r"\b10\+\b", r"\bdirector\b", r"\bvp\b", r"\barchitect\b", r"\bprincipal\b"]
+    }.get(exp_key, [])
+    
+    filtered = []
+    for job in jobs:
+        title = (job.get("Job Title") or "").lower()
+        matched = False
+        for pattern in keywords:
+            if re.search(pattern, title):
+                matched = True
+                break
+        if matched:
+            filtered.append(job)
+    return filtered
+
+
+def scrape_indeed(role, fromage_days, limit, locations, apply_mode="include_easy", experience=None):
     """Scrape Indeed. Tries headless first; falls back to headed if blocked."""
     mode_multipliers = {"include_easy": 1.0, "only_easy": 2.5, "only_external": 2.5}
     internal_limit = max(limit, int(limit * mode_multipliers.get(apply_mode, 1.0)))
@@ -292,14 +333,17 @@ def scrape_indeed(role, fromage_days, limit, locations, apply_mode="include_easy
     with sync_playwright() as p:
         jobs, blocked = _scrape_with(
             p, role, fromage_days, internal_limit, locations, apply_mode,
-            headless=True,
+            headless=True, experience=experience,
         )
         if not jobs and blocked:
             print("[Indeed] Headless blocked — retrying headed.")
             jobs, _ = _scrape_with(
                 p, role, fromage_days, internal_limit, locations, apply_mode,
-                headless=False,
+                headless=False, experience=experience,
             )
+
+    if experience:
+        jobs = _filter_by_experience(jobs, experience)
 
     def sort_key(j):
         try:

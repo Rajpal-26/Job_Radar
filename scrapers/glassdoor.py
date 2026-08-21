@@ -1,3 +1,8 @@
+# ==============================================================================
+# WATERMARK: Rajpal Singh Tanwar
+# Copyright (c) 2026 Rajpal Singh Tanwar. All rights reserved.
+# ==============================================================================
+
 """Glassdoor public job search scraper (no login required).
 
 URL pattern reference (provided by user):
@@ -32,6 +37,16 @@ GLASSDOOR_CITIES = {
     "Delhi":      ("new-delhi-india",   "2945657"),
     "Noida":      ("noida-india",       "2948308"),
     "Gurugram":   ("gurgaon-india",     "2942260"),
+    "Indore":     ("indore-india",      "2942456"),
+    "Ahmedabad":  ("ahmedabad-india",   "2942455"),
+    "Nagpur":     ("nagpur-india",      "2945287"),
+    "Chandigarh": ("chandigarh-india",  "2946280"),
+    "Mohali":     ("mohali-india",      "2946282"),
+    "Kochi":      ("kochi-india",       "2942468"),
+    "Kolkata":    ("kolkata-india",     "2945763"),
+    "Surat":      ("surat-india",       "2945199"),
+    "Jaipur":     ("jaipur-india",      "2945764"),
+    "Coimbatore": ("coimbatore-india",  "2945326"),
 }
 
 
@@ -79,19 +94,54 @@ def _build_url(role, location_slug, location_id, from_age, page=1):
     return f"https://www.glassdoor.co.in/Job/{path}.htm?fromAge={int(from_age)}"
 
 
-def scrape_glassdoor(role, from_age_days, limit, locations, apply_mode="include_easy"):
+def _filter_by_experience(jobs, exp_key):
+    if not exp_key:
+        return jobs
+    keywords = {
+        "fresher": [r"\bfresher\b", r"\bentry\b", r"\bjunior\b", r"\b0-1\b", r"\bgrad\b"],
+        "0-1": [r"\bfresher\b", r"\bentry\b", r"\bjunior\b", r"\b0-1\b", r"\b1\b", r"\bgrad\b"],
+        "0-6m": [r"\bintern\b", r"\bfresher\b", r"\bco-op\b"],
+        "internship": [r"\bintern\b", r"\bco-op\b", r"\bstudent\b"],
+        "1-2": [r"\bjunior\b", r"\b1-2\b", r"\b2\b", r"\bassociate\b"],
+        "1-3": [r"\bjunior\b", r"\b1-3\b", r"\b2\b", r"\b3\b", r"\bassociate\b"],
+        "3-5": [r"\bmid\b", r"\b3-5\b", r"\b3\b", r"\b4\b", r"\b5\b", r"\bsenior\b"],
+        "5-7": [r"\bsenior\b", r"\b5-7\b", r"\b5\b", r"\b6\b", r"\b7\b", r"\bsr\b"],
+        "7-10": [r"\bsenior\b", r"\blead\b", r"\b7-10\b", r"\b8\b", r"\b9\b", r"\b10\b", r"\bmanager\b"],
+        "10+": [r"\blead\b", r"\bmanager\b", r"\b10\+\b", r"\bdirector\b", r"\bvp\b", r"\barchitect\b", r"\bprincipal\b"]
+    }.get(exp_key, [])
+    
+    filtered = []
+    for job in jobs:
+        title = (job.get("Job Title") or "").lower()
+        matched = False
+        for pattern in keywords:
+            if re.search(pattern, title):
+                matched = True
+                break
+        if matched:
+            filtered.append(job)
+    return filtered
+
+
+def scrape_glassdoor(role, from_age_days, limit, locations, apply_mode="include_easy", experience=None):
     """
     role: free-text role string
     from_age_days: int (1, 3, 7, 14, 30)
     limit: number of jobs to return
     locations: list of city names matching GLASSDOOR_CITIES keys
     apply_mode: include_easy | only_easy | only_external
+    experience: optional experience level filter key
     """
     all_jobs = []
     seen_links = set()
 
     mode_multipliers = {"include_easy": 1.0, "only_easy": 2.5, "only_external": 2.5}
     internal_limit = max(limit, int(limit * mode_multipliers.get(apply_mode, 1.0)))
+
+    # Support multiple comma-separated job roles
+    roles = [r.strip() for r in role.split(",") if r.strip()]
+    if not roles:
+        roles = [role]
 
     with sync_playwright() as p:
         browser = p.chromium.launch(
@@ -125,24 +175,25 @@ def scrape_glassdoor(role, from_age_days, limit, locations, apply_mode="include_
 
         page = context.new_page()
 
-        for city in locations:
-            if city not in GLASSDOOR_CITIES:
-                print(f"[Glassdoor] Skipping unknown city: {city}")
-                continue
-            if len(all_jobs) >= internal_limit:
+        max_pages = 5  # Glassdoor safety limit
+        active_combinations = [(city, r) for city in locations if city in GLASSDOOR_CITIES for r in roles]
+
+        for page_idx in range(max_pages):
+            if len(all_jobs) >= internal_limit or not active_combinations:
                 break
 
-            slug, loc_id = GLASSDOOR_CITIES[city]
-            page_num = 1
+            page_num = page_idx + 1
+            next_active = []
 
-            while len(all_jobs) < internal_limit:
-                url = _build_url(role, slug, loc_id, from_age_days, page_num)
+            for city, r in active_combinations:
+                if len(all_jobs) >= internal_limit:
+                    break
+
+                slug, loc_id = GLASSDOOR_CITIES[city]
+                url = _build_url(r, slug, loc_id, from_age_days, page_num)
                 print(f"[Glassdoor] Fetching: {url}")
 
-                # Glassdoor often serves a Cloudflare "Just a moment..."
-                # challenge page that needs ~5-20s of JS to auto-clear. We retry
-                # up to 3 times, each retry: navigate, then poll for the title
-                # to change to a real Glassdoor page, then wait for listings.
+                # Glassdoor CF challenge bypass logic
                 cleared = False
                 for attempt in range(3):
                     try:
@@ -173,10 +224,7 @@ def scrape_glassdoor(role, from_age_days, limit, locations, apply_mode="include_
                         pass
                     time.sleep(random.uniform(2.0, 3.0))
 
-                    # Glassdoor lazy-loads cards as you scroll. A single scroll
-                    # often leaves 1-2 cards unrendered. Loop scrolling until the
-                    # card count stabilizes for two consecutive checks (or we
-                    # hit a safety cap).
+                    # Scroll to lazy-load
                     last_count = -1
                     stable_passes = 0
                     for _ in range(8):
@@ -195,7 +243,6 @@ def scrape_glassdoor(role, from_age_days, limit, locations, apply_mode="include_
                             stable_passes = 0
                         last_count = cur
 
-                    # Job cards — Glassdoor has shipped several layouts. Try fallbacks.
                     cards = page.query_selector_all("li[data-test='jobListing']")
                     if not cards:
                         cards = page.query_selector_all("li[class*='JobsList_jobListItem']")
@@ -205,13 +252,10 @@ def scrape_glassdoor(role, from_age_days, limit, locations, apply_mode="include_
                         cards = page.query_selector_all("li.react-job-listing")
 
                     if not cards:
-                        # Page either has no results or Cloudflare blocked us
-                        # (title="Just a moment..."). Either way stop paginating.
-                        print(f"[Glassdoor] No cards for {city} page={page_num}")
-                        break
+                        print(f"[Glassdoor] No cards for {city} role {r} page={page_num}")
+                        continue  # Exhausted
 
                     found_this_page = 0
-
                     for card in cards:
                         if len(all_jobs) >= internal_limit:
                             break
@@ -226,19 +270,12 @@ def scrape_glassdoor(role, from_age_days, limit, locations, apply_mode="include_
                             if not title:
                                 continue
 
-                            # Glassdoor's title anchor href points to a category
-                            # listing (e.g. /job-listing/...-JV_IC..._KO..._KE.htm)
-                            # and only the `?jl={JOBID}` query param resolves it
-                            # to the actual job page. The job ID is also on the
-                            # parent <li> as `data-jobid`. Preserve `jl` (or
-                            # append it from data-jobid) so the link opens the
-                            # real job listing instead of a category page.
                             href = (title_el.get_attribute("href") or "").strip() if title_el else ""
                             if href and not href.startswith("http"):
                                 link_full = "https://www.glassdoor.co.in" + href
                             else:
                                 link_full = href
-                            base, _, query = link_full.partition("?")
+                            base_part, _, query = link_full.partition("?")
                             jl = None
                             for piece in query.split("&"):
                                 if piece.startswith("jl="):
@@ -246,7 +283,7 @@ def scrape_glassdoor(role, from_age_days, limit, locations, apply_mode="include_
                                     break
                             if not jl:
                                 jl = (card.get_attribute("data-jobid") or "").strip() or None
-                            link = f"{base}?jl={jl}" if (base and jl) else link_full
+                            link = f"{base_part}?jl={jl}" if (base_part and jl) else link_full
                             if not link:
                                 continue
                             if link in seen_links:
@@ -276,10 +313,6 @@ def scrape_glassdoor(role, from_age_days, limit, locations, apply_mode="include_
                             )
                             posted = _parse_glassdoor_date(age_el.inner_text() if age_el else "")
 
-                            # Easy Apply detection — Glassdoor surfaces this on the
-                            # card itself (the detail page doesn't), so card text is
-                            # the reliable signal. Skipping the detail page also makes
-                            # the scraper ~7x faster.
                             card_text = (card.inner_text() or "").lower()
                             easy_apply = "easy apply" in card_text
                             apply_type = "Easy Apply" if easy_apply else "External"
@@ -305,20 +338,22 @@ def scrape_glassdoor(role, from_age_days, limit, locations, apply_mode="include_
                             print(f"[Glassdoor] Card error: {e}")
                             continue
 
-                    print(f"[Glassdoor] Got {found_this_page} jobs from {city} page={page_num}")
-                    if found_this_page == 0:
-                        break
-                    page_num += 1
+                    print(f"[Glassdoor] Got {found_this_page} jobs from {city} role '{r}' page={page_num}")
+                    next_active.append((city, r))
                     time.sleep(random.uniform(2.0, 3.5))
 
                 except PWTimeout:
-                    print(f"[Glassdoor] Timeout: {city}")
-                    break
+                    print(f"[Glassdoor] Timeout for '{r}' in '{city}'")
                 except Exception as e:
                     print(f"[Glassdoor] Error: {e}")
-                    break
+
+            active_combinations = next_active
 
         browser.close()
+
+    # Apply in-memory experience level filter
+    if experience:
+        all_jobs = _filter_by_experience(all_jobs, experience)
 
     def sort_key(j):
         try:

@@ -2,3 +2,4 @@ flask
 playwright
 pandas
 openpyxl
+Werkzeug==3.1.0

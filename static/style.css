@@ -1,3 +1,8 @@
+/* ==============================================================================
+ * WATERMARK: Rajpal Singh Tanwar
+ * Copyright (c) 2026 Rajpal Singh Tanwar. All rights reserved.
+ * ============================================================================== */
+
 :root {
   --bg: #f3f5f8;
   --bg-accent: radial-gradient(1200px 500px at 75% -15%, #c4d9ff 0%, rgba(196, 217, 255, 0) 60%),
@@ -16,6 +21,26 @@
   --warning: #ba6f10;
   --error: #c1363f;
   --shadow: 0 16px 34px rgba(15, 23, 42, 0.08);
+
+  /* Light Theme Card Variables */
+  --card-white: #131826;
+  --card-black: #ffffff;
+  --card-paragraph: #5d667a;
+  --card-line: #dde3ee;
+  --card-primary: hsl(266, 92%, 58%);
+  --card-bg: #ffffff;
+  --card-bg-gradient: radial-gradient(
+      at 88% 40%,
+      rgba(243, 245, 248, 1) 0px,
+      transparent 85%
+    ),
+    radial-gradient(at 49% 30%, rgba(243, 245, 248, 1) 0px, transparent 85%),
+    radial-gradient(at 14% 26%, rgba(243, 245, 248, 1) 0px, transparent 85%),
+    radial-gradient(at 0% 64%, hsla(263, 93%, 94%, 0.8) 0px, transparent 85%),
+    radial-gradient(at 41% 94%, hsla(284, 100%, 96%, 0.8) 0px, transparent 85%),
+    radial-gradient(at 100% 99%, hsla(306, 100%, 94%, 0.8) 0px, transparent 85%);
+  --card-border-default: #dde3ee;
+  --card-shadow: 0px -16px 24px 0px rgba(0, 0, 0, 0.02) inset;
 }
 
 html[data-theme="dark"] {
@@ -36,6 +61,26 @@ html[data-theme="dark"] {
   --warning: #f3a63a;
   --error: #ef6e75;
   --shadow: 0 18px 36px rgba(0, 0, 0, 0.35);
+
+  /* Dark Theme Card Variables */
+  --card-white: hsl(0, 0%, 100%);
+  --card-black: hsl(240, 15%, 9%);
+  --card-paragraph: hsl(0, 0%, 83%);
+  --card-line: hsl(240, 9%, 17%);
+  --card-primary: hsl(266, 92%, 58%);
+  --card-bg: hsla(240, 15%, 9%, 1);
+  --card-bg-gradient: radial-gradient(
+      at 88% 40%,
+      hsla(240, 15%, 9%, 1) 0px,
+      transparent 85%
+    ),
+    radial-gradient(at 49% 30%, hsla(240, 15%, 9%, 1) 0px, transparent 85%),
+    radial-gradient(at 14% 26%, hsla(240, 15%, 9%, 1) 0px, transparent 85%),
+    radial-gradient(at 0% 64%, hsla(263, 93%, 56%, 1) 0px, transparent 85%),
+    radial-gradient(at 41% 94%, hsla(284, 100%, 84%, 1) 0px, transparent 85%),
+    radial-gradient(at 100% 99%, hsla(306, 100%, 57%, 1) 0px, transparent 85%);
+  --card-border-default: hsl(240, 9%, 17%);
+  --card-shadow: 0px -16px 24px 0px rgba(255, 255, 255, 0.25) inset;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -53,6 +98,65 @@ body {
 /* ───────── Landing ───────── */
 .landing { max-width: 1100px; margin: 0 auto; padding: 48px 16px; }
 
+.brand-logo-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 18px;
+}
+
+.radar-logo {
+  position: relative;
+  width: 84px;
+  height: 84px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--panel-soft);
+  border: 2px solid var(--line-strong);
+  border-radius: 999px;
+  box-shadow: var(--shadow);
+  overflow: visible;
+}
+
+.radar-ping {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--accent);
+  opacity: 0.15;
+  animation: radar-pulse 2s infinite ease-out;
+  pointer-events: none;
+}
+
+.radar-beam {
+  position: absolute;
+  width: 82%;
+  height: 82%;
+  border-radius: 999px;
+  border: 2px solid transparent;
+  border-top-color: var(--accent);
+  animation: radar-rotate 4s infinite linear;
+  pointer-events: none;
+  opacity: 0.8;
+}
+
+.radar-icon {
+  position: relative;
+  z-index: 2;
+  color: var(--primary);
+}
+
+@keyframes radar-pulse {
+  0% { transform: scale(1); opacity: 0.25; }
+  100% { transform: scale(1.6); opacity: 0; }
+}
+
+@keyframes radar-rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
 .landing-head { text-align: center; margin-bottom: 36px; }
 
 .landing-head h1 {
@@ -67,52 +171,215 @@ body {
 
 .portal-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 18px;
-  margin-top: 18px;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 28px;
+  margin-top: 36px;
 }
 
-.portal-card {
-  display: block;
-  text-decoration: none;
-  color: var(--text);
-  background: var(--panel);
-  border: 1px solid var(--line);
-  border-radius: 20px;
-  padding: 26px;
-  box-shadow: var(--shadow);
-  transition: 0.25s ease;
+/* From Uiverse.io by MuhammadHasann - adapted for JobRadar dynamic light/dark modes */
+.card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding: 1.75rem;
+  background-color: var(--card-bg);
+  background-image: var(--card-bg-gradient);
+  border-radius: 1.25rem;
+  box-shadow: var(--card-shadow), var(--shadow);
+  transition: transform 0.4s cubic-bezier(0.165, 0.84, 0.44, 1), box-shadow 0.4s ease;
+  overflow: visible; /* To allow rotating neon border animation to sit precisely underneath */
 }
 
-.portal-card:hover {
-  transform: translateY(-3px);
-  border-color: color-mix(in srgb, var(--primary) 50%, var(--line));
+.card:hover {
+  transform: translateY(-8px);
+  box-shadow: var(--card-shadow), 0 20px 40px rgba(0, 0, 0, 0.15);
 }
 
-.portal-card .logo {
-  width: 52px; height: 52px;
-  border-radius: 14px;
-  display: flex; align-items: center; justify-content: center;
+.card .card__border {
+  overflow: hidden;
+  pointer-events: none;
+  position: absolute;
+  z-index: -10;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: calc(100% + 2px);
+  height: calc(100% + 2px);
+  background-image: linear-gradient(
+    0deg,
+    var(--card-border-default) -50%,
+    var(--card-line) 100%
+  );
+  border-radius: 1.25rem;
+}
+
+.card .card__border::before {
+  content: "";
+  pointer-events: none;
+  position: absolute;
+  z-index: -9;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(0deg);
+  transform-origin: left;
+  width: 200%;
+  height: 10rem;
+  background-image: linear-gradient(
+    0deg,
+    hsla(0, 0%, 100%, 0) 0%,
+    var(--card-primary) 40%,
+    var(--card-primary) 60%,
+    hsla(0, 0%, 40%, 0) 100%
+  );
+  animation: rotate 8s linear infinite;
+}
+
+@keyframes rotate {
+  to {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+
+.card_title__container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.logo-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.card .logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: transparent;
+}
+
+.card_title__container .card_title {
   font-family: "Plus Jakarta Sans", sans-serif;
+  font-size: 1.25rem;
   font-weight: 800;
-  font-size: 22px;
-  color: #fff;
-  margin-bottom: 16px;
+  color: var(--card-white);
 }
 
-.portal-card.linkedin .logo { background: linear-gradient(135deg, #0a66c2, #2d8df2); }
-.portal-card.glassdoor .logo { background: linear-gradient(135deg, #0caa41, #14a37a); }
-
-.portal-card h2 {
-  font-family: "Plus Jakarta Sans", sans-serif;
-  font-size: 22px;
-  margin-bottom: 6px;
+.card_title__container .card_paragraph {
+  font-size: 0.85rem;
+  line-height: 1.45;
+  color: var(--card-paragraph);
+  min-height: 3.5rem; /* keep them aligned */
 }
 
-.portal-card p { color: var(--subtext); font-size: 13.5px; margin-bottom: 16px; }
+.card .line {
+  width: 100%;
+  height: 0.1rem;
+  background-color: var(--card-line);
+  border: none;
+}
 
-.portal-card .pill { display: inline-block; font-size: 12px; color: var(--primary); font-weight: 700; }
-.portal-card.glassdoor .pill { color: var(--accent); }
+.card .card__list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  list-style: none;
+  flex-grow: 1;
+}
+
+.card .card__list .card__list_item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.card .card__list .card__list_item .check {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 1.25rem;
+  height: 1.25rem;
+  background-color: var(--card-primary);
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.card .card__list .card__list_item .check .check_svg {
+  width: 0.85rem;
+  height: 0.85rem;
+  fill: var(--card-black);
+}
+
+.card .card__list .card__list_item .list_text {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--card-white);
+}
+
+.card .button {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  padding: 0.8rem;
+  width: 100%;
+  background-image: linear-gradient(
+    0deg,
+    rgba(94, 58, 238, 1) 0%,
+    rgba(197, 107, 240, 1) 100%
+  );
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: #ffffff;
+  border: 0;
+  border-radius: 9999px;
+  box-shadow: inset 0 -2px 25px -4px #ffffff;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.card .button:hover {
+  transform: scale(1.02);
+  opacity: 0.95;
+}
+
+/* Brand Custom Primaries for Moving Neon Borders */
+.card.linkedin {
+  --card-primary: #0a66c2;
+}
+
+.card.glassdoor {
+  --card-primary: #0caa41;
+}
+
+.card.indeed {
+  --card-primary: #2557a7;
+}
+
+.card.hirist {
+  --card-primary: #f5701c;
+}
+
+.card.naukri {
+  --card-primary: #0079c1;
+}
+
+.card.foundit {
+  --card-primary: #00a597;
+}
+
+.card.apna {
+  --card-primary: #0a8c70;
+}
+
+.card.shine {
+  --card-primary: #7c3aed;
+}
 
 .coming-soon {
   border: 1px dashed var(--line-strong);
@@ -311,8 +578,7 @@ body {
   letter-spacing: -0.3px;
 }
 
-.brand .accent-blue { color: var(--primary); }
-.brand .accent-green { color: var(--accent); }
+.brand span { color: var(--primary); }
 
 .back-link {
   font-size: 12px;
@@ -527,11 +793,15 @@ select:focus {
 .download-btn:hover:not(:disabled) { transform: translateY(-1px); }
 
 .state {
-  border: 1px dashed var(--line-strong);
-  background: var(--panel-soft);
-  border-radius: 14px;
-  padding: 34px 20px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  background-image: var(--bg-accent);
+  border-radius: 20px;
+  padding: 48px 32px;
   text-align: center;
+  box-shadow: var(--shadow);
+  position: relative;
+  overflow: hidden;
 }
 
 .state h2 {
@@ -542,18 +812,101 @@ select:focus {
 
 .state p { color: var(--subtext); max-width: 520px; margin: 0 auto; font-size: 14px; }
 
-.loading {
-  width: 42px; height: 42px;
-  border-radius: 999px;
-  border: 4px solid var(--line);
-  border-top-color: var(--primary);
-  margin: 0 auto 12px;
-  animation: spin 0.8s linear infinite;
+/* Uiverse Loader styling - adapted for light/dark theme matching landing page */
+.loader-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0 auto 20px;
 }
 
-.glassdoor .loading { border-top-color: var(--accent); }
+.loader-card {
+  --loader-bg: var(--panel-soft);
+  background-color: var(--loader-bg);
+  padding: 0.75rem 1.75rem;
+  border-radius: 1rem;
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow);
+  display: inline-flex;
+}
 
-@keyframes spin { to { transform: rotate(360deg); } }
+html[data-theme="dark"] .loader-card {
+  --loader-bg: #111622;
+}
+
+.loader {
+  color: var(--subtext);
+  font-family: "Poppins", sans-serif;
+  font-weight: 700;
+  font-size: 24px;
+  box-sizing: content-box;
+  height: 36px;
+  display: flex;
+  align-items: center;
+}
+
+.loading-text {
+  margin: 0;
+  padding: 0;
+}
+
+.words {
+  overflow: hidden;
+  position: relative;
+  height: 36px;
+}
+
+.words::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    var(--loader-bg) 5%,
+    transparent 30%,
+    transparent 70%,
+    var(--loader-bg) 95%
+  );
+  z-index: 20;
+  pointer-events: none;
+}
+
+.word {
+  display: block;
+  height: 36px;
+  line-height: 36px;
+  padding-left: 8px;
+  animation: spin_4991 6s infinite ease-in-out;
+  font-weight: 800;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* 5 Gorgeous gradients for "Jobs" */
+.word.w-1 {
+  background-image: linear-gradient(135deg, #7c3aed, #c026d3);
+}
+.word.w-2 {
+  background-image: linear-gradient(135deg, #0ea5e9, #2563eb);
+}
+.word.w-3 {
+  background-image: linear-gradient(135deg, #10b981, #059669);
+}
+.word.w-4 {
+  background-image: linear-gradient(135deg, #f59e0b, #e11d48);
+}
+.word.w-5 {
+  background-image: linear-gradient(135deg, #ec4899, #8b5cf6);
+}
+
+@keyframes spin_4991 {
+  0%, 15% { transform: translateY(0); }
+  20%, 35% { transform: translateY(-36px); }
+  40%, 55% { transform: translateY(-72px); }
+  60%, 75% { transform: translateY(-108px); }
+  80%, 95% { transform: translateY(-144px); }
+  100% { transform: translateY(-144px); }
+}
 
 .jobs { display: grid; gap: 10px; }
 
@@ -645,6 +998,64 @@ html[data-theme="dark"] .badge.easy {
 
 .apply:hover { filter: brightness(1.05); }
 
+/* ───────── Dropdown Export Menu ───────── */
+.dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.dropdown-menu {
+  display: none;
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  background: var(--panel);
+  border: 1px solid var(--line-strong);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  z-index: 100;
+  min-width: 180px;
+  padding: 6px 0;
+}
+
+.dropdown-menu.show {
+  display: block;
+  animation: slide-up 0.2s ease;
+}
+
+.dropdown-menu button {
+  width: 100%;
+  padding: 8px 16px;
+  background: none;
+  border: none;
+  text-align: left;
+  font-family: inherit;
+  font-size: 13px;
+  color: var(--text);
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.dropdown-menu button:hover {
+  background: var(--panel-soft);
+}
+
+.download-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.download-btn .arrow {
+  font-size: 8px;
+  opacity: 0.7;
+}
+
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 @media (max-width: 1080px) {
   body { padding: 14px; }
   .shell { grid-template-columns: 1fr; min-height: auto; }
@@ -655,3 +1066,52 @@ html[data-theme="dark"] .badge.easy {
   .job { grid-template-columns: 1fr; }
   .download-btn { margin-left: 0; }
 }
+
+/* Premium Watermark Floating Badge */
+.watermark-badge {
+  position: fixed;
+  bottom: 16px;
+  right: 16px;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid var(--line);
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-family: "Plus Jakarta Sans", "Manrope", sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text);
+  opacity: 0.65;
+  letter-spacing: 0.05em;
+  pointer-events: auto;
+  user-select: none;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  transition: all 0.25s ease;
+}
+
+html[data-theme="dark"] .watermark-badge {
+  background: rgba(16, 26, 42, 0.7);
+}
+
+.watermark-badge:hover {
+  opacity: 0.95;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+  border-color: var(--primary);
+}
+
+.watermark-badge::before {
+  content: "";
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  background: var(--accent);
+  border-radius: 50%;
+  box-shadow: 0 0 8px var(--accent);
+}
+

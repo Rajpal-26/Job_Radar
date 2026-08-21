@@ -1,3 +1,8 @@
+# ==============================================================================
+# WATERMARK: Rajpal Singh Tanwar
+# Copyright (c) 2026 Rajpal Singh Tanwar. All rights reserved.
+# ==============================================================================
+
 """LinkedIn public job search scraper (no login required)."""
 
 from playwright.sync_api import sync_playwright, TimeoutError as PWTimeout
@@ -31,7 +36,7 @@ def _parse_linkedin_date(text):
     return today.strftime("%Y-%m-%d")
 
 
-def _build_url(role, location, time_filter, start=0):
+def _build_url(role, location, time_filter, start=0, experience=None):
     base = "https://www.linkedin.com/jobs/search/?"
     params = [
         f"keywords={role.replace(' ', '%20')}",
@@ -42,10 +47,12 @@ def _build_url(role, location, time_filter, start=0):
         "position=1",
         "pageNum=0",
     ]
+    if experience:
+        params.append(f"f_E={experience.replace(',', '%2C')}")
     return base + "&".join(params)
 
 
-def scrape_linkedin(role, time_filter, limit, locations, apply_mode="include_easy"):
+def scrape_linkedin(role, time_filter, limit, locations, apply_mode="include_easy", experience=None):
     all_jobs = []
     seen_links = set()
 
@@ -55,6 +62,11 @@ def scrape_linkedin(role, time_filter, limit, locations, apply_mode="include_eas
         "only_external": 2.5,
     }
     internal_limit = max(limit, int(limit * mode_multipliers.get(apply_mode, 1.0)))
+
+    # Support multiple job roles separated by commas
+    roles = [r.strip() for r in role.split(",") if r.strip()]
+    if not roles:
+        roles = [role]
 
     with sync_playwright() as p:
         browser = p.chromium.launch(
@@ -94,13 +106,22 @@ def scrape_linkedin(role, time_filter, limit, locations, apply_mode="include_eas
         except Exception:
             pass
 
-        for location in locations:
-            if len(all_jobs) >= internal_limit:
+        # We will scrape page-by-page to balance results across multiple roles and locations.
+        max_pages = 10  # Prevent endless loops (10 pages * 25 jobs = 250 jobs max per combination)
+        active_combinations = [(loc, r) for loc in locations for r in roles]
+
+        for page_idx in range(max_pages):
+            if len(all_jobs) >= internal_limit or not active_combinations:
                 break
 
-            start = 0
-            while len(all_jobs) < internal_limit:
-                url = _build_url(role, location, time_filter, start)
+            start = page_idx * 25
+            next_active = []
+
+            for location, r in active_combinations:
+                if len(all_jobs) >= internal_limit:
+                    break
+
+                url = _build_url(r, location, time_filter, start, experience)
                 print(f"[LinkedIn] Fetching: {url}")
 
                 try:
@@ -116,11 +137,10 @@ def scrape_linkedin(role, time_filter, limit, locations, apply_mode="include_eas
                     if not cards:
                         cards = page.query_selector_all("div.base-card")
                     if not cards:
-                        print(f"[LinkedIn] No cards at start={start} for '{location}'")
-                        break
+                        print(f"[LinkedIn] No cards at start={start} for '{r}' in '{location}'")
+                        continue  # Exhausted, do not add to next_active
 
                     found_this_page = 0
-
                     for card in cards:
                         if len(all_jobs) >= internal_limit:
                             break
@@ -277,19 +297,16 @@ def scrape_linkedin(role, time_filter, limit, locations, apply_mode="include_eas
                             print(f"[LinkedIn] Card error: {e}")
                             continue
 
-                    print(f"[LinkedIn] Got {found_this_page} jobs from {location} start={start}")
-
-                    if found_this_page == 0:
-                        break
-                    start += 25
-                    time.sleep(random.uniform(2.0, 3.5))
+                    print(f"[LinkedIn] Got {found_this_page} jobs from {location} for role '{r}' start={start}")
+                    next_active.append((location, r))
 
                 except PWTimeout:
-                    print(f"[LinkedIn] Timeout: {location}")
-                    break
+                    print(f"[LinkedIn] Timeout for '{r}' in '{location}'")
                 except Exception as e:
                     print(f"[LinkedIn] Error: {e}")
-                    break
+
+            active_combinations = next_active
+            time.sleep(random.uniform(2.0, 3.5))
 
         browser.close()
 

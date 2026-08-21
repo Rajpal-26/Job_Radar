@@ -1,4 +1,9 @@
-from flask import Flask, render_template, request, jsonify, send_file, abort
+# ==============================================================================
+# WATERMARK: Rajpal Singh Tanwar
+# Copyright (c) 2026 Rajpal Singh Tanwar. All rights reserved.
+# ==============================================================================
+
+from flask import Flask, render_template, request, jsonify, send_file, abort, Response
 from scrapers import (scrape_linkedin, scrape_glassdoor, scrape_indeed,
                       scrape_hirist, scrape_naukri, scrape_foundit,
                       scrape_apna, scrape_shine)
@@ -90,6 +95,7 @@ def search_linkedin():
         limit       = int(request.form.get("limit", 10))
         apply_mode  = request.form.get("apply_mode", "include_easy").strip().lower()
         locations   = request.form.getlist("locations")
+        experience  = request.form.get("experience", "").strip()
 
         if not role:
             return jsonify({"error": "Please enter a job role"}), 400
@@ -97,6 +103,11 @@ def search_linkedin():
             return jsonify({"error": "Select at least one location"}), 400
         if apply_mode not in {"include_easy", "only_easy", "only_external"}:
             return jsonify({"error": "Invalid apply filter selected"}), 400
+        if experience:
+            allowed_levels = {"1", "2", "3", "4", "5", "6"}
+            for part in experience.split(","):
+                if part.strip() not in allowed_levels:
+                    return jsonify({"error": "Invalid experience level filter selected"}), 400
 
         jobs = scrape_linkedin(
             role=role,
@@ -104,6 +115,7 @@ def search_linkedin():
             limit=limit,
             locations=locations,
             apply_mode=apply_mode,
+            experience=experience,
         )
         latest["linkedin"] = jobs
         return jsonify({"jobs": jobs, "count": len(jobs), "requested": limit})
@@ -120,6 +132,7 @@ def search_glassdoor():
         limit       = int(request.form.get("limit", 10))
         apply_mode  = request.form.get("apply_mode", "include_easy").strip().lower()
         locations   = request.form.getlist("locations")
+        experience  = request.form.get("experience", "").strip()
 
         if not role:
             return jsonify({"error": "Please enter a job role"}), 400
@@ -134,6 +147,7 @@ def search_glassdoor():
             limit=limit,
             locations=locations,
             apply_mode=apply_mode,
+            experience=experience or None,
         )
         latest["glassdoor"] = jobs
         return jsonify({"jobs": jobs, "count": len(jobs), "requested": limit})
@@ -150,6 +164,7 @@ def search_indeed():
         limit       = int(request.form.get("limit", 10))
         apply_mode  = request.form.get("apply_mode", "include_easy").strip().lower()
         locations   = request.form.getlist("locations")
+        experience  = request.form.get("experience", "").strip()
 
         if not role:
             return jsonify({"error": "Please enter a job role"}), 400
@@ -164,6 +179,7 @@ def search_indeed():
             limit=limit,
             locations=locations,
             apply_mode=apply_mode,
+            experience=experience or None,
         )
         latest["indeed"] = jobs
         return jsonify({"jobs": jobs, "count": len(jobs), "requested": limit})
@@ -175,11 +191,26 @@ def search_indeed():
 @app.route("/search/hirist", methods=["POST"])
 def search_hirist():
     try:
-        role        = request.form.get("role", "").strip()  # role here = category slug
-        city        = request.form.get("city", "").strip()
-        exp_key     = request.form.get("experience", "any").strip()
-        posting     = int(request.form.get("posting", 3))
-        limit       = int(request.form.get("limit", 10))
+        role           = request.form.get("role", "").strip()  # role here = category slug
+        city           = request.form.get("city", "").strip()
+        experience_key = request.form.get("experience", "").strip()
+        posting        = int(request.form.get("posting", 3))
+        limit          = int(request.form.get("limit", 10))
+
+        # Map standard experience to Hirist keys
+        hirist_map = {
+            "fresher": "0-1",
+            "0-1": "0-1",
+            "0-6m": "0-1",
+            "internship": "0-1",
+            "1-2": "0-1",
+            "1-3": "2-3",
+            "3-5": "4-6",
+            "5-7": "4-6",
+            "7-10": "7-10",
+            "10+": "10+",
+        }
+        exp_key = hirist_map.get(experience_key, "any")
 
         if not role:
             return jsonify({"error": "Please select a job category"}), 400
@@ -209,12 +240,26 @@ def search_hirist():
 @app.route("/search/naukri", methods=["POST"])
 def search_naukri():
     try:
-        role        = request.form.get("role", "").strip()
-        city        = request.form.get("city", "").strip()
-        job_age     = int(request.form.get("job_age", 7))
-        limit       = int(request.form.get("limit", 10))
-        exp_raw     = (request.form.get("experience") or "").strip()
-        experience  = int(exp_raw) if exp_raw else None
+        role           = request.form.get("role", "").strip()
+        city           = request.form.get("city", "").strip()
+        job_age        = int(request.form.get("job_age", 7))
+        limit          = int(request.form.get("limit", 10))
+        experience_key = request.form.get("experience", "").strip()
+
+        # Map standard experience to Naukri years integer
+        naukri_map = {
+            "fresher": 0,
+            "0-1": 0,
+            "0-6m": 0,
+            "internship": 0,
+            "1-2": 1,
+            "1-3": 1,
+            "3-5": 3,
+            "5-7": 5,
+            "7-10": 7,
+            "10+": 10,
+        }
+        experience = naukri_map.get(experience_key, None)
 
         if not role:
             return jsonify({"error": "Please enter a job role"}), 400
@@ -237,12 +282,26 @@ def search_naukri():
 @app.route("/search/foundit", methods=["POST"])
 def search_foundit():
     try:
-        role        = request.form.get("role", "").strip()
-        city        = request.form.get("city", "").strip()
-        freshness   = int(request.form.get("freshness", 7))
-        limit       = int(request.form.get("limit", 10))
-        exp_raw     = (request.form.get("experience") or "").strip()
-        experience  = int(exp_raw) if exp_raw else None
+        role           = request.form.get("role", "").strip()
+        city           = request.form.get("city", "").strip()
+        freshness      = int(request.form.get("freshness", 7))
+        limit          = int(request.form.get("limit", 10))
+        experience_key = request.form.get("experience", "").strip()
+
+        # Map standard experience to Foundit years integer
+        foundit_map = {
+            "fresher": 0,
+            "0-1": 0,
+            "0-6m": 0,
+            "internship": 0,
+            "1-2": 1,
+            "1-3": 1,
+            "3-5": 3,
+            "5-7": 5,
+            "7-10": 7,
+            "10+": 10,
+        }
+        experience = foundit_map.get(experience_key, None)
 
         if not role:
             return jsonify({"error": "Please enter a job role"}), 400
@@ -265,14 +324,26 @@ def search_foundit():
 @app.route("/search/apna", methods=["POST"])
 def search_apna():
     try:
-        role        = request.form.get("role", "").strip()
-        city        = request.form.get("city", "").strip()
-        posted_in   = int(request.form.get("posted_in", 0))
-        limit       = int(request.form.get("limit", 10))
-        min_raw     = (request.form.get("min_experience") or "").strip()
-        max_raw     = (request.form.get("max_experience") or "").strip()
-        min_exp     = int(min_raw) if min_raw else None
-        max_exp     = int(max_raw) if max_raw else None
+        role           = request.form.get("role", "").strip()
+        city           = request.form.get("city", "").strip()
+        posted_in      = int(request.form.get("posted_in", 0))
+        limit          = int(request.form.get("limit", 10))
+        experience_key = request.form.get("experience", "").strip()
+
+        # Map standard experience to Apna min and max experience
+        apna_map = {
+            "fresher": (0, 1),
+            "0-1": (0, 1),
+            "0-6m": (0, 0),
+            "internship": (0, 0),
+            "1-2": (1, 2),
+            "1-3": (1, 3),
+            "3-5": (3, 5),
+            "5-7": (5, 7),
+            "7-10": (7, 10),
+            "10+": (10, 30),
+        }
+        min_exp, max_exp = apna_map.get(experience_key, (None, None))
 
         if not role:
             return jsonify({"error": "Please enter a job role"}), 400
@@ -295,11 +366,26 @@ def search_apna():
 @app.route("/search/shine", methods=["POST"])
 def search_shine():
     try:
-        role         = request.form.get("role", "").strip()
-        city         = request.form.get("city", "").strip()
-        posting_days = int(request.form.get("posting_days", 0))
-        limit        = int(request.form.get("limit", 10))
-        fexp         = request.form.getlist("fexp")
+        role           = request.form.get("role", "").strip()
+        city           = request.form.get("city", "").strip()
+        posting_days   = int(request.form.get("posting_days", 0))
+        limit          = int(request.form.get("limit", 10))
+        experience_key = request.form.get("experience", "").strip()
+
+        # Map standard experience to Shine bands
+        shine_map = {
+            "fresher": ["1"],
+            "0-1": ["1"],
+            "0-6m": ["1"],
+            "internship": ["1"],
+            "1-2": ["2"],
+            "1-3": ["2"],
+            "3-5": ["3"],
+            "5-7": ["4"],
+            "7-10": ["5"],
+            "10+": ["6", "7"],
+        }
+        fexp = shine_map.get(experience_key, [])
 
         if not role:
             return jsonify({"error": "Please enter a job role"}), 400
@@ -322,8 +408,8 @@ def search_shine():
         return jsonify({"error": str(e)}), 500
 
 
-@app.route("/download/<source>")
-def download(source):
+@app.route("/export/<source>/<fmt>")
+def export_results(source, fmt):
     source = source.lower()
     if source not in latest:
         abort(404)
@@ -331,24 +417,150 @@ def download(source):
     if not data:
         return "No data. Run a search first.", 400
 
+    import pandas as pd
+    import os
+    from datetime import datetime
+
     df = pd.DataFrame(data)
-    df["Source"] = {"linkedin": "LinkedIn", "glassdoor": "Glassdoor",
-                    "indeed": "Indeed", "hirist": "Hirist",
-                    "naukri": "Naukri", "foundit": "Foundit",
-                    "apna": "Apna", "shine": "Shine"}.get(source, source.capitalize())
+    source_name = {"linkedin": "LinkedIn", "glassdoor": "Glassdoor",
+                   "indeed": "Indeed", "hirist": "Hirist",
+                   "naukri": "Naukri", "foundit": "Foundit",
+                   "apna": "Apna", "shine": "Shine"}.get(source, source.capitalize())
+    df["Source"] = source_name
 
     df.rename(columns={"Company": "Company Name"}, inplace=True)
-    # Columns vary by portal; include any that exist.
     column_order = ["Link", "Company Name", "Job Title", "Location", "Source",
                     "Posted", "Experience", "Workplace", "Seniority", "Rating",
                     "Salary", "Skills", "Industry", "Description", "Source ATS",
                     "Easy Apply", "Apply Type"]
     df = df[[c for c in column_order if c in df.columns]]
 
-    path = os.path.join(os.path.dirname(__file__), f"jobs_{source}.xlsx")
-    df.to_excel(path, index=False)
-    return send_file(path, as_attachment=True)
+    fmt = fmt.lower()
+    if fmt == "csv":
+        csv_data = df.to_csv(index=False)
+        return Response(
+            csv_data,
+            mimetype="text/csv",
+            headers={"Content-disposition": f"attachment; filename=jobs_{source}.csv"}
+        )
+    elif fmt == "xlsx":
+        from io import BytesIO
+        output = BytesIO()
+        with pd.ExcelWriter(output, engine='openpyxl') as writer:
+            df.to_excel(writer, index=False, sheet_name='Jobs')
+        output.seek(0)
+        return send_file(
+            output,
+            mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            as_attachment=True,
+            download_name=f"jobs_{source}.xlsx"
+        )
+    elif fmt == "pdf":
+        from reportlab.lib.pagesizes import letter, landscape
+        from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+        from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+        from reportlab.lib import colors
+        from io import BytesIO
+
+        output = BytesIO()
+        doc = SimpleDocTemplate(
+            output,
+            pagesize=landscape(letter),
+            rightMargin=30, leftMargin=30, topMargin=30, bottomMargin=30
+        )
+        
+        story = []
+        styles = getSampleStyleSheet()
+        
+        title_style = ParagraphStyle(
+            'TitleStyle',
+            parent=styles['Heading1'],
+            fontName='Helvetica-Bold',
+            fontSize=22,
+            textColor=colors.HexColor('#0b111e'),
+            spaceAfter=10
+        )
+        
+        cell_style = ParagraphStyle(
+            'CellStyle',
+            parent=styles['Normal'],
+            fontName='Helvetica',
+            fontSize=8,
+            leading=10,
+            textColor=colors.HexColor('#131826')
+        )
+        
+        header_style = ParagraphStyle(
+            'HeaderStyle',
+            parent=styles['Normal'],
+            fontName='Helvetica-Bold',
+            fontSize=9,
+            leading=11,
+            textColor=colors.white
+        )
+        
+        link_style = ParagraphStyle(
+            'LinkStyle',
+            parent=styles['Normal'],
+            fontName='Helvetica',
+            fontSize=7,
+            leading=9,
+            textColor=colors.HexColor('#0a66c2')
+        )
+
+        story.append(Paragraph(f"Job Search Results — {source_name}", title_style))
+        story.append(Paragraph(f"Generated on {datetime.today().strftime('%Y-%m-%d %H:%M:%S')} | Total: {len(df)} jobs", styles['Italic']))
+        story.append(Spacer(1, 12))
+        
+        cols = ['Company Name', 'Job Title', 'Location', 'Posted', 'Link']
+        table_data = []
+        table_data.append([Paragraph(c, header_style) for c in cols])
+        
+        for _, row in df.iterrows():
+            row_data = []
+            for col in cols:
+                val = str(row.get(col, '') or '')
+                if col == 'Link':
+                    short_url = val[:40] + '...' if len(val) > 40 else val
+                    row_data.append(Paragraph(f'<a href="{val}" color="#0a66c2"><u>{short_url}</u></a>', link_style))
+                else:
+                    row_data.append(Paragraph(val, cell_style))
+            table_data.append(row_data)
+            
+        col_widths = [120, 230, 120, 70, 192]
+        t = Table(table_data, colWidths=col_widths, repeatRows=1)
+        t.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#0b111e')),
+            ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+            ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 6),
+            ('TOPPADDING', (0, 0), (-1, 0), 6),
+            ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#dde3ee')),
+            ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f3f5f8')]),
+            ('TOPPADDING', (0, 1), (-1, -1), 5),
+            ('BOTTOMPADDING', (0, 1), (-1, -1), 5),
+        ]))
+        
+        story.append(t)
+        doc.build(story)
+        output.seek(0)
+        return send_file(
+            output,
+            mimetype="application/pdf",
+            as_attachment=True,
+            download_name=f"jobs_{source}.pdf"
+        )
+    else:
+        abort(400)
+
+
+@app.route("/download/<source>")
+def download(source):
+    return export_results(source, 'xlsx')
 
 
 if __name__ == "__main__":
+    print("\n" + "="*60)
+    print("  JobRadar Codebase Watermarked for Rajpal Singh Tanwar")
+    print("="*60 + "\n")
     app.run(debug=True, use_reloader=False)

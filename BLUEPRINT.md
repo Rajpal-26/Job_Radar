@@ -225,11 +225,10 @@ If the portal uses Akamai or similar: also create a `_newportal_profile/` dir (P
 ## 10. Frontend conventions
 
 - **One CSS file** ([static/style.css](static/style.css)) with all theming via `:root` variables and a `html[data-theme="dark"]` override block. Adding a new themeable color = add to both blocks.
-- **Theme toggle** is duplicated inline in each portal template (no shared header partial yet). `localStorage` key is `jobscout_theme`.
-- **Landing header** is a flex `.top-bar` with two visually matched pills:
-  - `.dev-credit` (left) — "Built by Rajath" label + GitHub/LinkedIn `.social-btn` circles
+- **Landing header** is a flex `.top-bar` with:
   - `.theme-btn` (right) — moon/sun icon circle + label, mirrored layout via `flex-direction: row-reverse`
-  - The two icon-circles inside the pills are both 30px so the pills have the same height. If you resize one, resize the other.
+  - The icon-circle inside the pill is 30px.
+- **Theme toggle** is duplicated inline in each portal template (no shared header partial yet). `localStorage` key is `jobscout_theme`.
 - **Tooltips** on social buttons are CSS-only: `data-tip="..."` attribute + `::after`/`::before` pseudo-elements driven by `:hover`/`:focus-visible`. No tooltip library.
 - **Icons** are inline SVG paths (GitHub mark, LinkedIn mark, moon, sun) — no external requests, works offline, color-controllable via `fill="currentColor"`.
 

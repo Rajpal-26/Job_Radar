@@ -1,3 +1,8 @@
+# ==============================================================================
+# WATERMARK: Rajpal Singh Tanwar
+# Copyright (c) 2026 Rajpal Singh Tanwar. All rights reserved.
+# ==============================================================================
+
 """Shine.com public job search scraper (no login required).
 
 Shine is a Next.js app whose SSR-rendered page embeds the entire job-search
@@ -45,6 +50,7 @@ from datetime import datetime, timedelta
 # names; Delhi/Gurgaon/Noida are interchangeable index pages of NCR.
 SHINE_CITIES = {
     "Bangalore":  "bangalore",
+    "Bengaluru":  "bangalore",
     "Mumbai":     "mumbai",
     "Delhi":      "delhi",
     "Hyderabad":  "hyderabad",
@@ -53,8 +59,16 @@ SHINE_CITIES = {
     "Kolkata":    "kolkata",
     "Ahmedabad":  "ahmedabad",
     "Gurgaon":    "gurgaon",
+    "Gurugram":   "gurgaon",
     "Noida":      "noida",
     "Coimbatore": "coimbatore",
+    "Indore":     "indore",
+    "Nagpur":     "nagpur",
+    "Chandigarh": "chandigarh",
+    "Mohali":     "mohali",
+    "Kochi":      "kochi",
+    "Surat":      "surat",
+    "Jaipur":     "jaipur",
 }
 
 # Single fexp value -> human label (for status messages, also drives the UI)
@@ -188,102 +202,121 @@ def scrape_shine(role, city, fexp=None, posting_days=0, limit=20):
 
     all_jobs = []
     seen_ids = set()
-    page = 1
-    max_pages = 30  # safety: Shine caps long tails anyway
 
-    while len(all_jobs) < limit and page <= max_pages:
-        url = _build_url(role, city, page, fexp_values)
-        print(f"[Shine] Fetching: {url}")
-        try:
-            resp = requests.get(url, headers=headers, timeout=25)
-        except Exception as e:
-            print(f"[Shine] Request error on page {page}: {e}")
-            break
-        if resp.status_code != 200:
-            print(f"[Shine] HTTP {resp.status_code} on page {page}; stopping.")
+    # Support multiple job roles separated by commas
+    roles = [r.strip() for r in role.split(",") if r.strip()]
+    if not roles:
+        roles = [role]
+
+    max_pages = 5
+    active_roles = list(roles)
+
+    for page_idx in range(max_pages):
+        if len(all_jobs) >= limit or not active_roles:
             break
 
-        data = _extract_next_data(resp.text)
-        if not data:
-            print(f"[Shine] No __NEXT_DATA__ on page {page}; stopping.")
-            break
+        page = page_idx + 1
+        next_active = []
 
-        try:
-            sd = (data["props"]["pageProps"]["initialState"]
-                       ["jsrp"]["searchresult"]["data"])
-        except (KeyError, TypeError):
-            print(f"[Shine] Search-result slice missing on page {page}.")
-            break
-
-        # When requested page > num_pages Shine wraps back to page 1 — break out
-        # rather than scraping the same page twice.
-        reported_page = sd.get("page") or 0
-        if page > 1 and reported_page == 1:
-            print(f"[Shine] Out of pages at page={page}; stopping.")
-            break
-
-        raw_jobs = sd.get("results") or []
-        num_pages = sd.get("num_pages") or 1
-        total = sd.get("count") or 0
-        if not raw_jobs:
-            print(f"[Shine] Empty results on page {page}; stopping.")
-            break
-
-        added_this_page = 0
-        skipped_old = 0
-        for jd in raw_jobs:
+        for r in active_roles:
             if len(all_jobs) >= limit:
                 break
-            jid = jd.get("id")
-            if not jid or jid in seen_ids:
+
+            url = _build_url(r, city, page, fexp_values)
+            print(f"[Shine] Fetching: {url}")
+            try:
+                resp = requests.get(url, headers=headers, timeout=25)
+            except Exception as e:
+                print(f"[Shine] Request error on page {page} for role '{r}': {e}")
                 continue
 
-            posted = _parse_posted_date(jd.get("jPDate"))
-            if cutoff and posted:
-                try:
-                    pd = datetime.strptime(posted, "%Y-%m-%d").date()
-                    if pd < cutoff:
-                        skipped_old += 1
-                        continue
-                except Exception:
-                    pass
+            if resp.status_code != 200:
+                print(f"[Shine] HTTP {resp.status_code} on page {page} for role '{r}'; skipping role.")
+                continue
 
-            seen_ids.add(jid)
-            slug = (jd.get("jSlug") or "").strip("/")
-            apply_link = f"https://www.shine.com/jobs/{slug}" if slug else ""
+            data = _extract_next_data(resp.text)
+            if not data:
+                print(f"[Shine] No __NEXT_DATA__ on page {page} for role '{r}'")
+                continue
 
-            description = _clean_html(jd.get("jJD") or "")
-            if len(description) > 800:
-                description = description[:797] + "..."
+            try:
+                sd = (data["props"]["pageProps"]["initialState"]
+                           ["jsrp"]["searchresult"]["data"])
+            except (KeyError, TypeError):
+                print(f"[Shine] Search-result slice missing on page {page} for role '{r}'.")
+                continue
 
-            all_jobs.append({
-                "Job Title": jd.get("jJT") or "",
-                "Company": jd.get("jCName") or "N/A",
-                "Location": _format_locations(jd.get("jLoc")),
-                "Posted": posted or "",
-                "Link": apply_link,
-                "Experience": jd.get("jExp") or "",
-                "Salary": jd.get("jSal") or "",
-                "Skills": (jd.get("jKwd") or "").strip(),
-                "Industry": jd.get("jInd") or "",
-                "Description": description,
-                "Apply Type": "Shine Apply",
-                "Easy Apply": True,
-            })
-            added_this_page += 1
+            reported_page = sd.get("page") or 0
+            if page > 1 and reported_page == 1:
+                print(f"[Shine] Out of pages at page={page} for role '{r}'; stopping role.")
+                continue
 
-        print(f"[Shine] Page {page}: kept {added_this_page} jobs "
-              f"(skipped_old={skipped_old}, total {len(all_jobs)}/{limit}; "
-              f"shine_total={total}, num_pages={num_pages})")
+            raw_jobs = sd.get("results") or []
+            num_pages = sd.get("num_pages") or 1
+            total = sd.get("count") or 0
+            if not raw_jobs:
+                print(f"[Shine] Empty results on page {page} for role '{r}'; stopping role.")
+                continue
 
-        if page >= num_pages:
-            break
-        # If we filtered everything out due to date cutoff, results past
-        # this page will be older still (sort=1 = newest first) — bail.
-        if cutoff and added_this_page == 0 and skipped_old > 0:
-            print(f"[Shine] All remaining jobs older than cutoff; stopping.")
-            break
-        page += 1
+            added_this_page = 0
+            skipped_old = 0
+            for jd in raw_jobs:
+                if len(all_jobs) >= limit:
+                    break
+                jid = jd.get("id")
+                if not jid or jid in seen_ids:
+                    continue
+
+                posted = _parse_posted_date(jd.get("jPDate"))
+                if cutoff and posted:
+                    try:
+                        pd = datetime.strptime(posted, "%Y-%m-%d").date()
+                        if pd < cutoff:
+                            skipped_old += 1
+                            continue
+                    except Exception:
+                        pass
+
+                seen_ids.add(jid)
+                slug = (jd.get("jSlug") or "").strip("/")
+                apply_link = f"https://www.shine.com/jobs/{slug}" if slug else ""
+
+                description = _clean_html(jd.get("jJD") or "")
+                if len(description) > 800:
+                    description = description[:797] + "..."
+
+                all_jobs.append({
+                    "Job Title": jd.get("jJT") or "",
+                    "Company": jd.get("jCName") or "N/A",
+                    "Location": _format_locations(jd.get("jLoc")),
+                    "Posted": posted or "",
+                    "Link": apply_link,
+                    "Experience": jd.get("jExp") or "",
+                    "Salary": jd.get("jSal") or "",
+                    "Skills": (jd.get("jKwd") or "").strip(),
+                    "Industry": jd.get("jInd") or "",
+                    "Description": description,
+                    "Apply Type": "Shine Apply",
+                    "Easy Apply": True,
+                })
+                added_this_page += 1
+
+            print(f"[Shine] Page {page}: kept {added_this_page} jobs for role '{r}' "
+                  f"(skipped_old={skipped_old}, total {len(all_jobs)}/{limit}; "
+                  f"shine_total={total}, num_pages={num_pages})")
+
+            # Check if we should continue scraping this role
+            should_continue = True
+            if page >= num_pages:
+                should_continue = False
+            if cutoff and added_this_page == 0 and skipped_old > 0:
+                print(f"[Shine] All remaining jobs older than cutoff for role '{r}'; stopping role.")
+                should_continue = False
+
+            if should_continue:
+                next_active.append(r)
+
+        active_roles = next_active
         time.sleep(0.4)
 
     def sort_key(j):

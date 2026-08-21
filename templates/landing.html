@@ -1,9 +1,13 @@
+<!--
+  WATERMARK: Rajpal Singh Tanwar
+  Copyright (c) 2026 Rajpal Singh Tanwar. All rights reserved.
+-->
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Job Scout - Pick a Source</title>
+  <title>JobRadar - Pick a Source</title>
   <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -13,27 +17,7 @@
 <body>
   <div class="landing">
     <div class="top-bar">
-      <div class="dev-credit">
-        <span class="dev-credit-label">Built by Rajath</span>
-        <a class="social-btn github"
-           href="https://github.com/rajath-0717"
-           target="_blank" rel="noopener noreferrer"
-           data-tip="See the developer on GitHub"
-           aria-label="See the developer on GitHub">
-          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
-            <path fill="currentColor" d="M12 .5C5.73.5.99 5.24.99 11.5c0 4.86 3.15 8.98 7.52 10.44.55.1.75-.24.75-.53 0-.26-.01-1.13-.02-2.05-3.06.66-3.71-1.3-3.71-1.3-.5-1.27-1.22-1.61-1.22-1.61-1-.68.08-.67.08-.67 1.1.08 1.68 1.13 1.68 1.13.98 1.68 2.57 1.2 3.2.92.1-.71.38-1.2.69-1.48-2.44-.28-5.01-1.22-5.01-5.43 0-1.2.43-2.18 1.13-2.95-.11-.28-.49-1.4.11-2.92 0 0 .92-.3 3.02 1.13.88-.25 1.83-.37 2.77-.37.94 0 1.89.12 2.77.37 2.1-1.43 3.02-1.13 3.02-1.13.6 1.52.22 2.64.11 2.92.7.77 1.13 1.75 1.13 2.95 0 4.22-2.58 5.14-5.03 5.42.39.34.74 1 .74 2.02 0 1.46-.01 2.64-.01 3 0 .29.2.64.76.53A11.01 11.01 0 0 0 23.01 11.5C23.01 5.24 18.27.5 12 .5z"/>
-          </svg>
-        </a>
-        <a class="social-btn linkedin"
-           href="https://www.linkedin.com/in/rajath-shettigar-742111295/"
-           target="_blank" rel="noopener noreferrer"
-           data-tip="See the developer on LinkedIn"
-           aria-label="See the developer on LinkedIn">
-          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
-            <path fill="currentColor" d="M20.45 20.45h-3.55v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.13 1.45-2.13 2.94v5.67H9.36V9h3.41v1.56h.05c.47-.9 1.64-1.85 3.37-1.85 3.6 0 4.26 2.37 4.26 5.45v6.29zM5.34 7.43a2.06 2.06 0 1 1 0-4.13 2.06 2.06 0 0 1 0 4.13zM7.12 20.45H3.56V9h3.56v11.45zM22.22 0H1.77C.79 0 0 .77 0 1.72v20.56C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.72V1.72C24 .77 23.2 0 22.22 0z"/>
-          </svg>
-        </a>
-      </div>
+      <div></div>
       <button class="theme-btn" id="themeBtn" type="button" onclick="toggleTheme()" aria-label="Toggle theme">
         <span class="theme-icon" id="themeIcon" aria-hidden="true">
           <svg viewBox="0 0 24 24" width="14" height="14">
@@ -45,68 +29,406 @@
     </div>
 
     <div class="landing-head">
-      <h1>Job <span>Scout</span></h1>
+      <div class="brand-logo-container">
+        <div class="radar-logo">
+          <div class="radar-ping"></div>
+          <div class="radar-beam"></div>
+          <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="radar-icon">
+            <circle cx="12" cy="12" r="10" stroke="var(--primary)" stroke-dasharray="3 3" opacity="0.3"></circle>
+            <circle cx="12" cy="12" r="6" stroke="var(--primary)" opacity="0.6"></circle>
+            <circle cx="12" cy="12" r="2" fill="var(--primary)"></circle>
+            <line x1="12" y1="12" x2="19" y2="5" stroke="var(--accent)" stroke-width="2.5"></line>
+          </svg>
+        </div>
+      </div>
+      <h1>Job<span>Radar</span></h1>
       <p>Scrape recent job listings from your favorite portals &nbsp; | &nbsp; No login required.</p>
     </div>
 
     <div class="portal-grid">
-      <a class="portal-card linkedin" href="/linkedin">
-        <div class="logo">in</div>
-        <h2>LinkedIn Scraper</h2>
-        <p>Public LinkedIn job search with role, location, posted-within and apply-type filtering.</p>
-        <span class="pill">Open LinkedIn →</span>
-      </a>
+      <!-- LinkedIn Card -->
+      <div class="card linkedin">
+        <div class="card__border"></div>
+        <div class="card_title__container">
+          <div class="logo-row">
+            <div class="logo">
+              <svg viewBox="0 0 24 24" width="32" height="32" fill="#0077b5">
+                <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
+              </svg>
+            </div>
+            <span class="card_title">LinkedIn Scraper</span>
+          </div>
+          <p class="card_paragraph">
+            Public LinkedIn job search with role, location, posted-within and apply-type filtering.
+          </p>
+        </div>
+        <hr class="line" />
+        <ul class="card__list">
+          <li class="card__list_item">
+            <span class="check">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="check_svg">
+                <path fill-rule="evenodd" d="M12.416 3.376a.75.75 0 0 1 .208 1.04l-5 7.5a.75.75 0 0 1-1.154.114l-3-3a.75.75 0 0 1 1.06-1.06l2.353 2.353 4.493-6.74a.75.75 0 0 1 1.04-.207Z" clip-rule="evenodd"></path>
+              </svg>
+            </span>
+            <span class="list_text">Experience Mapping</span>
+          </li>
+          <li class="card__list_item">
+            <span class="check">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="check_svg">
+                <path fill-rule="evenodd" d="M12.416 3.376a.75.75 0 0 1 .208 1.04l-5 7.5a.75.75 0 0 1-1.154.114l-3-3a.75.75 0 0 1 1.06-1.06l2.353 2.353 4.493-6.74a.75.75 0 0 1 1.04-.207Z" clip-rule="evenodd"></path>
+              </svg>
+            </span>
+            <span class="list_text">Balanced Multi-Roles</span>
+          </li>
+          <li class="card__list_item">
+            <span class="check">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="check_svg">
+                <path fill-rule="evenodd" d="M12.416 3.376a.75.75 0 0 1 .208 1.04l-5 7.5a.75.75 0 0 1-1.154.114l-3-3a.75.75 0 0 1 1.06-1.06l2.353 2.353 4.493-6.74a.75.75 0 0 1 1.04-.207Z" clip-rule="evenodd"></path>
+              </svg>
+            </span>
+            <span class="list_text">PDF, CSV, Excel Exports</span>
+          </li>
+        </ul>
+        <a class="button" href="/linkedin">Open LinkedIn</a>
+      </div>
 
-      <a class="portal-card glassdoor" href="/glassdoor">
-        <div class="logo">gd</div>
-        <h2>Glassdoor Scraper</h2>
-        <p>Scrape Glassdoor listings by city. Pick role, location, posted-age and apply preference.</p>
-        <span class="pill">Open Glassdoor →</span>
-      </a>
+      <!-- Glassdoor Card -->
+      <div class="card glassdoor">
+        <div class="card__border"></div>
+        <div class="card_title__container">
+          <div class="logo-row">
+            <div class="logo">
+              <svg viewBox="0 0 24 24" width="32" height="32" fill="#00a162">
+                <path d="M14.1093.0006c-.0749-.0074-.1348.0522-.1348.127v3.451c0 .0673.0537.1194.121.127 2.619.172 4.6092.9501 4.6092 3.6814H13.086a.1343.1343 0 0 0-.1348.1347v8.9644c0 .0748.06.1347.1348.1347h10.0034c.0748 0 .1347-.0599.1347-.1347V7.342c0-2.2374-.7996-4.0558-2.4159-5.3279C19.3191.8469 17.0874.1428 14.1093.0006ZM.9107 7.387a.1342.1342 0 0 0-.1347.1347v8.9566c0 .0748.06.1347.1347.1347h5.6189c0 2.7313-1.9902 3.5094-4.6091 3.6815-.0674.0075-.1192.0596-.1192.127v3.451c0 .0747.06.1343.1348.1269 2.9781-.1422 5.2078-.8463 6.6969-2.0136 1.6163-1.272 2.4159-3.0905 2.4159-5.3278V7.5217a.1343.1343 0 0 0-.1348-.1347z"/>
+              </svg>
+            </div>
+            <span class="card_title">Glassdoor Scraper</span>
+          </div>
+          <p class="card_paragraph">
+            Scrape Glassdoor listings by city. Pick role, location, posted-age and apply preference.
+          </p>
+        </div>
+        <hr class="line" />
+        <ul class="card__list">
+          <li class="card__list_item">
+            <span class="check">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="check_svg">
+                <path fill-rule="evenodd" d="M12.416 3.376a.75.75 0 0 1 .208 1.04l-5 7.5a.75.75 0 0 1-1.154.114l-3-3a.75.75 0 0 1 1.06-1.06l2.353 2.353 4.493-6.74a.75.75 0 0 1 1.04-.207Z" clip-rule="evenodd"></path>
+              </svg>
+            </span>
+            <span class="list_text">In-Memory Experience Filter</span>
+          </li>
+          <li class="card__list_item">
+            <span class="check">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="check_svg">
+                <path fill-rule="evenodd" d="M12.416 3.376a.75.75 0 0 1 .208 1.04l-5 7.5a.75.75 0 0 1-1.154.114l-3-3a.75.75 0 0 1 1.06-1.06l2.353 2.353 4.493-6.74a.75.75 0 0 1 1.04-.207Z" clip-rule="evenodd"></path>
+              </svg>
+            </span>
+            <span class="list_text">Balanced Multi-Roles</span>
+          </li>
+          <li class="card__list_item">
+            <span class="check">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="check_svg">
+                <path fill-rule="evenodd" d="M12.416 3.376a.75.75 0 0 1 .208 1.04l-5 7.5a.75.75 0 0 1-1.154.114l-3-3a.75.75 0 0 1 1.06-1.06l2.353 2.353 4.493-6.74a.75.75 0 0 1 1.04-.207Z" clip-rule="evenodd"></path>
+              </svg>
+            </span>
+            <span class="list_text">PDF, CSV, Excel Exports</span>
+          </li>
+        </ul>
+        <a class="button" href="/glassdoor">Open Glassdoor</a>
+      </div>
 
-      <a class="portal-card indeed" href="/indeed">
-        <div class="logo" style="background: linear-gradient(135deg, #2557a7, #4e7cd0);">id</div>
-        <h2>Indeed Scraper</h2>
-        <p>Scrape Indeed listings by city. Pick role, location, posted-age and apply preference.</p>
-        <span class="pill" style="color: #2557a7;">Open Indeed →</span>
-      </a>
+      <!-- Indeed Card -->
+      <div class="card indeed">
+        <div class="card__border"></div>
+        <div class="card_title__container">
+          <div class="logo-row">
+            <div class="logo">
+              <svg viewBox="0 0 24 24" width="32" height="32" fill="#003a9b">
+                <path d="M11.566 21.5633v-8.762c.2553.0231.5009.0346.758.0346 1.2225 0 2.3739-.3206 3.3506-.8928v9.6182c0 .8219-.1957 1.4287-.5757 1.8338-.378.4033-.8808.6049-1.491.6049-.6007 0-1.0766-.2016-1.468-.6183-.3781-.4032-.5739-1.01-.5739-1.8184zM11.589.5659c2.5447-.8929 5.4424-.8449 7.6186.987.405.3687.8673.8334 1.0515 1.3806.2207.6913-.7695-.073-.9057-.167-.71-.4532-1.4182-.8334-2.2127-1.0946C12.8614.3873 8.8122 2.709 6.2945 6.315c-1.0516 1.5939-1.7367 3.2721-2.299 5.1174-.0614.2017-.1094.4647-.2207.6413-.1113.2036-.048-.5453-.048-.5702.0845-.7623.2438-1.4997.4414-2.237C5.3292 5.3375 7.897 2.0655 11.5891.5658zm4.9281 7.0587c0 1.6686-1.353 3.0224-3.0205 3.0224-1.6677 0-3.0186-1.3538-3.0186-3.0224 0-1.6687 1.351-3.0224 3.0186-3.0224 1.6676 0 3.0205 1.3518 3.0205 3.0224Z"/>
+              </svg>
+            </div>
+            <span class="card_title">Indeed Scraper</span>
+          </div>
+          <p class="card_paragraph">
+            Scrape Indeed listings by city. Pick role, location, posted-age and apply preference.
+          </p>
+        </div>
+        <hr class="line" />
+        <ul class="card__list">
+          <li class="card__list_item">
+            <span class="check">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="check_svg">
+                <path fill-rule="evenodd" d="M12.416 3.376a.75.75 0 0 1 .208 1.04l-5 7.5a.75.75 0 0 1-1.154.114l-3-3a.75.75 0 0 1 1.06-1.06l2.353 2.353 4.493-6.74a.75.75 0 0 1 1.04-.207Z" clip-rule="evenodd"></path>
+              </svg>
+            </span>
+            <span class="list_text">In-Memory Experience Filter</span>
+          </li>
+          <li class="card__list_item">
+            <span class="check">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="check_svg">
+                <path fill-rule="evenodd" d="M12.416 3.376a.75.75 0 0 1 .208 1.04l-5 7.5a.75.75 0 0 1-1.154.114l-3-3a.75.75 0 0 1 1.06-1.06l2.353 2.353 4.493-6.74a.75.75 0 0 1 1.04-.207Z" clip-rule="evenodd"></path>
+              </svg>
+            </span>
+            <span class="list_text">Balanced Multi-Roles</span>
+          </li>
+          <li class="card__list_item">
+            <span class="check">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="check_svg">
+                <path fill-rule="evenodd" d="M12.416 3.376a.75.75 0 0 1 .208 1.04l-5 7.5a.75.75 0 0 1-1.154.114l-3-3a.75.75 0 0 1 1.06-1.06l2.353 2.353 4.493-6.74a.75.75 0 0 1 1.04-.207Z" clip-rule="evenodd"></path>
+              </svg>
+            </span>
+            <span class="list_text">PDF, CSV, Excel Exports</span>
+          </li>
+        </ul>
+        <a class="button" href="/indeed">Open Indeed</a>
+      </div>
 
-      <a class="portal-card hirist" href="/hirist">
-        <div class="logo" style="background: linear-gradient(135deg, #f5701c, #ff9a52);">ht</div>
-        <h2>Hirist Tech Scraper</h2>
-        <p>Category-based tech job search across DevOps, Backend, Frontend, Full Stack etc.</p>
-        <span class="pill" style="color: #f5701c;">Open Hirist →</span>
-      </a>
+      <!-- Hirist Card -->
+      <div class="card hirist">
+        <div class="card__border"></div>
+        <div class="card_title__container">
+          <div class="logo-row">
+            <div class="logo">
+              <svg viewBox="0 0 24 24" width="32" height="32">
+                <rect width="24" height="24" rx="5" fill="#0f294a"/>
+                <path d="M7 6v12h2.5v-4.5c0-.8.7-1.5 1.5-1.5s1.5.7 1.5 1.5V18H15v-5c0-1.7-1.3-3-3-3-.8 0-1.5.3-2 .8V6H7z" fill="#ffffff"/>
+                <path d="M12 9.5l.6 1.2 1.4.2-1 .9.2 1.4-1.2-.7-1.2.7.2-1.4-1-.9 1.4-.2z" fill="#ff7f27"/>
+              </svg>
+            </div>
+            <span class="card_title">Hirist Scraper</span>
+          </div>
+          <p class="card_paragraph">
+            Category-based tech job search across DevOps, Backend, Frontend, Full Stack etc.
+          </p>
+        </div>
+        <hr class="line" />
+        <ul class="card__list">
+          <li class="card__list_item">
+            <span class="check">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="check_svg">
+                <path fill-rule="evenodd" d="M12.416 3.376a.75.75 0 0 1 .208 1.04l-5 7.5a.75.75 0 0 1-1.154.114l-3-3a.75.75 0 0 1 1.06-1.06l2.353 2.353 4.493-6.74a.75.75 0 0 1 1.04-.207Z" clip-rule="evenodd"></path>
+              </svg>
+            </span>
+            <span class="list_text">Experience Band Mapping</span>
+          </li>
+          <li class="card__list_item">
+            <span class="check">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="check_svg">
+                <path fill-rule="evenodd" d="M12.416 3.376a.75.75 0 0 1 .208 1.04l-5 7.5a.75.75 0 0 1-1.154.114l-3-3a.75.75 0 0 1 1.06-1.06l2.353 2.353 4.493-6.74a.75.75 0 0 1 1.04-.207Z" clip-rule="evenodd"></path>
+              </svg>
+            </span>
+            <span class="list_text">Official Tech Categories</span>
+          </li>
+          <li class="card__list_item">
+            <span class="check">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="check_svg">
+                <path fill-rule="evenodd" d="M12.416 3.376a.75.75 0 0 1 .208 1.04l-5 7.5a.75.75 0 0 1-1.154.114l-3-3a.75.75 0 0 1 1.06-1.06l2.353 2.353 4.493-6.74a.75.75 0 0 1 1.04-.207Z" clip-rule="evenodd"></path>
+              </svg>
+            </span>
+            <span class="list_text">PDF, CSV, Excel Exports</span>
+          </li>
+        </ul>
+        <a class="button" href="/hirist">Open Hirist</a>
+      </div>
 
-<a class="portal-card naukri" href="/naukri">
-        <div class="logo" style="background: linear-gradient(135deg, #0079c1, #4aa9e0);">nk</div>
-        <h2>Naukri Scraper</h2>
-        <p>India's largest job portal. Free-text search with experience and posted-within filters.</p>
-        <span class="pill" style="color: #0079c1;">Open Naukri →</span>
-      </a>
+      <!-- Naukri Card -->
+      <div class="card naukri">
+        <div class="card__border"></div>
+        <div class="card_title__container">
+          <div class="logo-row">
+            <div class="logo">
+              <svg viewBox="0 0 24 24" width="32" height="32">
+                <rect width="24" height="24" rx="5" fill="#004b87"/>
+                <path d="M6 8v8h2.5v-3.5c0-.8.7-1.5 1.5-1.5s1.5.7 1.5 1.5V16H14v-4.2c0-1.5-1.1-2.8-2.6-2.8-.7 0-1.3.3-1.8.8v-.8H6z" fill="#ffffff"/>
+                <circle cx="16.5" cy="8.5" r="2.5" fill="#4caf50"/>
+              </svg>
+            </div>
+            <span class="card_title">Naukri Scraper</span>
+          </div>
+          <p class="card_paragraph">
+            India's largest job portal. Free-text search with experience and posted-within filters.
+          </p>
+        </div>
+        <hr class="line" />
+        <ul class="card__list">
+          <li class="card__list_item">
+            <span class="check">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="check_svg">
+                <path fill-rule="evenodd" d="M12.416 3.376a.75.75 0 0 1 .208 1.04l-5 7.5a.75.75 0 0 1-1.154.114l-3-3a.75.75 0 0 1 1.06-1.06l2.353 2.353 4.493-6.74a.75.75 0 0 1 1.04-.207Z" clip-rule="evenodd"></path>
+              </svg>
+            </span>
+            <span class="list_text">Experience Mapping</span>
+          </li>
+          <li class="card__list_item">
+            <span class="check">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="check_svg">
+                <path fill-rule="evenodd" d="M12.416 3.376a.75.75 0 0 1 .208 1.04l-5 7.5a.75.75 0 0 1-1.154.114l-3-3a.75.75 0 0 1 1.06-1.06l2.353 2.353 4.493-6.74a.75.75 0 0 1 1.04-.207Z" clip-rule="evenodd"></path>
+              </svg>
+            </span>
+            <span class="list_text">Balanced Multi-Roles</span>
+          </li>
+          <li class="card__list_item">
+            <span class="check">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="check_svg">
+                <path fill-rule="evenodd" d="M12.416 3.376a.75.75 0 0 1 .208 1.04l-5 7.5a.75.75 0 0 1-1.154.114l-3-3a.75.75 0 0 1 1.06-1.06l2.353 2.353 4.493-6.74a.75.75 0 0 1 1.04-.207Z" clip-rule="evenodd"></path>
+              </svg>
+            </span>
+            <span class="list_text">PDF, CSV, Excel Exports</span>
+          </li>
+        </ul>
+        <a class="button" href="/naukri">Open Naukri</a>
+      </div>
 
-      <a class="portal-card foundit" href="/foundit">
-        <div class="logo" style="background: linear-gradient(135deg, #00a597, #2ecdb5);">fi</div>
-        <h2>Foundit Scraper</h2>
-        <p>Foundit (formerly Monster India) with rich experience-range, location and skill data.</p>
-        <span class="pill" style="color: #00a597;">Open Foundit →</span>
-      </a>
+      <!-- Foundit Card -->
+      <div class="card foundit">
+        <div class="card__border"></div>
+        <div class="card_title__container">
+          <div class="logo-row">
+            <div class="logo">
+              <svg viewBox="0 0 24 24" width="32" height="32">
+                <circle cx="12" cy="12" r="10" stroke="#5025c4" stroke-width="3" fill="#ffffff"/>
+                <path d="M12 7a5 5 0 0 0-5 5h3a2 2 0 0 1 2-2V7z" fill="#00bcd4"/>
+                <circle cx="12" cy="12" r="2" fill="#ff4081"/>
+              </svg>
+            </div>
+            <span class="card_title">Foundit Scraper</span>
+          </div>
+          <p class="card_paragraph">
+            Foundit (Monster India) with rich experience-range, location and skill data.
+          </p>
+        </div>
+        <hr class="line" />
+        <ul class="card__list">
+          <li class="card__list_item">
+            <span class="check">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="check_svg">
+                <path fill-rule="evenodd" d="M12.416 3.376a.75.75 0 0 1 .208 1.04l-5 7.5a.75.75 0 0 1-1.154.114l-3-3a.75.75 0 0 1 1.06-1.06l2.353 2.353 4.493-6.74a.75.75 0 0 1 1.04-.207Z" clip-rule="evenodd"></path>
+              </svg>
+            </span>
+            <span class="list_text">Experience Mapping</span>
+          </li>
+          <li class="card__list_item">
+            <span class="check">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="check_svg">
+                <path fill-rule="evenodd" d="M12.416 3.376a.75.75 0 0 1 .208 1.04l-5 7.5a.75.75 0 0 1-1.154.114l-3-3a.75.75 0 0 1 1.06-1.06l2.353 2.353 4.493-6.74a.75.75 0 0 1 1.04-.207Z" clip-rule="evenodd"></path>
+              </svg>
+            </span>
+            <span class="list_text">Balanced Multi-Roles</span>
+          </li>
+          <li class="card__list_item">
+            <span class="check">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="check_svg">
+                <path fill-rule="evenodd" d="M12.416 3.376a.75.75 0 0 1 .208 1.04l-5 7.5a.75.75 0 0 1-1.154.114l-3-3a.75.75 0 0 1 1.06-1.06l2.353 2.353 4.493-6.74a.75.75 0 0 1 1.04-.207Z" clip-rule="evenodd"></path>
+              </svg>
+            </span>
+            <span class="list_text">PDF, CSV, Excel Exports</span>
+          </li>
+        </ul>
+        <a class="button" href="/foundit">Open Foundit</a>
+      </div>
 
-      <a class="portal-card apna" href="/apna">
-        <div class="logo" style="background: linear-gradient(135deg, #0a8c70, #14b8a6); color: #facc15;">a</div>
-        <h2>Apna Scraper</h2>
-        <p>Apna.co — fastest scraper in JobScout. Salary bands & experience filters.</p>
-        <span class="pill" style="color: #0a8c70;">Open Apna →</span>
-      </a>
+      <!-- Apna Card -->
+      <div class="card apna">
+        <div class="card__border"></div>
+        <div class="card_title__container">
+          <div class="logo-row">
+            <div class="logo">
+              <svg viewBox="0 0 24 24" width="32" height="32">
+                <rect width="24" height="24" rx="6" fill="#008c72"/>
+                <path d="M12 6a6 6 0 0 0-6 6c0 1.6.6 3.1 1.6 4.2L6 20l4-1.2c.6.2 1.3.3 2 .3a6 6 0 0 0 6-6 6 6 0 0 0-6-6zm2.3 8.3c-.3.4-.8.7-1.4.7-.5 0-1-.2-1.3-.5-.3-.3-.5-.8-.5-1.4 0-1 .6-1.7 1.8-1.7h1.4v2.9zm0-3.7h-1.4c-.6 0-1 .2-1.3.5-.3.3-.4.8-.4 1.3 0 .5.1.9.4 1.2.3.3.7.4 1.3.4.6 0 1.1-.3 1.4-.7V10.6z" fill="#ffffff"/>
+              </svg>
+            </div>
+            <span class="card_title">Apna Scraper</span>
+          </div>
+          <p class="card_paragraph">
+            Apna.co — fastest scraper in JobRadar. Salary bands & experience filters.
+          </p>
+        </div>
+        <hr class="line" />
+        <ul class="card__list">
+          <li class="card__list_item">
+            <span class="check">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="check_svg">
+                <path fill-rule="evenodd" d="M12.416 3.376a.75.75 0 0 1 .208 1.04l-5 7.5a.75.75 0 0 1-1.154.114l-3-3a.75.75 0 0 1 1.06-1.06l2.353 2.353 4.493-6.74a.75.75 0 0 1 1.04-.207Z" clip-rule="evenodd"></path>
+              </svg>
+            </span>
+            <span class="list_text">Experience Band Mapping</span>
+          </li>
+          <li class="card__list_item">
+            <span class="check">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="check_svg">
+                <path fill-rule="evenodd" d="M12.416 3.376a.75.75 0 0 1 .208 1.04l-5 7.5a.75.75 0 0 1-1.154.114l-3-3a.75.75 0 0 1 1.06-1.06l2.353 2.353 4.493-6.74a.75.75 0 0 1 1.04-.207Z" clip-rule="evenodd"></path>
+              </svg>
+            </span>
+            <span class="list_text">City Fallback Mapping</span>
+          </li>
+          <li class="card__list_item">
+            <span class="check">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="check_svg">
+                <path fill-rule="evenodd" d="M12.416 3.376a.75.75 0 0 1 .208 1.04l-5 7.5a.75.75 0 0 1-1.154.114l-3-3a.75.75 0 0 1 1.06-1.06l2.353 2.353 4.493-6.74a.75.75 0 0 1 1.04-.207Z" clip-rule="evenodd"></path>
+              </svg>
+            </span>
+            <span class="list_text">PDF, CSV, Excel Exports</span>
+          </li>
+        </ul>
+        <a class="button" href="/apna">Open Apna</a>
+      </div>
 
-      <a class="portal-card shine" href="/shine">
-        <div class="logo" style="background: linear-gradient(135deg, #7c3aed, #c026d3);">sh</div>
-        <h2>Shine Scraper</h2>
-        <p>Shine.com — plain-HTTP scrape with multi-band experience filter and date sort.</p>
-        <span class="pill" style="color: #7c3aed;">Open Shine →</span>
-      </a>
+      <!-- Shine Card -->
+      <div class="card shine">
+        <div class="card__border"></div>
+        <div class="card_title__container">
+          <div class="logo-row">
+            <div class="logo">
+              <svg viewBox="0 0 24 24" width="32" height="32">
+                <rect width="24" height="24" rx="6" fill="#7c3aed"/>
+                <path d="M12 6l1.5 3.5L17 11l-3.5 1.5L12 18l-1.5-3.5L7 13l3.5-1.5z" fill="#facc15"/>
+                <circle cx="12" cy="12" r="2.5" fill="#ffffff"/>
+              </svg>
+            </div>
+            <span class="card_title">Shine Scraper</span>
+          </div>
+          <p class="card_paragraph">
+            Shine.com — plain-HTTP scrape with multi-band experience filter and date sort.
+          </p>
+        </div>
+        <hr class="line" />
+        <ul class="card__list">
+          <li class="card__list_item">
+            <span class="check">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="check_svg">
+                <path fill-rule="evenodd" d="M12.416 3.376a.75.75 0 0 1 .208 1.04l-5 7.5a.75.75 0 0 1-1.154.114l-3-3a.75.75 0 0 1 1.06-1.06l2.353 2.353 4.493-6.74a.75.75 0 0 1 1.04-.207Z" clip-rule="evenodd"></path>
+              </svg>
+            </span>
+            <span class="list_text">Experience Band Mapping</span>
+          </li>
+          <li class="card__list_item">
+            <span class="check">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="check_svg">
+                <path fill-rule="evenodd" d="M12.416 3.376a.75.75 0 0 1 .208 1.04l-5 7.5a.75.75 0 0 1-1.154.114l-3-3a.75.75 0 0 1 1.06-1.06l2.353 2.353 4.493-6.74a.75.75 0 0 1 1.04-.207Z" clip-rule="evenodd"></path>
+              </svg>
+            </span>
+            <span class="list_text">Balanced Multi-Roles</span>
+          </li>
+          <li class="card__list_item">
+            <span class="check">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" class="check_svg">
+                <path fill-rule="evenodd" d="M12.416 3.376a.75.75 0 0 1 .208 1.04l-5 7.5a.75.75 0 0 1-1.154.114l-3-3a.75.75 0 0 1 1.06-1.06l2.353 2.353 4.493-6.74a.75.75 0 0 1 1.04-.207Z" clip-rule="evenodd"></path>
+              </svg>
+            </span>
+            <span class="list_text">PDF, CSV, Excel Exports</span>
+          </li>
+        </ul>
+        <a class="button" href="/shine">Open Shine</a>
+      </div>
+    </div>
+    <footer style="margin-top: 48px; text-align: center; font-size: 13.5px; color: var(--subtext); font-family: 'Plus Jakarta Sans', sans-serif; letter-spacing: 0.03em; border-top: 1px solid var(--line); padding-top: 24px; padding-bottom: 12px;">
+      JobRadar &copy; 2026 &bull; Developed &amp; Watermarked for <span style="font-weight: 700; color: var(--primary);">Rajpal Singh Tanwar</span>
+    </footer>
     </div>
   </div>
+  <div class="watermark-badge">Rajpal Singh Tanwar</div>
 
   <script>
     const SUN_SVG = '<svg viewBox="0 0 24 24" width="14" height="14"><path fill="currentColor" d="M12 4.5a1 1 0 0 1-1-1V1.5a1 1 0 1 1 2 0v2a1 1 0 0 1-1 1zm0 18a1 1 0 0 1-1-1v-2a1 1 0 1 1 2 0v2a1 1 0 0 1-1 1zM4.5 13a1 1 0 0 1-1-1H1.5a1 1 0 1 1 0-2h2a1 1 0 0 1 0 2zm18 0h-2a1 1 0 1 1 0-2h2a1 1 0 1 1 0 2zM6.34 7.76a1 1 0 0 1-.71-.29L4.22 6.05a1 1 0 1 1 1.41-1.41l1.41 1.41a1 1 0 0 1-.71 1.71zm12.02 12.02a1 1 0 0 1-.71-.29l-1.41-1.41a1 1 0 1 1 1.41-1.41l1.41 1.41a1 1 0 0 1-.71 1.71zM5.63 19.78a1 1 0 0 1-.71-1.71l1.41-1.41a1 1 0 1 1 1.41 1.41l-1.41 1.41a1 1 0 0 1-.71.29zm12.02-12.02a1 1 0 0 1-.71-1.71l1.41-1.41a1 1 0 1 1 1.41 1.41l-1.41 1.41a1 1 0 0 1-.71.29zM12 7a5 5 0 1 0 0 10 5 5 0 0 0 0-10z"/></svg>';

@@ -1,3 +1,8 @@
+# ==============================================================================
+# WATERMARK: Rajpal Singh Tanwar
+# Copyright (c) 2026 Rajpal Singh Tanwar. All rights reserved.
+# ==============================================================================
+
 """Naukri.com public job search scraper (no login required).
 
 Naukri uses Akamai Bot Manager and aggressively blocks anything that looks
@@ -42,6 +47,16 @@ NAUKRI_CITIES = {
     "Delhi":      "delhi-ncr",
     "Noida":      "noida",
     "Gurugram":   "gurgaon",
+    "Indore":     "indore",
+    "Ahmedabad":  "ahmedabad",
+    "Nagpur":     "nagpur",
+    "Chandigarh": "chandigarh",
+    "Mohali":     "mohali",
+    "Kochi":      "kochi",
+    "Kolkata":    "kolkata",
+    "Surat":      "surat",
+    "Jaipur":     "jaipur",
+    "Coimbatore": "coimbatore",
 }
 
 # Profile directory — persisted between scraper invocations so Akamai keeps
@@ -113,6 +128,11 @@ def scrape_naukri(role, city, job_age_days, limit, experience=None):
     all_jobs = []
     seen_links = set()
 
+    # Support multiple job roles separated by commas
+    roles = [r.strip() for r in role.split(",") if r.strip()]
+    if not roles:
+        roles = [role]
+
     with sync_playwright() as p:
         ctx = p.chromium.launch_persistent_context(
             _PROFILE_DIR,
@@ -148,111 +168,121 @@ def scrape_naukri(role, city, job_age_days, limit, experience=None):
         except Exception:
             pass
 
-        page_num = 1
-        while len(all_jobs) < limit:
-            url = _build_url(role, city_slug, city_query, job_age_days, experience, page_num)
-            print(f"[Naukri] Fetching: {url}")
+        max_pages = 5
+        active_roles = list(roles)
 
-            try:
-                page.goto(url, wait_until="domcontentloaded", timeout=30000)
-                time.sleep(random.uniform(3.5, 5.0))
+        for page_idx in range(max_pages):
+            if len(all_jobs) >= limit or not active_roles:
+                break
 
-                # Quick block detection
-                title = page.title() or ""
-                if "Access Denied" in title or "Just a moment" in title:
-                    print(f"[Naukri] BLOCKED on page {page_num} (title={title!r}). Stopping.")
+            page_num = page_idx + 1
+            next_active = []
+
+            for r in active_roles:
+                if len(all_jobs) >= limit:
                     break
 
-                # Cards lazy-load on scroll
-                for _ in range(2):
-                    page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
-                    time.sleep(1.2)
+                url = _build_url(r, city_slug, city_query, job_age_days, experience, page_num)
+                print(f"[Naukri] Fetching: {url}")
 
-                cards = page.query_selector_all("div.srp-jobtuple-wrapper")
-                if not cards:
-                    cards = page.query_selector_all("div.cust-job-tuple")
+                try:
+                    page.goto(url, wait_until="domcontentloaded", timeout=30000)
+                    time.sleep(random.uniform(3.5, 5.0))
 
-                if not cards:
-                    print(f"[Naukri] No cards on page {page_num}")
-                    break
-
-                found_this_page = 0
-                for card in cards:
-                    if len(all_jobs) >= limit:
-                        break
-                    try:
-                        title_el = card.query_selector("a.title")
-                        title_txt = title_el.inner_text().strip() if title_el else ""
-                        if not title_txt:
-                            continue
-                        link = (title_el.get_attribute("href") or "").strip() if title_el else ""
-                        if not link:
-                            continue
-                        if not link.startswith("http"):
-                            link = "https://www.naukri.com" + link
-                        if link in seen_links:
-                            continue
-
-                        comp_el = card.query_selector("a.comp-name")
-                        company = comp_el.inner_text().strip() if comp_el else "N/A"
-
-                        rating_el = card.query_selector("a.rating span.main-2")
-                        rating = rating_el.inner_text().strip() if rating_el else ""
-
-                        exp_el = card.query_selector("span.expwdth") or card.query_selector("span.exp")
-                        exp_text = exp_el.inner_text().strip() if exp_el else ""
-
-                        sal_el = (
-                            card.query_selector("span.sal-wrap span")
-                            or card.query_selector("span.sal")
-                            or card.query_selector("[class*='sal-wrap']")
-                        )
-                        salary = sal_el.inner_text().strip() if sal_el else ""
-
-                        loc_el = card.query_selector("span.locWdth") or card.query_selector("span.loc")
-                        loc_text = loc_el.inner_text().strip() if loc_el else city
-
-                        desc_el = card.query_selector("span.job-desc")
-                        desc = desc_el.inner_text().strip() if desc_el else ""
-
-                        skills = [li.inner_text().strip() for li in card.query_selector_all("ul.tags-gt li")]
-
-                        age_el = card.query_selector("span.job-post-day")
-                        posted_raw = age_el.inner_text().strip() if age_el else ""
-                        posted = _parse_naukri_date(posted_raw)
-
-                        seen_links.add(link)
-                        all_jobs.append({
-                            "Job Title": title_txt,
-                            "Company": company,
-                            "Location": loc_text,
-                            "Posted": posted,
-                            "Link": link,
-                            "Experience": exp_text,
-                            "Salary": salary,
-                            "Rating": rating,
-                            "Skills": ", ".join(skills),
-                            "Description": desc,
-                            "Easy Apply": False,
-                            "Apply Type": "Naukri Apply",
-                        })
-                        found_this_page += 1
-                    except Exception as e:
-                        print(f"[Naukri] Card error: {e}")
+                    # Quick block detection
+                    title = page.title() or ""
+                    if "Access Denied" in title or "Just a moment" in title:
+                        print(f"[Naukri] BLOCKED on page {page_num} for role '{r}' (title={title!r}). Skipping role.")
                         continue
 
-                print(f"[Naukri] Got {found_this_page} jobs from page {page_num}")
-                if found_this_page == 0:
-                    break
-                page_num += 1
-                time.sleep(random.uniform(2.0, 3.5))
+                    # Cards lazy-load on scroll
+                    for _ in range(2):
+                        page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
+                        time.sleep(1.2)
 
-            except PWTimeout:
-                print(f"[Naukri] Timeout on page {page_num}")
-                break
-            except Exception as e:
-                print(f"[Naukri] Error: {e}")
-                break
+                    cards = page.query_selector_all("div.srp-jobtuple-wrapper")
+                    if not cards:
+                        cards = page.query_selector_all("div.cust-job-tuple")
+
+                    if not cards:
+                        print(f"[Naukri] No cards on page {page_num} for role '{r}'")
+                        continue  # Exhausted
+
+                    found_this_page = 0
+                    for card in cards:
+                        if len(all_jobs) >= limit:
+                            break
+                        try:
+                            title_el = card.query_selector("a.title")
+                            title_txt = title_el.inner_text().strip() if title_el else ""
+                            if not title_txt:
+                                continue
+                            link = (title_el.get_attribute("href") or "").strip() if title_el else ""
+                            if not link:
+                                continue
+                            if not link.startswith("http"):
+                                link = "https://www.naukri.com" + link
+                            if link in seen_links:
+                                continue
+
+                            comp_el = card.query_selector("a.comp-name")
+                            company = comp_el.inner_text().strip() if comp_el else "N/A"
+
+                            rating_el = card.query_selector("a.rating span.main-2")
+                            rating = rating_el.inner_text().strip() if rating_el else ""
+
+                            exp_el = card.query_selector("span.expwdth") or card.query_selector("span.exp")
+                            exp_text = exp_el.inner_text().strip() if exp_el else ""
+
+                            sal_el = (
+                                card.query_selector("span.sal-wrap span")
+                                or card.query_selector("span.sal")
+                                or card.query_selector("[class*='sal-wrap']")
+                            )
+                            salary = sal_el.inner_text().strip() if sal_el else ""
+
+                            loc_el = card.query_selector("span.locWdth") or card.query_selector("span.loc")
+                            loc_text = loc_el.inner_text().strip() if loc_el else city
+
+                            desc_el = card.query_selector("span.job-desc")
+                            desc = desc_el.inner_text().strip() if desc_el else ""
+
+                            skills = [li.inner_text().strip() for li in card.query_selector_all("ul.tags-gt li")]
+
+                            age_el = card.query_selector("span.job-post-day")
+                            posted_raw = age_el.inner_text().strip() if age_el else ""
+                            posted = _parse_naukri_date(posted_raw)
+
+                            seen_links.add(link)
+                            all_jobs.append({
+                                "Job Title": title_txt,
+                                "Company": company,
+                                "Location": loc_text,
+                                "Posted": posted,
+                                "Link": link,
+                                "Experience": exp_text,
+                                "Salary": salary,
+                                "Rating": rating,
+                                "Skills": ", ".join(skills),
+                                "Description": desc,
+                                "Easy Apply": False,
+                                "Apply Type": "Naukri Apply",
+                            })
+                            found_this_page += 1
+                        except Exception as e:
+                            print(f"[Naukri] Card error: {e}")
+                            continue
+
+                    print(f"[Naukri] Got {found_this_page} jobs from page {page_num} for role '{r}'")
+                    next_active.append(r)
+                    time.sleep(random.uniform(2.0, 3.5))
+
+                except PWTimeout:
+                    print(f"[Naukri] Timeout on page {page_num} for role '{r}'")
+                except Exception as e:
+                    print(f"[Naukri] Error: {e}")
+
+            active_roles = next_active
 
         ctx.close()
 

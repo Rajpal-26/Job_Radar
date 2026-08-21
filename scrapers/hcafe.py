@@ -1,3 +1,8 @@
+# ==============================================================================
+# WATERMARK: Rajpal Singh Tanwar
+# Copyright (c) 2026 Rajpal Singh Tanwar. All rights reserved.
+# ==============================================================================
+
 """HiringCafe public job search scraper (no login required).
 
 HiringCafe is a Next.js app that server-renders its job results into a
