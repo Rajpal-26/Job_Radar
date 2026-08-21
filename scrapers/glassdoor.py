@@ -97,28 +97,32 @@ def _build_url(role, location_slug, location_id, from_age, page=1):
 def _filter_by_experience(jobs, exp_key):
     if not exp_key:
         return jobs
-    keywords = {
-        "fresher": [r"\bfresher\b", r"\bentry\b", r"\bjunior\b", r"\b0-1\b", r"\bgrad\b"],
-        "0-1": [r"\bfresher\b", r"\bentry\b", r"\bjunior\b", r"\b0-1\b", r"\b1\b", r"\bgrad\b"],
-        "0-6m": [r"\bintern\b", r"\bfresher\b", r"\bco-op\b"],
-        "internship": [r"\bintern\b", r"\bco-op\b", r"\bstudent\b"],
-        "1-2": [r"\bjunior\b", r"\b1-2\b", r"\b2\b", r"\bassociate\b"],
-        "1-3": [r"\bjunior\b", r"\b1-3\b", r"\b2\b", r"\b3\b", r"\bassociate\b"],
-        "3-5": [r"\bmid\b", r"\b3-5\b", r"\b3\b", r"\b4\b", r"\b5\b", r"\bsenior\b"],
-        "5-7": [r"\bsenior\b", r"\b5-7\b", r"\b5\b", r"\b6\b", r"\b7\b", r"\bsr\b"],
-        "7-10": [r"\bsenior\b", r"\blead\b", r"\b7-10\b", r"\b8\b", r"\b9\b", r"\b10\b", r"\bmanager\b"],
-        "10+": [r"\blead\b", r"\bmanager\b", r"\b10\+\b", r"\bdirector\b", r"\bvp\b", r"\barchitect\b", r"\bprincipal\b"]
-    }.get(exp_key, [])
-    
+    exclude_patterns = []
+    if exp_key in ("fresher", "0-1", "0-6m", "internship"):
+        exclude_patterns = [
+            r"\bsenior\b", r"\bsr\b", r"\bsr\.", r"\blead\b", r"\barchitect\b",
+            r"\bmanager\b", r"\bdirector\b", r"\bvp\b", r"\bprincipal\b",
+            r"\bstaff\b", r"\bii\b", r"\biii\b", r"\biv\b", r"\bhead\b", r"\bexpert\b"
+        ]
+    elif exp_key in ("1-2", "1-3", "3-5"):
+        exclude_patterns = [
+            r"\bintern\b", r"\bco-op\b", r"\bstudent\b", r"\btrainee\b", r"\bfresher\b",
+            r"\bhead\b", r"\bdirector\b", r"\bvp\b", r"\bprincipal\b", r"\barchitect\b"
+        ]
+    elif exp_key in ("5-7", "7-10", "10+"):
+        exclude_patterns = [
+            r"\bintern\b", r"\bco-op\b", r"\bstudent\b", r"\btrainee\b", r"\bfresher\b",
+            r"\bjunior\b", r"\bjr\b", r"\bjr\.", r"\bentry\b", r"\bassociate\b"
+        ]
     filtered = []
     for job in jobs:
         title = (job.get("Job Title") or "").lower()
-        matched = False
-        for pattern in keywords:
+        matched_exclude = False
+        for pattern in exclude_patterns:
             if re.search(pattern, title):
-                matched = True
+                matched_exclude = True
                 break
-        if matched:
+        if not matched_exclude:
             filtered.append(job)
     return filtered
 
@@ -322,6 +326,37 @@ def scrape_glassdoor(role, from_age_days, limit, locations, apply_mode="include_
                             if apply_mode == "only_easy" and not easy_apply:
                                 continue
 
+                            # ── Salary ──
+                            sal_el = (
+                                card.query_selector("[data-test='detailSalary']")
+                                or card.query_selector("div.JobCard_salaryEstimate__arptZ")
+                                or card.query_selector("span[class*='salary']")
+                            )
+                            salary = sal_el.inner_text().strip() if sal_el else ""
+
+                            # ── Workplace ──
+                            workplace = ""
+                            if "hybrid" in loc_text.lower():
+                                workplace = "Hybrid"
+                            elif "remote" in loc_text.lower():
+                                workplace = "Remote"
+                            elif "work from home" in loc_text.lower():
+                                workplace = "Remote"
+                            else:
+                                workplace = "On-site"
+
+                            # ── Description (Snippet) ──
+                            desc_el = (
+                                card.query_selector("div.JobCard_jobDescriptionSnippet__Hditg")
+                                or card.query_selector("div[class*='DescriptionSnippet']")
+                                or card.query_selector("div[class*='jobDescriptionSnippet']")
+                            )
+                            description = desc_el.inner_text().strip().replace("\n", " ") if desc_el else ""
+
+                            # ── Experience ──
+                            exp_match = re.search(r"(\d+-\d+|\d+\+?)\s*(years|yrs|year|yr)", card_text)
+                            experience_text = exp_match.group(0).strip() if exp_match else ""
+
                             seen_links.add(link)
                             all_jobs.append({
                                 "Job Title": title,
@@ -331,6 +366,11 @@ def scrape_glassdoor(role, from_age_days, limit, locations, apply_mode="include_
                                 "Link": link,
                                 "Easy Apply": easy_apply,
                                 "Apply Type": apply_type,
+                                "Salary": salary,
+                                "Workplace": workplace,
+                                "Description": description,
+                                "Experience": experience_text,
+                                "Skills": "",
                             })
                             found_this_page += 1
 

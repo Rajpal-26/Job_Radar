@@ -209,6 +209,9 @@ def scrape_linkedin(role, time_filter, limit, locations, apply_mode="include_eas
                             if apply_mode == "only_external" and easy_apply:
                                 continue
 
+                            description = ""
+                            workplace = ""
+                            experience_text = ""
                             try:
                                 detail = context.new_page()
                                 detail.goto(link, wait_until="domcontentloaded", timeout=20000)
@@ -267,6 +270,35 @@ def scrape_linkedin(role, time_filter, limit, locations, apply_mode="include_eas
                                 if not posted_detail and posted:
                                     posted_detail = posted[:10]
 
+                                # ── Description ──
+                                desc_el = detail.query_selector("div.description__text") or detail.query_selector(".show-more-less-html__markup")
+                                description = desc_el.inner_text().strip().replace("\n", " ") if desc_el else ""
+
+                                # ── Workplace ──
+                                topcard_text = ""
+                                try:
+                                    topcard_el = detail.query_selector(".topcard__flavor-row")
+                                    topcard_text = (topcard_el.inner_text() or "").lower() if topcard_el else ""
+                                except Exception:
+                                    pass
+                                workplace = "On-site"
+                                if "remote" in topcard_text:
+                                    workplace = "Remote"
+                                elif "hybrid" in topcard_text:
+                                    workplace = "Hybrid"
+
+                                # ── Experience ──
+                                try:
+                                    for item in detail.query_selector_all("li.description__job-criteria-item"):
+                                        subheader = item.query_selector(".description__job-criteria-subheader")
+                                        if subheader and "seniority" in subheader.inner_text().lower():
+                                            val_el = item.query_selector(".description__job-criteria-value")
+                                            if val_el:
+                                                experience_text = val_el.inner_text().strip()
+                                                break
+                                except Exception:
+                                    pass
+
                                 detail.close()
                             except Exception as e:
                                 try:
@@ -290,6 +322,11 @@ def scrape_linkedin(role, time_filter, limit, locations, apply_mode="include_eas
                                 "Link": link,
                                 "Easy Apply": easy_apply,
                                 "Apply Type": apply_type,
+                                "Salary": "",
+                                "Workplace": workplace,
+                                "Description": description,
+                                "Experience": experience_text,
+                                "Skills": "",
                             })
                             found_this_page += 1
 

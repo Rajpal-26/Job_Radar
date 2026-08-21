@@ -19,6 +19,11 @@
     body.indeed .search-btn { background: linear-gradient(125deg, #2557a7, #4e7cd0); box-shadow: 0 10px 26px rgba(37, 87, 167, 0.32); }
     body.indeed .portal-card .logo { background: linear-gradient(135deg, #2557a7, #4e7cd0); }
     body.indeed .apply { background: linear-gradient(125deg, #2557a7, #4e7cd0); }
+    .skills-row { margin-top: 6px; font-size: 11px; color: var(--subtext); }
+    .skill-pill { display: inline-block; background: var(--panel-soft); border: 1px solid var(--line); padding: 2px 7px; border-radius: 999px; margin-right: 4px; margin-bottom: 3px; font-weight: 600; }
+    .salary-pill { display: inline-block; background: #fef3c7; color: #92400e; border: 1px solid #fde68a; padding: 2px 8px; border-radius: 999px; font-weight: 700; font-size: 11px; }
+    [data-theme="dark"] .salary-pill { background: #422a04; color: #fbbf24; border-color: #6b4716; }
+    .desc-row { margin-top: 6px; font-size: 12px; color: var(--subtext); line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
   </style>
 </head>
 <body class="indeed">
@@ -278,15 +283,36 @@
         const card = document.createElement("article");
         card.className = "job";
         card.style.animationDelay = `${delay}ms`;
+
+        // Extra details
+        const salaryHtml = job.Salary && job.Salary !== "Not disclosed"
+          ? `<span class="salary-pill">${escapeHtml(job.Salary)}</span>` : "";
+        const expHtml = job.Experience ? `<span class="badge">${escapeHtml(job.Experience)}</span>` : "";
+        const workplaceHtml = job.Workplace ? `<span class="badge">${escapeHtml(job.Workplace)}</span>` : "";
+        
+        const skills = (job.Skills || "").split(",").map(s => s.trim()).filter(Boolean).slice(0, 6);
+        const skillsHtml = skills.length
+          ? `<div class="skills-row">${skills.map(s => `<span class="skill-pill">${escapeHtml(s)}</span>`).join("")}</div>`
+          : "";
+          
+        const descHtml = job.Description
+          ? `<div class="desc-row">${escapeHtml(job.Description)}</div>`
+          : "";
+
         card.innerHTML = `
           <div>
             <div class="job-title">${escapeHtml(job["Job Title"])}</div>
             <div class="job-company">${escapeHtml(job.Company)}</div>
             <div class="meta">
               <span class="badge">${escapeHtml(job.Location || "Unknown")}</span>
+              ${expHtml}
+              ${workplaceHtml}
               <span class="badge">Posted ${escapeHtml(posted)}</span>
+              ${salaryHtml}
               ${badgeForApplyType(applyType)}
             </div>
+            ${descHtml}
+            ${skillsHtml}
           </div>
           <a class="apply" href="${escapeHtml(job.Link)}" target="_blank" rel="noopener noreferrer">Open Job</a>
         `;

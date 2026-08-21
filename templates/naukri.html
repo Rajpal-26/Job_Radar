@@ -249,6 +249,7 @@
         const descHtml = job.Description
           ? `<div class="desc-row">${escapeHtml(job.Description)}</div>`
           : "";
+        const workplaceHtml = job.Workplace ? `<span class="badge">${escapeHtml(job.Workplace)}</span>` : "";
         card.innerHTML = `
           <div>
             <div class="job-title">${escapeHtml(job["Job Title"])}</div>
@@ -256,6 +257,7 @@
             <div class="meta">
               <span class="badge">${escapeHtml(job.Location || "Unknown")}</span>
               ${job.Experience ? `<span class="badge">${escapeHtml(job.Experience)}</span>` : ""}
+              ${workplaceHtml}
               ${job.Salary ? `<span class="badge">${escapeHtml(job.Salary)}</span>` : ""}
               <span class="badge">Posted ${escapeHtml(posted)}</span>
             </div>

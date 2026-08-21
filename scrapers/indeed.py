@@ -68,8 +68,8 @@ def _parse_indeed_date(text):
     return today.strftime("%Y-%m-%d")
 
 
-def _build_url(role, location, fromage_days, start=0):
-    return (
+def _build_url(role, location, fromage_days, start=0, experience=None):
+    url = (
         "https://in.indeed.com/jobs?"
         f"q={quote_plus(role)}"
         f"&l={quote_plus(location)}"
@@ -78,28 +78,46 @@ def _build_url(role, location, fromage_days, start=0):
         "&sort=date"
         f"&start={int(start)}"
     )
+    if experience:
+        sc_val = None
+        if experience in ("fresher", "0-1", "0-6m", "internship"):
+            sc_val = "explvl(ENTRY_LEVEL)"
+        elif experience in ("1-2", "1-3", "3-5"):
+            sc_val = "explvl(MID_LEVEL)"
+        elif experience in ("5-7", "7-10", "10+"):
+            sc_val = "explvl(SENIOR_LEVEL)"
+        if sc_val:
+            url += f"&sc=0kf%3A{sc_val}%3B"
+    return url
+
+
+import os
+
+_PROFILE_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "_indeed_profile")
 
 
 def _launch(p, headless):
-    browser = p.chromium.launch(
-        headless=headless,
+    os.makedirs(_PROFILE_DIR, exist_ok=True)
+    context = p.chromium.launch_persistent_context(
+        _PROFILE_DIR,
+        headless=False,
+        viewport={"width": 1366, "height": 768},
+        user_agent=(
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+            "AppleWebKit/537.36 (KHTML, like Gecko) "
+            "Chrome/132.0.0.0 Safari/537.36"
+        ),
+        locale="en-IN",
+        timezone_id="Asia/Kolkata",
         args=[
             "--no-sandbox",
             "--disable-setuid-sandbox",
             "--disable-dev-shm-usage",
             "--disable-blink-features=AutomationControlled",
             "--disable-infobars",
-        ],
-    )
-    context = browser.new_context(
-        user_agent=(
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-            "AppleWebKit/537.36 (KHTML, like Gecko) "
-            "Chrome/122.0.0.0 Safari/537.36"
-        ),
-        viewport={"width": 1366, "height": 768},
-        locale="en-IN",
-        timezone_id="Asia/Kolkata",
+            "--no-first-run",
+            "--no-default-browser-check",
+        ] + (["--headless=new"] if headless else []),
     )
     context.add_init_script("""
         Object.defineProperty(navigator, 'webdriver', {get: () => undefined});
@@ -107,7 +125,7 @@ def _launch(p, headless):
         Object.defineProperty(navigator, 'languages', {get: () => ['en-IN', 'en']});
         window.chrome = {runtime: {}};
     """)
-    return browser, context
+    return None, context
 
 
 def _is_blocked(page):
@@ -134,7 +152,7 @@ def _scrape_with(p, role, fromage_days, internal_limit, locations,
     blocked_any = False
 
     browser, context = _launch(p, headless=headless)
-    page = context.new_page()
+    page = context.pages[0] if context.pages else context.new_page()
 
     # Support multiple comma-separated job roles
     roles = [r.strip() for r in role.split(",") if r.strip()]
@@ -157,7 +175,7 @@ def _scrape_with(p, role, fromage_days, internal_limit, locations,
                     break
 
                 location_query = INDEED_CITIES[city_key]
-                url = _build_url(r, location_query, fromage_days, start)
+                url = _build_url(r, location_query, fromage_days, start, experience)
                 print(f"[Indeed] Fetching: {url}")
 
                 # Bot-check retry
@@ -261,6 +279,41 @@ def _scrape_with(p, role, fromage_days, internal_limit, locations,
                             if apply_mode == "only_easy" and not easy_apply:
                                 continue
 
+                            # ── Salary ──
+                            sal_el = (
+                                card.query_selector("div.metadata.salary-snippet-container")
+                                or card.query_selector("div.salary-snippet")
+                                or card.query_selector("div.metadata-container")
+                                or card.query_selector("[class*='salary']")
+                            )
+                            salary = sal_el.inner_text().strip() if sal_el else ""
+
+                            # ── Workplace ──
+                            workplace = ""
+                            if "hybrid" in loc_text.lower():
+                                workplace = "Hybrid"
+                            elif "remote" in loc_text.lower():
+                                workplace = "Remote"
+                            elif "work from home" in loc_text.lower():
+                                workplace = "Remote"
+                            else:
+                                workplace = "On-site"
+
+                            # ── Description (Snippet) ──
+                            snip_el = (
+                                card.query_selector("div.job-snippet")
+                                or card.query_selector("div.underSection")
+                                or card.query_selector("table.jobCard_mainContent ul")
+                            )
+                            description = snip_el.inner_text().strip().replace("\n", " ") if snip_el else ""
+
+                            # ── Experience ──
+                            exp_match = re.search(r"(\d+-\d+|\d+\+?)\s*(years|yrs|year|yr)", card_text)
+                            experience_text = exp_match.group(0).strip() if exp_match else ""
+
+                            # ── Skills ──
+                            skills = ""
+
                             seen_links.add(link)
                             all_jobs.append({
                                 "Job Title": title,
@@ -270,6 +323,11 @@ def _scrape_with(p, role, fromage_days, internal_limit, locations,
                                 "Link": link,
                                 "Easy Apply": easy_apply,
                                 "Apply Type": apply_type,
+                                "Salary": salary,
+                                "Workplace": workplace,
+                                "Description": description,
+                                "Experience": experience_text,
+                                "Skills": skills,
                             })
                             found_this_page += 1
                         except Exception as e:
@@ -289,7 +347,7 @@ def _scrape_with(p, role, fromage_days, internal_limit, locations,
 
     finally:
         try:
-            browser.close()
+            context.close()
         except Exception:
             pass
 
@@ -299,28 +357,32 @@ def _scrape_with(p, role, fromage_days, internal_limit, locations,
 def _filter_by_experience(jobs, exp_key):
     if not exp_key:
         return jobs
-    keywords = {
-        "fresher": [r"\bfresher\b", r"\bentry\b", r"\bjunior\b", r"\b0-1\b", r"\bgrad\b"],
-        "0-1": [r"\bfresher\b", r"\bentry\b", r"\bjunior\b", r"\b0-1\b", r"\b1\b", r"\bgrad\b"],
-        "0-6m": [r"\bintern\b", r"\bfresher\b", r"\bco-op\b"],
-        "internship": [r"\bintern\b", r"\bco-op\b", r"\bstudent\b"],
-        "1-2": [r"\bjunior\b", r"\b1-2\b", r"\b2\b", r"\bassociate\b"],
-        "1-3": [r"\bjunior\b", r"\b1-3\b", r"\b2\b", r"\b3\b", r"\bassociate\b"],
-        "3-5": [r"\bmid\b", r"\b3-5\b", r"\b3\b", r"\b4\b", r"\b5\b", r"\bsenior\b"],
-        "5-7": [r"\bsenior\b", r"\b5-7\b", r"\b5\b", r"\b6\b", r"\b7\b", r"\bsr\b"],
-        "7-10": [r"\bsenior\b", r"\blead\b", r"\b7-10\b", r"\b8\b", r"\b9\b", r"\b10\b", r"\bmanager\b"],
-        "10+": [r"\blead\b", r"\bmanager\b", r"\b10\+\b", r"\bdirector\b", r"\bvp\b", r"\barchitect\b", r"\bprincipal\b"]
-    }.get(exp_key, [])
-    
+    exclude_patterns = []
+    if exp_key in ("fresher", "0-1", "0-6m", "internship"):
+        exclude_patterns = [
+            r"\bsenior\b", r"\bsr\b", r"\bsr\.", r"\blead\b", r"\barchitect\b",
+            r"\bmanager\b", r"\bdirector\b", r"\bvp\b", r"\bprincipal\b",
+            r"\bstaff\b", r"\bii\b", r"\biii\b", r"\biv\b", r"\bhead\b", r"\bexpert\b"
+        ]
+    elif exp_key in ("1-2", "1-3", "3-5"):
+        exclude_patterns = [
+            r"\bintern\b", r"\bco-op\b", r"\bstudent\b", r"\btrainee\b", r"\bfresher\b",
+            r"\bhead\b", r"\bdirector\b", r"\bvp\b", r"\bprincipal\b", r"\barchitect\b"
+        ]
+    elif exp_key in ("5-7", "7-10", "10+"):
+        exclude_patterns = [
+            r"\bintern\b", r"\bco-op\b", r"\bstudent\b", r"\btrainee\b", r"\bfresher\b",
+            r"\bjunior\b", r"\bjr\b", r"\bjr\.", r"\bentry\b", r"\bassociate\b"
+        ]
     filtered = []
     for job in jobs:
         title = (job.get("Job Title") or "").lower()
-        matched = False
-        for pattern in keywords:
+        matched_exclude = False
+        for pattern in exclude_patterns:
             if re.search(pattern, title):
-                matched = True
+                matched_exclude = True
                 break
-        if matched:
+        if not matched_exclude:
             filtered.append(job)
     return filtered
 

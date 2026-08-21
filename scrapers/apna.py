@@ -244,68 +244,93 @@ def scrape_apna(role, city, posted_in_days=0, limit=25,
                 print(f"[Apna] HTTP {resp.status_code} on page {page} for role '{r}'; skipping role.")
                 continue
 
-            data = _extract_next_data(resp.text)
-            if not data:
-                print(f"[Apna] No __NEXT_DATA__ on page {page} for role '{r}'")
-                continue
+            html_content = resp.text
+            sections = html_content.split('<a data-testid="job-card"')
+            is_href_split = False
+            if len(sections) <= 1:
+                sections = html_content.split('href="/job/')
+                is_href_split = True
 
-            pp = (data.get("props") or {}).get("pageProps") or {}
-            raw_jobs = pp.get("jobs") or []
-            total_pages = pp.get("totalPages") or 1
-            if not raw_jobs:
-                print(f"[Apna] Empty job list on page {page} for role '{r}'")
+            if len(sections) <= 1:
+                print(f"[Apna] No job cards found on page {page} for role '{r}'")
                 continue
 
             added_this_page = 0
-            for entry in raw_jobs:
+            for sec in sections[1:]:
                 if len(all_jobs) >= limit:
                     break
-                jd = (entry or {}).get("data") or {}
-                jid = jd.get("id")
+
+                if is_href_split:
+                    link_match = re.match(r'^([^"]+)"', sec)
+                    link = "/job/" + link_match.group(1) if link_match else ""
+                else:
+                    link_match = re.search(r'href="([^"]+)"', sec)
+                    link = link_match.group(1) if link_match else ""
+
+                if not link:
+                    continue
+
+                jid = link.split("-")[-1] if "-" in link else link
                 if not jid or jid in seen_ids:
                     continue
 
-                posted = _parse_last_updated(jd.get("last_updated"))
-                if cutoff and posted:
-                    try:
-                        pd = datetime.strptime(posted, "%Y-%m-%d").date()
-                        if pd < cutoff:
-                            continue
-                    except Exception:
-                        pass
+                title_match = re.search(r'<h2[^>]*>([^<]+)</h2>', sec)
+                title = title_match.group(1).strip() if title_match else ""
+                if not title:
+                    continue
 
-                org = jd.get("organization") or {}
-                addr = jd.get("address") or {}
-                skills, workplace, employment = _ui_tag_text(jd.get("ui_tags"))
+                company = "N/A"
+                title_pos = sec.find(title) if title else 0
+                span_match = re.search(r'<span[^>]*>([^<]+)</span>', sec[title_pos:])
+                if span_match:
+                    company = span_match.group(1).strip()
 
-                apply_link = jd.get("public_url") or ""
-                external = jd.get("external_job_url") or ""
-                is_external = bool(jd.get("is_external_job"))
+                loc_match = re.search(r'data-testid="LocationOnIcon".*?<span[^>]*>([^<]+)</span>', sec, re.DOTALL)
+                location = loc_match.group(1).strip() if loc_match else ""
+
+                sal_match = re.search(r'data-testid="PaymentsIcon".*?<span[^>]*>([^<]+)</span>', sec, re.DOTALL)
+                salary = sal_match.group(1).strip() if sal_match else ""
+
+                badges = re.findall(r'class="text-sm text-primary-text whitespace-nowrap text-secondary-text">([^<]+)</span>', sec)
+
+                workplace = ""
+                employment = ""
+                experience = ""
+                skills = []
+
+                for b in badges:
+                    low = b.lower()
+                    if "work from" in low or "remote" in low or "hybrid" in low or "office" in low:
+                        workplace = b
+                    elif "full time" in low or "part time" in low or "internship" in low or "contract" in low:
+                        employment = b
+                    elif "min." in low or "experience" in low or "year" in low or "yr" in low:
+                        experience = b
+                    else:
+                        skills.append(b)
 
                 seen_ids.add(jid)
                 all_jobs.append({
-                    "Job Title": jd.get("title") or "",
-                    "Company": org.get("name") or "N/A",
-                    "Location": jd.get("location_name") or addr.get("line_1") or "",
-                    "Posted": posted or "",
-                    "Link": apply_link,
-                    "Salary": jd.get("salary_detail") or "",
-                    "Experience": _format_experience(
-                        jd.get("min_experience"), jd.get("max_experience")),
+                    "Job Title": title,
+                    "Company": company,
+                    "Location": location,
+                    "Posted": datetime.today().strftime("%Y-%m-%d"),
+                    "Link": "https://apna.co" + link,
+                    "Salary": salary,
+                    "Experience": experience,
                     "Workplace": workplace,
                     "Skills": ", ".join(skills) if skills else "",
-                    "Description": (employment + (" • " if employment and is_external else "")
-                                    + ("External Apply" if is_external else "")).strip(" •"),
-                    "Apply Type": "External Site" if is_external else "Apna Apply",
-                    "Easy Apply": not is_external,
-                    "Source ATS": external if is_external else "",
+                    "Description": employment,
+                    "Apply Type": "Apna Apply",
+                    "Easy Apply": True,
+                    "Source ATS": "",
                 })
                 added_this_page += 1
 
             print(f"[Apna] Page {page}: kept {added_this_page} jobs for role '{r}' "
-                  f"(running total {len(all_jobs)} / {limit}; totalPages={total_pages})")
+                  f"(running total {len(all_jobs)} / {limit})")
 
-            if page < total_pages:
+            if added_this_page > 0:
                 next_active.append(r)
 
         active_roles = next_active

@@ -5,32 +5,19 @@
 
 """Foundit (Monster India) public job search scraper (no login required).
 
-Foundit is protected by Akamai Bot Manager just like Naukri — we get past
-it with the same `launch_persistent_context` + `--headless=new` trick: a
-real Chrome process running without a visible window, plus a saved profile
-so Akamai treats us as a returning user.
+We fetch directly from Foundit's internal JSON middleware API endpoint:
+    https://www.foundit.in/middleware/jobsearch
 
-URL format:
-    https://www.foundit.in/search/{role-slug}-jobs-in-{city-slug}
-        ?start={offset}&limit=20&query={role}&location={loc-text}
-        &queryDerived=true[&jobFreshness={days}]
-        [&experience={yrs}&experienceRanges={yrs}~{yrs}]
-
-Filters:
-    jobFreshness     — posted within N days (1, 3, 7, 15, 30)
-    experience       — exact years of experience (0..30); paired with
-                       experienceRanges=N~N as foundit expects both
-    start            — pagination offset (1, 21, 41, ...)
+This endpoint is clean, fast, and does not require Playwright browser automation,
+bypassing Akamai Access Denied blocks entirely.
 """
 
-from playwright.sync_api import sync_playwright, TimeoutError as PWTimeout
+import requests
+import json
 import time
-import random
 import re
-import os
 from urllib.parse import quote_plus
 from datetime import datetime, timedelta
-
 
 # Display name -> (URL path slug, location query param value)
 FOUNDIT_CITIES = {
@@ -54,12 +41,9 @@ FOUNDIT_CITIES = {
     "Coimbatore": ("coimbatore",           "coimbatore"),
 }
 
-_PROFILE_DIR = os.path.join(
-    os.path.dirname(os.path.dirname(__file__)), "_foundit_profile"
-)
-
-_POSTED_RE = re.compile(
-    r"Posted\s+(\d+)\s*(minute|hour|day|week|month)", re.IGNORECASE
+_UA = (
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+    "(KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36"
 )
 
 
@@ -71,42 +55,19 @@ def _slug(text):
     return text.strip("-")
 
 
-def _parse_posted(card_text):
-    """Extract 'Posted X minutes/hours/days/weeks/months ago' from the card text."""
-    if not card_text:
+def _parse_last_updated(ts):
+    if not ts:
         return datetime.today().strftime("%Y-%m-%d")
-    today = datetime.today()
-    if "few seconds ago" in card_text.lower() or "just posted" in card_text.lower():
-        return today.strftime("%Y-%m-%d")
-    m = _POSTED_RE.search(card_text)
-    if not m:
-        return today.strftime("%Y-%m-%d")
-    n = int(m.group(1))
-    unit = m.group(2).lower()
-    if unit in ("minute", "hour"):
-        return today.strftime("%Y-%m-%d")
-    if unit == "day":
-        return (today - timedelta(days=n)).strftime("%Y-%m-%d")
-    if unit == "week":
-        return (today - timedelta(weeks=n)).strftime("%Y-%m-%d")
-    if unit == "month":
-        return (today - timedelta(days=n * 30)).strftime("%Y-%m-%d")
-    return today.strftime("%Y-%m-%d")
+    try:
+        # ts is millisecond timestamp
+        dt = datetime.fromtimestamp(int(ts) / 1000.0)
+        return dt.strftime("%Y-%m-%d")
+    except Exception:
+        return datetime.today().strftime("%Y-%m-%d")
 
 
-def _extract_skills(card_text):
-    """Skills appear in 'In JD: A, B, C' line on the card."""
-    if not card_text:
-        return ""
-    m = re.search(r"In JD\s*:\s*([^\n]+)", card_text)
-    if not m:
-        return ""
-    return m.group(1).strip().rstrip("…").strip()
-
-
-def _build_url(role, city, job_freshness, experience, start=1):
-    path_slug, loc_query = FOUNDIT_CITIES[city]
-    role_slug = _slug(role)
+def _build_qs(role, city, job_freshness, experience, start=1):
+    _, loc_query = FOUNDIT_CITIES[city]
     qs = [
         f"start={int(start)}",
         "limit=20",
@@ -120,7 +81,7 @@ def _build_url(role, city, job_freshness, experience, start=1):
         n = int(experience)
         qs.append(f"experience={n}")
         qs.append(f"experienceRanges={n}~{n}")
-    return f"https://www.foundit.in/search/{role_slug}-jobs-in-{path_slug}?" + "&".join(qs)
+    return "&".join(qs)
 
 
 def scrape_foundit(role, city, job_freshness_days, limit, experience=None):
@@ -136,8 +97,6 @@ def scrape_foundit(role, city, job_freshness_days, limit, experience=None):
     if not role.strip():
         raise ValueError("role is required")
 
-    os.makedirs(_PROFILE_DIR, exist_ok=True)
-
     all_jobs = []
     seen_links = set()
 
@@ -146,156 +105,91 @@ def scrape_foundit(role, city, job_freshness_days, limit, experience=None):
     if not roles:
         roles = [role]
 
-    with sync_playwright() as p:
-        ctx = p.chromium.launch_persistent_context(
-            _PROFILE_DIR,
-            headless=False,
-            viewport={"width": 1366, "height": 900},
-            user_agent=(
-                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-                "AppleWebKit/537.36 (KHTML, like Gecko) "
-                "Chrome/132.0.0.0 Safari/537.36"
-            ),
-            locale="en-IN",
-            timezone_id="Asia/Kolkata",
-            args=[
-                "--disable-blink-features=AutomationControlled",
-                "--disable-features=AutomationControlled",
-                "--headless=new",
-                "--no-first-run",
-                "--no-default-browser-check",
-            ],
-        )
-        ctx.add_init_script("""
-            Object.defineProperty(navigator,'webdriver',{get:()=>undefined});
-            Object.defineProperty(navigator,'plugins',{get:()=>[1,2,3,4,5]});
-            Object.defineProperty(navigator,'languages',{get:()=>['en-IN','en']});
-            window.chrome = {runtime:{}, loadTimes:function(){}, csi:function(){}, app:{}};
-        """)
-        page = ctx.pages[0] if ctx.pages else ctx.new_page()
+    headers = {
+        "User-Agent": _UA,
+        "Accept": "application/json",
+        "Referer": "https://www.foundit.in/",
+    }
 
-        # Warmup on homepage so Akamai sees an organic-looking session
-        try:
-            page.goto("https://www.foundit.in/", wait_until="domcontentloaded", timeout=20000)
-            time.sleep(random.uniform(3.0, 4.5))
-        except Exception:
-            pass
+    max_pages = 5
+    active_roles = list(roles)
 
-        max_pages = 5
-        active_roles = list(roles)
+    for page_idx in range(max_pages):
+        if len(all_jobs) >= limit or not active_roles:
+            break
 
-        for page_idx in range(max_pages):
-            if len(all_jobs) >= limit or not active_roles:
+        start = (page_idx * 20) + 1
+        next_active = []
+
+        for r in active_roles:
+            if len(all_jobs) >= limit:
                 break
 
-            start = (page_idx * 20) + 1
-            next_active = []
+            qs = _build_qs(r, city, job_freshness_days, experience, start)
+            url = f"https://www.foundit.in/middleware/jobsearch?{qs}"
+            print(f"[Foundit] Fetching: {url}")
 
-            for r in active_roles:
-                if len(all_jobs) >= limit:
-                    break
+            try:
+                resp = requests.get(url, headers=headers, timeout=20)
+                if resp.status_code != 200:
+                    print(f"[Foundit] HTTP {resp.status_code} on start={start} for role '{r}'; skipping role.")
+                    continue
 
-                url = _build_url(r, city, job_freshness_days, experience, start)
-                print(f"[Foundit] Fetching: {url}")
+                res_data = resp.json()
+                job_list = res_data.get("jobSearchResponse", {}).get("data", [])
+                if not job_list:
+                    print(f"[Foundit] No jobs found at start={start} for role '{r}'; stopping role.")
+                    continue
 
-                try:
-                    page.goto(url, wait_until="domcontentloaded", timeout=30000)
-                    time.sleep(random.uniform(3.5, 5.0))
+                added_this_page = 0
+                for job in job_list:
+                    if len(all_jobs) >= limit:
+                        break
 
-                    title = page.title() or ""
-                    if "Access Denied" in title:
-                        print(f"[Foundit] BLOCKED at start={start} for role '{r}'. Skipping role.")
+                    # Resolve details
+                    href = job.get("seoJdUrl") or job.get("jdUrl") or ""
+                    if not href:
+                        continue
+                    if not href.startswith("http"):
+                        link = "https://www.foundit.in" + href
+                    else:
+                        link = href
+
+                    if link in seen_links:
                         continue
 
-                    # Trigger lazy load
-                    for _ in range(2):
-                        page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
-                        time.sleep(1.2)
+                    title_txt = job.get("title") or ""
+                    if not title_txt:
+                        continue
 
-                    cards_data = page.evaluate("""
-                        () => {
-                            const out = [];
-                            const seen = new Set();
-                            for (const lnk of document.querySelectorAll("a[href*='/job/']")) {
-                                const href = lnk.getAttribute('href') || '';
-                                if (!href || seen.has(href)) continue;
-                                // Walk up to the rounded card wrapper
-                                let n = lnk;
-                                let card = null;
-                                for (let i=0; i<10; i++) {
-                                    if (!n) break;
-                                    if (n.tagName === 'DIV' && /rounded-2xl/.test(n.className||'')) {
-                                        card = n; break;
-                                    }
-                                    n = n.parentElement;
-                                }
-                                if (!card) continue;
-                                seen.add(href);
+                    posted = _parse_last_updated(job.get("lastUpdated"))
+                    easy_apply = bool(job.get("quickApplyJob") == 1)
 
-                                const text = (sel) => {
-                                    const e = card.querySelector(sel);
-                                    return e ? (e.innerText || '').trim() : '';
-                                };
-                                out.push({
-                                    href: href,
-                                    title: text('h2.jobCardTitle'),
-                                    company: text('span.jobCardCompany'),
-                                    experience: text("[class*='jobCardExperience']"),
-                                    location: text("[class*='jobCardLocation']"),
-                                    card_text: card.innerText || '',
-                                });
-                            }
-                            return out;
-                        }
-                    """)
+                    seen_links.add(link)
+                    all_jobs.append({
+                        "Job Title": title_txt,
+                        "Company": job.get("companyName") or "N/A",
+                        "Location": job.get("locations") or "",
+                        "Posted": posted,
+                        "Link": link,
+                        "Experience": job.get("exp") or "",
+                        "Salary": job.get("salary") or "",
+                        "Skills": job.get("skills") or "",
+                        "Description": job.get("companyProfile") or "",
+                        "Easy Apply": easy_apply,
+                        "Apply Type": "Foundit Apply" if easy_apply else "External Site",
+                    })
+                    added_this_page += 1
 
-                    if not cards_data:
-                        print(f"[Foundit] No cards at start={start} for role '{r}'")
-                        continue  # Exhausted
-
-                    found_this_page = 0
-                    for cd in cards_data:
-                        if len(all_jobs) >= limit:
-                            break
-                        try:
-                            link = cd["href"]
-                            if not link.startswith("http"):
-                                link = "https://www.foundit.in" + link
-                            if link in seen_links:
-                                continue
-                            title_txt = cd["title"] or ""
-                            if not title_txt:
-                                continue
-
-                            seen_links.add(link)
-                            all_jobs.append({
-                                "Job Title": title_txt,
-                                "Company": cd["company"] or "N/A",
-                                "Location": cd["location"] or "",
-                                "Posted": _parse_posted(cd["card_text"]),
-                                "Link": link,
-                                "Experience": cd["experience"] or "",
-                                "Skills": _extract_skills(cd["card_text"]),
-                                "Easy Apply": False,
-                                "Apply Type": "Foundit Apply",
-                            })
-                            found_this_page += 1
-                        except Exception as e:
-                            print(f"[Foundit] Card error: {e}")
-                            continue
-
-                    print(f"[Foundit] Got {found_this_page} jobs from start={start} for role '{r}'")
+                print(f"[Foundit] Got {added_this_page} jobs from start={start} for role '{r}'")
+                if added_this_page > 0:
                     next_active.append(r)
-                    time.sleep(random.uniform(2.0, 3.0))
 
-                except PWTimeout:
-                    print(f"[Foundit] Timeout at start={start} for role '{r}'")
-                except Exception as e:
-                    print(f"[Foundit] Error: {e}")
+            except Exception as e:
+                print(f"[Foundit] Error querying endpoint at start={start}: {e}")
 
-            active_roles = next_active
-
-        ctx.close()
+        active_roles = next_active
+        time.sleep(0.5)
 
     def sort_key(j):
         try:
