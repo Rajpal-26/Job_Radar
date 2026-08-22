@@ -253,6 +253,15 @@ def scrape_naukri(role, city, job_age_days, limit, experience=None):
                             posted_raw = age_el.inner_text().strip() if age_el else ""
                             posted = _parse_naukri_date(posted_raw)
 
+                            # Infer workplace type
+                            combo = (title_txt + " " + loc_text + " " + desc).lower()
+                            if "remote" in combo or "work from home" in combo:
+                                workplace = "Remote"
+                            elif "hybrid" in combo:
+                                workplace = "Hybrid"
+                            else:
+                                workplace = "On-site"
+
                             seen_links.add(link)
                             all_jobs.append({
                                 "Job Title": title_txt,
@@ -265,6 +274,7 @@ def scrape_naukri(role, city, job_age_days, limit, experience=None):
                                 "Rating": rating,
                                 "Skills": ", ".join(skills),
                                 "Description": desc,
+                                "Workplace": workplace,
                                 "Easy Apply": False,
                                 "Apply Type": "Naukri Apply",
                             })

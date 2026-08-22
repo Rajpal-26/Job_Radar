@@ -459,6 +459,14 @@ def scrape_hirist(category, city, exp_key, posting_days, limit):
                         ):
                             job_title = _strip_company_prefix_from_title(job_title, company)
 
+                        title_lower = job_title.lower()
+                        if "remote" in title_lower or "work from home" in title_lower:
+                            workplace = "Remote"
+                        elif "hybrid" in title_lower:
+                            workplace = "Hybrid"
+                        else:
+                            workplace = "On-site"
+
                         all_jobs.append({
                             "Job Title": job_title,
                             "Company": company,
@@ -468,6 +476,8 @@ def scrape_hirist(category, city, exp_key, posting_days, limit):
                             "Experience": experience,
                             "Salary": salary,
                             "Skills": ", ".join(tags),
+                            "Description": "",
+                            "Workplace": workplace,
                             # No Easy/External distinction on Hirist — every job
                             # goes through Hirist's apply flow.
                             "Easy Apply": False,

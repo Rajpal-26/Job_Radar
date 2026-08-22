@@ -165,17 +165,28 @@ def scrape_foundit(role, city, job_freshness_days, limit, experience=None):
                     posted = _parse_last_updated(job.get("lastUpdated"))
                     easy_apply = bool(job.get("quickApplyJob") == 1)
 
+                    location_str = job.get("locations") or ""
+                    desc_str = job.get("companyProfile") or ""
+                    loc_lower = location_str.lower() + " " + desc_str.lower()
+                    if "hybrid" in loc_lower:
+                        workplace = "Hybrid"
+                    elif "remote" in loc_lower or "work from home" in loc_lower:
+                        workplace = "Remote"
+                    else:
+                        workplace = "On-site"
+
                     seen_links.add(link)
                     all_jobs.append({
                         "Job Title": title_txt,
                         "Company": job.get("companyName") or "N/A",
-                        "Location": job.get("locations") or "",
+                        "Location": location_str,
                         "Posted": posted,
                         "Link": link,
                         "Experience": job.get("exp") or "",
                         "Salary": job.get("salary") or "",
                         "Skills": job.get("skills") or "",
-                        "Description": job.get("companyProfile") or "",
+                        "Description": desc_str,
+                        "Workplace": workplace,
                         "Easy Apply": easy_apply,
                         "Apply Type": "Foundit Apply" if easy_apply else "External Site",
                     })
