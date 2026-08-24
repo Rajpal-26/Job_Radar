@@ -25,6 +25,23 @@ latest = {"linkedin": [], "glassdoor": [], "indeed": [],
           "apna": [], "shine": []}
 
 
+def _parse_locations(req):
+    """Extract location list from request form/json whether sent as 'locations' list, 'city', or 'location'."""
+    locs = req.form.getlist("locations")
+    if not locs:
+        city_str = req.form.get("city") or req.form.get("location") or ""
+        if city_str:
+            locs = [c.strip() for c in city_str.split(",") if c.strip()]
+
+    cleaned = []
+    for l in locs:
+        for part in str(l).split(","):
+            part_clean = part.strip()
+            if part_clean and part_clean not in cleaned:
+                cleaned.append(part_clean)
+    return cleaned
+
+
 @app.route("/")
 def home():
     return render_template("landing.html")
@@ -94,7 +111,7 @@ def search_linkedin():
         time_filter = int(request.form.get("time_filter", 86400))
         limit       = int(request.form.get("limit", 10))
         apply_mode  = request.form.get("apply_mode", "include_easy").strip().lower()
-        locations   = request.form.getlist("locations")
+        locations   = _parse_locations(request)
         experience  = request.form.get("experience", "").strip()
 
         if not role:
@@ -131,7 +148,7 @@ def search_glassdoor():
         from_age    = int(request.form.get("from_age", 1))
         limit       = int(request.form.get("limit", 10))
         apply_mode  = request.form.get("apply_mode", "include_easy").strip().lower()
-        locations   = request.form.getlist("locations")
+        locations   = _parse_locations(request)
         experience  = request.form.get("experience", "").strip()
 
         if not role:
@@ -163,7 +180,7 @@ def search_indeed():
         fromage     = int(request.form.get("fromage", 1))
         limit       = int(request.form.get("limit", 10))
         apply_mode  = request.form.get("apply_mode", "include_easy").strip().lower()
-        locations   = request.form.getlist("locations")
+        locations   = _parse_locations(request)
         experience  = request.form.get("experience", "").strip()
 
         if not role:
@@ -191,42 +208,38 @@ def search_indeed():
 @app.route("/search/hirist", methods=["POST"])
 def search_hirist():
     try:
-        role           = request.form.get("role", "").strip()  # role here = category slug
-        city           = request.form.get("city", "").strip()
+        role           = request.form.get("role", "").strip()  # category slug
+        locations      = _parse_locations(request)
         experience_key = request.form.get("experience", "").strip()
         posting        = int(request.form.get("posting", 3))
         limit          = int(request.form.get("limit", 10))
 
-        # Map standard experience to Hirist keys
         hirist_map = {
-            "fresher": "0-1",
-            "0-1": "0-1",
-            "0-6m": "0-1",
-            "internship": "0-1",
-            "1-2": "0-1",
-            "1-3": "2-3",
-            "3-5": "4-6",
-            "5-7": "4-6",
-            "7-10": "7-10",
-            "10+": "10+",
+            "fresher": (0, 1),
+            "0-1": (0, 1),
+            "0-6m": (0, 0),
+            "internship": (0, 0),
+            "1-2": (1, 2),
+            "1-3": (1, 3),
+            "3-5": (3, 5),
+            "5-7": (5, 7),
+            "7-10": (7, 10),
+            "10+": (10, 30),
         }
-        exp_key = hirist_map.get(experience_key, "any")
+        min_exp, max_exp = hirist_map.get(experience_key, (0, 30))
 
         if not role:
             return jsonify({"error": "Please select a job category"}), 400
-        if not city:
-            return jsonify({"error": "Please select a location"}), 400
+        if not locations:
+            return jsonify({"error": "Please select at least one location"}), 400
         if role not in HIRIST_CATEGORIES:
             return jsonify({"error": "Unknown category"}), 400
-        if city not in HIRIST_CITIES:
-            return jsonify({"error": "Unknown city"}), 400
-        if exp_key not in HIRIST_EXPERIENCE:
-            return jsonify({"error": "Unknown experience range"}), 400
 
         jobs = scrape_hirist(
             category=role,
-            city=city,
-            exp_key=exp_key,
+            city=locations,
+            min_exp=min_exp,
+            max_exp=max_exp,
             posting_days=posting,
             limit=limit,
         )
@@ -241,12 +254,11 @@ def search_hirist():
 def search_naukri():
     try:
         role           = request.form.get("role", "").strip()
-        city           = request.form.get("city", "").strip()
+        locations      = _parse_locations(request)
         job_age        = int(request.form.get("job_age", 7))
         limit          = int(request.form.get("limit", 10))
         experience_key = request.form.get("experience", "").strip()
 
-        # Map standard experience to Naukri years integer
         naukri_map = {
             "fresher": 0,
             "0-1": 0,
@@ -263,13 +275,11 @@ def search_naukri():
 
         if not role:
             return jsonify({"error": "Please enter a job role"}), 400
-        if not city:
-            return jsonify({"error": "Please select a location"}), 400
-        if city not in NAUKRI_CITIES:
-            return jsonify({"error": "Unknown city"}), 400
+        if not locations:
+            return jsonify({"error": "Please select at least one location"}), 400
 
         jobs = scrape_naukri(
-            role=role, city=city, job_age_days=job_age,
+            role=role, city=locations, job_age_days=job_age,
             limit=limit, experience=experience,
         )
         latest["naukri"] = jobs
@@ -283,36 +293,33 @@ def search_naukri():
 def search_foundit():
     try:
         role           = request.form.get("role", "").strip()
-        city           = request.form.get("city", "").strip()
+        locations      = _parse_locations(request)
         freshness      = int(request.form.get("freshness", 7))
         limit          = int(request.form.get("limit", 10))
         experience_key = request.form.get("experience", "").strip()
 
-        # Map standard experience to Foundit years integer
         foundit_map = {
-            "fresher": 0,
-            "0-1": 0,
-            "0-6m": 0,
-            "internship": 0,
-            "1-2": 1,
-            "1-3": 1,
-            "3-5": 3,
-            "5-7": 5,
-            "7-10": 7,
-            "10+": 10,
+            "fresher": (0, 1),
+            "0-1": (0, 1),
+            "0-6m": (0, 0),
+            "internship": (0, 0),
+            "1-2": (1, 2),
+            "1-3": (1, 3),
+            "3-5": (3, 5),
+            "5-7": (5, 7),
+            "7-10": (7, 10),
+            "10+": (10, 30),
         }
-        experience = foundit_map.get(experience_key, None)
+        min_exp, max_exp = foundit_map.get(experience_key, (None, None))
 
         if not role:
             return jsonify({"error": "Please enter a job role"}), 400
-        if not city:
-            return jsonify({"error": "Please select a location"}), 400
-        if city not in FOUNDIT_CITIES:
-            return jsonify({"error": "Unknown city"}), 400
+        if not locations:
+            return jsonify({"error": "Please select at least one location"}), 400
 
         jobs = scrape_foundit(
-            role=role, city=city, job_freshness_days=freshness,
-            limit=limit, experience=experience,
+            role=role, city=locations, job_freshness_days=freshness,
+            limit=limit, min_experience=min_exp, max_experience=max_exp,
         )
         latest["foundit"] = jobs
         return jsonify({"jobs": jobs, "count": len(jobs), "requested": limit})
@@ -325,12 +332,11 @@ def search_foundit():
 def search_apna():
     try:
         role           = request.form.get("role", "").strip()
-        city           = request.form.get("city", "").strip()
+        locations      = _parse_locations(request)
         posted_in      = int(request.form.get("posted_in", 0))
         limit          = int(request.form.get("limit", 10))
         experience_key = request.form.get("experience", "").strip()
 
-        # Map standard experience to Apna min and max experience
         apna_map = {
             "fresher": (0, 1),
             "0-1": (0, 1),
@@ -347,13 +353,11 @@ def search_apna():
 
         if not role:
             return jsonify({"error": "Please enter a job role"}), 400
-        if not city:
-            return jsonify({"error": "Please select a location"}), 400
-        if city not in APNA_CITIES:
-            return jsonify({"error": "Unknown city"}), 400
+        if not locations:
+            return jsonify({"error": "Please select at least one location"}), 400
 
         jobs = scrape_apna(
-            role=role, city=city, posted_in_days=posted_in,
+            role=role, city=locations, posted_in_days=posted_in,
             limit=limit, min_experience=min_exp, max_experience=max_exp,
         )
         latest["apna"] = jobs
@@ -367,38 +371,35 @@ def search_apna():
 def search_shine():
     try:
         role           = request.form.get("role", "").strip()
-        city           = request.form.get("city", "").strip()
+        locations      = _parse_locations(request)
         posting_days   = int(request.form.get("posting_days", 0))
         limit          = int(request.form.get("limit", 10))
         experience_key = request.form.get("experience", "").strip()
 
-        # Map standard experience to Shine bands
         shine_map = {
             "fresher": ["1"],
             "0-1": ["1"],
             "0-6m": ["1"],
             "internship": ["1"],
-            "1-2": ["2"],
-            "1-3": ["2"],
-            "3-5": ["3"],
-            "5-7": ["4"],
-            "7-10": ["5"],
+            "1-2": ["1", "2"],
+            "1-3": ["1", "2", "3"],
+            "3-5": ["3", "4"],
+            "5-7": ["4", "5"],
+            "7-10": ["5", "6"],
             "10+": ["6", "7"],
         }
         fexp = shine_map.get(experience_key, [])
 
         if not role:
             return jsonify({"error": "Please enter a job role"}), 400
-        if not city:
-            return jsonify({"error": "Please select a location"}), 400
-        if city not in SHINE_CITIES:
-            return jsonify({"error": "Unknown city"}), 400
+        if not locations:
+            return jsonify({"error": "Please select at least one location"}), 400
         for v in fexp:
             if v not in SHINE_EXPERIENCE:
                 return jsonify({"error": f"Unknown experience band: {v}"}), 400
 
         jobs = scrape_shine(
-            role=role, city=city, fexp=fexp,
+            role=role, city=locations, fexp=fexp,
             posting_days=posting_days, limit=limit,
         )
         latest["shine"] = jobs

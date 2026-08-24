@@ -174,19 +174,39 @@ def _normalize_fexp(fexp):
     return out
 
 
-def scrape_shine(role, city, fexp=None, posting_days=0, limit=20):
+def _normalize_locations(locations_input, valid_cities_dict):
+    if not locations_input:
+        return list(valid_cities_dict.keys())[:1]
+    if isinstance(locations_input, str):
+        raw = [c.strip() for c in locations_input.split(",") if c.strip()]
+    else:
+        raw = []
+        for item in locations_input:
+            for part in str(item).split(","):
+                if part.strip():
+                    raw.append(part.strip())
+    valid = []
+    for loc in raw:
+        for k in valid_cities_dict:
+            if loc.lower() == k.lower():
+                if k not in valid:
+                    valid.append(k)
+                break
+    return valid or [list(valid_cities_dict.keys())[0]]
+
+
+def scrape_shine(role, city="Bengaluru", fexp=None, posting_days=0, limit=10):
     """
-    role:         free-text role (e.g. "DevOps")
-    city:         display city (key of SHINE_CITIES)
+    role:         free-text role (e.g. "DevOps Engineer")
+    city:         display city, list of cities, or comma-separated string
     fexp:         optional list of experience-band ids (strings or ints, 1-7)
     posting_days: 0 = any; otherwise post-filter on jPDate within N days
     limit:        max results
     """
-    if city not in SHINE_CITIES:
-        raise ValueError(f"Unknown city: {city}")
     if not role.strip():
         raise ValueError("role is required")
 
+    locations = _normalize_locations(city, SHINE_CITIES)
     fexp_values = _normalize_fexp(fexp)
 
     headers = {
@@ -209,25 +229,25 @@ def scrape_shine(role, city, fexp=None, posting_days=0, limit=20):
         roles = [role]
 
     max_pages = 5
-    active_roles = list(roles)
+    active_combinations = [(c, r) for c in locations for r in roles]
 
     for page_idx in range(max_pages):
-        if len(all_jobs) >= limit or not active_roles:
+        if len(all_jobs) >= limit or not active_combinations:
             break
 
         page = page_idx + 1
         next_active = []
 
-        for r in active_roles:
+        for c, r in active_combinations:
             if len(all_jobs) >= limit:
                 break
 
-            url = _build_url(r, city, page, fexp_values)
+            url = _build_url(r, c, page, fexp_values)
             print(f"[Shine] Fetching: {url}")
             try:
                 resp = requests.get(url, headers=headers, timeout=25)
             except Exception as e:
-                print(f"[Shine] Request error on page {page} for role '{r}': {e}")
+                print(f"[Shine] Request error on page {page} for city '{c}' role '{r}': {e}")
                 continue
 
             if resp.status_code != 200:
@@ -301,7 +321,7 @@ def scrape_shine(role, city, fexp=None, posting_days=0, limit=20):
                 })
                 added_this_page += 1
 
-            print(f"[Shine] Page {page}: kept {added_this_page} jobs for role '{r}' "
+            print(f"[Shine] Page {page}: kept {added_this_page} jobs for city '{c}' role '{r}' "
                   f"(skipped_old={skipped_old}, total {len(all_jobs)}/{limit}; "
                   f"shine_total={total}, num_pages={num_pages})")
 
@@ -309,14 +329,11 @@ def scrape_shine(role, city, fexp=None, posting_days=0, limit=20):
             should_continue = True
             if page >= num_pages:
                 should_continue = False
-            if cutoff and added_this_page == 0 and skipped_old > 0:
-                print(f"[Shine] All remaining jobs older than cutoff for role '{r}'; stopping role.")
-                should_continue = False
 
             if should_continue:
-                next_active.append(r)
+                next_active.append((c, r))
 
-        active_roles = next_active
+        active_combinations = next_active
         time.sleep(0.4)
 
     def sort_key(j):

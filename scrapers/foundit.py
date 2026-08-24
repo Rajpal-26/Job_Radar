@@ -66,7 +66,7 @@ def _parse_last_updated(ts):
         return datetime.today().strftime("%Y-%m-%d")
 
 
-def _build_qs(role, city, job_freshness, experience, start=1):
+def _build_qs(role, city, job_freshness, min_exp, max_exp, start=1):
     _, loc_query = FOUNDIT_CITIES[city]
     qs = [
         f"start={int(start)}",
@@ -75,27 +75,58 @@ def _build_qs(role, city, job_freshness, experience, start=1):
         f"location={quote_plus(loc_query)}",
         "queryDerived=true",
     ]
-    if job_freshness:
+    if job_freshness and int(job_freshness) > 0:
         qs.append(f"jobFreshness={int(job_freshness)}")
-    if experience is not None and experience != "":
-        n = int(experience)
-        qs.append(f"experience={n}")
-        qs.append(f"experienceRanges={n}~{n}")
+    if min_exp is not None and max_exp is not None:
+        qs.append(f"experience={int(min_exp)}")
+        qs.append(f"experienceRanges={int(min_exp)}~{int(max_exp)}")
+    elif min_exp is not None:
+        qs.append(f"experience={int(min_exp)}")
+        qs.append(f"experienceRanges={int(min_exp)}~30")
     return "&".join(qs)
 
 
-def scrape_foundit(role, city, job_freshness_days, limit, experience=None):
+def _normalize_locations(locations_input, valid_cities_dict):
+    if not locations_input:
+        return list(valid_cities_dict.keys())[:1]
+    if isinstance(locations_input, str):
+        raw = [c.strip() for c in locations_input.split(",") if c.strip()]
+    else:
+        raw = []
+        for item in locations_input:
+            for part in str(item).split(","):
+                if part.strip():
+                    raw.append(part.strip())
+    valid = []
+    for loc in raw:
+        for k in valid_cities_dict:
+            if loc.lower() == k.lower():
+                if k not in valid:
+                    valid.append(k)
+                break
+    return valid or [list(valid_cities_dict.keys())[0]]
+
+
+def scrape_foundit(role, city="Bengaluru", job_freshness_days=7, limit=10, min_experience=None, max_experience=None, experience=None):
     """
     role:               free-text role (e.g. "devops")
-    city:               display city name (key of FOUNDIT_CITIES)
+    city:               display city name, list of cities, or comma-separated string
     job_freshness_days: int (1, 3, 7, 15, 30) or 0/None for any
     limit:              max results
-    experience:         optional int (0..30 yrs)
+    min_experience:     optional int (0..30 yrs)
+    max_experience:     optional int (0..30 yrs)
     """
-    if city not in FOUNDIT_CITIES:
-        raise ValueError(f"Unknown city: {city}")
     if not role.strip():
         raise ValueError("role is required")
+
+    locations = _normalize_locations(city, FOUNDIT_CITIES)
+
+    if min_experience is None and max_experience is None and experience is not None and experience != "":
+        try:
+            n = int(experience)
+            min_experience, max_experience = n, n
+        except Exception:
+            pass
 
     all_jobs = []
     seen_links = set()
@@ -112,20 +143,20 @@ def scrape_foundit(role, city, job_freshness_days, limit, experience=None):
     }
 
     max_pages = 5
-    active_roles = list(roles)
+    active_combinations = [(c, r) for c in locations for r in roles]
 
     for page_idx in range(max_pages):
-        if len(all_jobs) >= limit or not active_roles:
+        if len(all_jobs) >= limit or not active_combinations:
             break
 
         start = (page_idx * 20) + 1
         next_active = []
 
-        for r in active_roles:
+        for c, r in active_combinations:
             if len(all_jobs) >= limit:
                 break
 
-            qs = _build_qs(r, city, job_freshness_days, experience, start)
+            qs = _build_qs(r, c, job_freshness_days, min_experience, max_experience, start)
             url = f"https://www.foundit.in/middleware/jobsearch?{qs}"
             print(f"[Foundit] Fetching: {url}")
 
@@ -192,14 +223,14 @@ def scrape_foundit(role, city, job_freshness_days, limit, experience=None):
                     })
                     added_this_page += 1
 
-                print(f"[Foundit] Got {added_this_page} jobs from start={start} for role '{r}'")
+                print(f"[Foundit] Got {added_this_page} jobs from start={start} for city '{c}' role '{r}'")
                 if added_this_page > 0:
-                    next_active.append(r)
+                    next_active.append((c, r))
 
             except Exception as e:
                 print(f"[Foundit] Error querying endpoint at start={start}: {e}")
 
-        active_roles = next_active
+        active_combinations = next_active
         time.sleep(0.5)
 
     def sort_key(j):

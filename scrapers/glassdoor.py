@@ -127,44 +127,58 @@ def _filter_by_experience(jobs, exp_key):
     return filtered
 
 
-def scrape_glassdoor(role, from_age_days, limit, locations, apply_mode="include_easy", experience=None):
+def _normalize_locations(locations_input, valid_cities_dict):
+    if not locations_input:
+        return list(valid_cities_dict.keys())[:1]
+    if isinstance(locations_input, str):
+        raw = [c.strip() for c in locations_input.split(",") if c.strip()]
+    else:
+        raw = []
+        for item in locations_input:
+            for part in str(item).split(","):
+                if part.strip():
+                    raw.append(part.strip())
+    valid = []
+    for loc in raw:
+        for k in valid_cities_dict:
+            if loc.lower() == k.lower():
+                if k not in valid:
+                    valid.append(k)
+                break
+    return valid or [list(valid_cities_dict.keys())[0]]
+
+
+def scrape_glassdoor(role, from_age_days=1, limit=10, locations=None,
+                     apply_mode="include_easy", experience=None):
     """
-    role: free-text role string
-    from_age_days: int (1, 3, 7, 14, 30)
-    limit: number of jobs to return
-    locations: list of city names matching GLASSDOOR_CITIES keys
-    apply_mode: include_easy | only_easy | only_external
-    experience: optional experience level filter key
+    Scrape Glassdoor India job listings for a role across given locations.
     """
+    locations = _normalize_locations(locations, GLASSDOOR_CITIES)
+    mode_multipliers = {"include_easy": 1.0, "only_easy": 2.5, "only_external": 2.5}
+    internal_limit = max(limit, int(limit * mode_multipliers.get(apply_mode, 1.0)))
+    if experience:
+        internal_limit = max(internal_limit, limit * 3)
+
     all_jobs = []
     seen_links = set()
 
-    mode_multipliers = {"include_easy": 1.0, "only_easy": 2.5, "only_external": 2.5}
-    internal_limit = max(limit, int(limit * mode_multipliers.get(apply_mode, 1.0)))
-
-    # Support multiple comma-separated job roles
     roles = [r.strip() for r in role.split(",") if r.strip()]
     if not roles:
         roles = [role]
 
     with sync_playwright() as p:
-        browser = p.chromium.launch(
-            headless=True,
-            args=[
-                "--no-sandbox",
-                "--disable-setuid-sandbox",
-                "--disable-dev-shm-usage",
-                "--disable-blink-features=AutomationControlled",
-                "--disable-infobars",
-            ],
-        )
-
+        args = [
+            "--no-sandbox",
+            "--disable-setuid-sandbox",
+            "--disable-dev-shm-usage",
+            "--disable-blink-features=AutomationControlled",
+            "--disable-infobars",
+            "--no-first-run",
+            "--no-default-browser-check",
+            "--headless=new",
+        ]
+        browser = p.chromium.launch(headless=False, args=args)
         context = browser.new_context(
-            user_agent=(
-                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-                "AppleWebKit/537.36 (KHTML, like Gecko) "
-                "Chrome/122.0.0.0 Safari/537.36"
-            ),
             viewport={"width": 1366, "height": 768},
             locale="en-IN",
             timezone_id="Asia/Kolkata",
@@ -180,7 +194,7 @@ def scrape_glassdoor(role, from_age_days, limit, locations, apply_mode="include_
         page = context.new_page()
 
         max_pages = 5  # Glassdoor safety limit
-        active_combinations = [(city, r) for city in locations if city in GLASSDOOR_CITIES for r in roles]
+        active_combinations = [(city, r) for city in locations for r in roles]
 
         for page_idx in range(max_pages):
             if len(all_jobs) >= internal_limit or not active_combinations:
@@ -393,7 +407,9 @@ def scrape_glassdoor(role, from_age_days, limit, locations, apply_mode="include_
 
     # Apply in-memory experience level filter
     if experience:
-        all_jobs = _filter_by_experience(all_jobs, experience)
+        filtered = _filter_by_experience(all_jobs, experience)
+        if filtered:
+            all_jobs = filtered
 
     def sort_key(j):
         try:

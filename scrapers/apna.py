@@ -183,20 +183,41 @@ def _format_experience(min_e, max_e):
     return f"{mn}-{mx} yrs"
 
 
-def scrape_apna(role, city, posted_in_days=0, limit=25,
-                min_experience=None, max_experience=None):
+def _normalize_locations(locations_input, valid_cities_dict):
+    if not locations_input:
+        return list(valid_cities_dict.keys())[:1]
+    if isinstance(locations_input, str):
+        raw = [c.strip() for c in locations_input.split(",") if c.strip()]
+    else:
+        raw = []
+        for item in locations_input:
+            for part in str(item).split(","):
+                if part.strip():
+                    raw.append(part.strip())
+    valid = []
+    for loc in raw:
+        for k in valid_cities_dict:
+            if loc.lower() == k.lower():
+                if k not in valid:
+                    valid.append(k)
+                break
+    return valid or [list(valid_cities_dict.keys())[0]]
+
+
+def scrape_apna(role, city="Bengaluru", posted_in_days=0, limit=10,
+                 min_experience=None, max_experience=None):
     """
-    role:           free-text role (e.g. "DevOps Engineer")
-    city:           display city name (key of APNA_CITIES)
+    role:           free-text role (e.g. "devops")
+    city:           display city name, list of cities, or comma-separated string
     posted_in_days: 0 = any time; 1/3/7/15/30 = posted within N days
     limit:          max results
     min_experience: optional int (0..30)
     max_experience: optional int (0..30)
     """
-    if city not in APNA_CITIES:
-        raise ValueError(f"Unknown city: {city}")
     if not role.strip():
         raise ValueError("role is required")
+
+    locations = _normalize_locations(city, APNA_CITIES)
 
     headers = {
         "User-Agent": _UA,
@@ -218,26 +239,26 @@ def scrape_apna(role, city, posted_in_days=0, limit=25,
         cutoff = (datetime.today() - timedelta(days=int(posted_in_days))).date()
 
     max_pages = 5
-    active_roles = list(roles)
+    active_combinations = [(c, r) for c in locations for r in roles]
 
     for page_idx in range(max_pages):
-        if len(all_jobs) >= limit or not active_roles:
+        if len(all_jobs) >= limit or not active_combinations:
             break
 
         page = page_idx + 1
         next_active = []
 
-        for r in active_roles:
+        for c, r in active_combinations:
             if len(all_jobs) >= limit:
                 break
 
-            url = _build_url(r, city, posted_in_days,
+            url = _build_url(r, c, posted_in_days,
                              min_experience, max_experience, page)
             print(f"[Apna] Fetching: {url}")
             try:
                 resp = requests.get(url, headers=headers, timeout=25)
             except Exception as e:
-                print(f"[Apna] Request error on page {page} for role '{r}': {e}")
+                print(f"[Apna] Request error on page {page} for city '{c}' role '{r}': {e}")
                 continue
 
             if resp.status_code != 200:
@@ -245,95 +266,153 @@ def scrape_apna(role, city, posted_in_days=0, limit=25,
                 continue
 
             html_content = resp.text
-            sections = html_content.split('<a data-testid="job-card"')
-            is_href_split = False
-            if len(sections) <= 1:
-                sections = html_content.split('href="/job/')
-                is_href_split = True
-
-            if len(sections) <= 1:
-                print(f"[Apna] No job cards found on page {page} for role '{r}'")
-                continue
-
             added_this_page = 0
-            for sec in sections[1:]:
-                if len(all_jobs) >= limit:
-                    break
 
-                if is_href_split:
-                    link_match = re.match(r'^([^"]+)"', sec)
-                    link = "/job/" + link_match.group(1) if link_match else ""
-                else:
-                    link_match = re.search(r'href="([^"]+)"', sec)
-                    link = link_match.group(1) if link_match else ""
+            # Tier 1: Extract from __NEXT_DATA__ JSON
+            next_data = _extract_next_data(html_content)
+            if next_data:
+                try:
+                    page_props = next_data.get("props", {}).get("pageProps", {})
+                    jobs_list = page_props.get("jobs", [])
+                    if isinstance(jobs_list, list):
+                        for item in jobs_list:
+                            if len(all_jobs) >= limit:
+                                break
+                            job_obj = item.get("data") if isinstance(item, dict) and "data" in item else item
+                            if not isinstance(job_obj, dict):
+                                continue
+                            jid = str(job_obj.get("id") or job_obj.get("_id") or "")
+                            if jid and jid in seen_ids:
+                                continue
+                            title = job_obj.get("title") or job_obj.get("name") or ""
+                            if not title:
+                                continue
+                            comp_obj = job_obj.get("organization") or job_obj.get("company") or {}
+                            company = comp_obj.get("name") if isinstance(comp_obj, dict) else (comp_obj if isinstance(comp_obj, str) else "N/A")
+                            link = job_obj.get("public_url") or job_obj.get("url") or ""
+                            if link and not link.startswith("http"):
+                                link = "https://apna.co" + link
+                            if not link:
+                                link = f"https://apna.co/job/{jid}" if jid else ""
 
-                if not link:
-                    continue
+                            loc_obj = job_obj.get("address") or job_obj.get("location") or {}
+                            location = loc_obj.get("city_name") if isinstance(loc_obj, dict) else str(loc_obj)
+                            salary = job_obj.get("salary_title") or job_obj.get("salary") or ""
 
-                jid = link.split("-")[-1] if "-" in link else link
-                if not jid or jid in seen_ids:
-                    continue
+                            min_e = job_obj.get("min_experience")
+                            max_e = job_obj.get("max_experience")
+                            experience = _format_experience(min_e, max_e)
 
-                title_match = re.search(r'<h2[^>]*>([^<]+)</h2>', sec)
-                title = title_match.group(1).strip() if title_match else ""
-                if not title:
-                    continue
+                            skills, workplace, employment = _ui_tag_text(job_obj.get("ui_tags"))
+                            posted = _parse_last_updated(job_obj.get("last_updated")) or datetime.today().strftime("%Y-%m-%d")
 
-                company = "N/A"
-                title_pos = sec.find(title) if title else 0
-                span_match = re.search(r'<span[^>]*>([^<]+)</span>', sec[title_pos:])
-                if span_match:
-                    company = span_match.group(1).strip()
+                            seen_ids.add(jid or link)
+                            all_jobs.append({
+                                "Job Title": title,
+                                "Company": company or "N/A",
+                                "Location": location or city,
+                                "Posted": posted,
+                                "Link": link,
+                                "Salary": salary or "Not disclosed",
+                                "Experience": experience,
+                                "Workplace": workplace,
+                                "Skills": ", ".join(skills) if skills else "",
+                                "Description": employment,
+                                "Apply Type": "Apna Apply",
+                                "Easy Apply": True,
+                                "Source ATS": "",
+                            })
+                            added_this_page += 1
+                except Exception as e:
+                    print(f"[Apna] NEXT_DATA parsing error: {e}")
 
-                loc_match = re.search(r'data-testid="LocationOnIcon".*?<span[^>]*>([^<]+)</span>', sec, re.DOTALL)
-                location = loc_match.group(1).strip() if loc_match else ""
+            # Tier 2: Fallback to HTML regex extraction if JSON gave 0 results
+            if added_this_page == 0:
+                sections = html_content.split('<a data-testid="job-card"')
+                is_href_split = False
+                if len(sections) <= 1:
+                    sections = html_content.split('href="/job/')
+                    is_href_split = True
 
-                sal_match = re.search(r'data-testid="PaymentsIcon".*?<span[^>]*>([^<]+)</span>', sec, re.DOTALL)
-                salary = sal_match.group(1).strip() if sal_match else ""
+                if len(sections) > 1:
+                    for sec in sections[1:]:
+                        if len(all_jobs) >= limit:
+                            break
 
-                badges = re.findall(r'class="text-sm text-primary-text whitespace-nowrap text-secondary-text">([^<]+)</span>', sec)
+                        if is_href_split:
+                            link_match = re.match(r'^([^"]+)"', sec)
+                            link = "/job/" + link_match.group(1) if link_match else ""
+                        else:
+                            link_match = re.search(r'href="([^"]+)"', sec)
+                            link = link_match.group(1) if link_match else ""
 
-                workplace = ""
-                employment = ""
-                experience = ""
-                skills = []
+                        if not link:
+                            continue
 
-                for b in badges:
-                    low = b.lower()
-                    if "work from" in low or "remote" in low or "hybrid" in low or "office" in low:
-                        workplace = b
-                    elif "full time" in low or "part time" in low or "internship" in low or "contract" in low:
-                        employment = b
-                    elif "min." in low or "experience" in low or "year" in low or "yr" in low:
-                        experience = b
-                    else:
-                        skills.append(b)
+                        jid = link.split("-")[-1] if "-" in link else link
+                        if not jid or jid in seen_ids:
+                            continue
 
-                seen_ids.add(jid)
-                all_jobs.append({
-                    "Job Title": title,
-                    "Company": company,
-                    "Location": location,
-                    "Posted": datetime.today().strftime("%Y-%m-%d"),
-                    "Link": "https://apna.co" + link,
-                    "Salary": salary,
-                    "Experience": experience,
-                    "Workplace": workplace,
-                    "Skills": ", ".join(skills) if skills else "",
-                    "Description": employment,
-                    "Apply Type": "Apna Apply",
-                    "Easy Apply": True,
-                    "Source ATS": "",
-                })
-                added_this_page += 1
+                        title_match = re.search(r'<h2[^>]*>([^<]+)</h2>', sec)
+                        title = title_match.group(1).strip() if title_match else ""
+                        if not title:
+                            continue
 
-            print(f"[Apna] Page {page}: kept {added_this_page} jobs for role '{r}' "
+                        company = "N/A"
+                        title_pos = sec.find(title) if title else 0
+                        span_match = re.search(r'<span[^>]*>([^<]+)</span>', sec[title_pos:])
+                        if span_match:
+                            company = span_match.group(1).strip()
+
+                        loc_match = re.search(r'data-testid="LocationOnIcon".*?<span[^>]*>([^<]+)</span>', sec, re.DOTALL)
+                        location = loc_match.group(1).strip() if loc_match else ""
+
+                        sal_match = re.search(r'data-testid="PaymentsIcon".*?<span[^>]*>([^<]+)</span>', sec, re.DOTALL)
+                        salary = sal_match.group(1).strip() if sal_match else ""
+
+                        badges = re.findall(r'class="text-sm text-primary-text whitespace-nowrap text-secondary-text">([^<]+)</span>', sec)
+
+                        workplace = ""
+                        employment = ""
+                        experience = ""
+                        skills = []
+
+                        for b in badges:
+                            low = b.lower()
+                            if "work from" in low or "remote" in low or "hybrid" in low or "office" in low:
+                                workplace = b
+                            elif "full time" in low or "part time" in low or "internship" in low or "contract" in low:
+                                employment = b
+                            elif "min." in low or "experience" in low or "year" in low or "yr" in low:
+                                experience = b
+                            else:
+                                skills.append(b)
+
+                        seen_ids.add(jid)
+                        all_jobs.append({
+                            "Job Title": title,
+                            "Company": company,
+                            "Location": location,
+                            "Posted": datetime.today().strftime("%Y-%m-%d"),
+                            "Link": "https://apna.co" + link,
+                            "Salary": salary,
+                            "Experience": experience,
+                            "Workplace": workplace,
+                            "Skills": ", ".join(skills) if skills else "",
+                            "Description": employment,
+                            "Apply Type": "Apna Apply",
+                            "Easy Apply": True,
+                            "Source ATS": "",
+                        })
+                        added_this_page += 1
+
+            print(f"[Apna] Page {page}: kept {added_this_page} jobs for city '{c}' role '{r}' "
                   f"(running total {len(all_jobs)} / {limit})")
 
             if added_this_page > 0:
-                next_active.append(r)
+                next_active.append((c, r))
 
-        active_roles = next_active
+        active_combinations = next_active
         time.sleep(0.6)  # be polite
 
     def sort_key(j):

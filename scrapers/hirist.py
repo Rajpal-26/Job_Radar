@@ -236,23 +236,49 @@ def _company_from_title(job_title):
     return head, tail.strip()
 
 
-def scrape_hirist(category, city, exp_key, posting_days, limit):
+def _normalize_locations(locations_input, valid_cities_dict):
+    if not locations_input:
+        return list(valid_cities_dict.keys())[:1]
+    if isinstance(locations_input, str):
+        raw = [c.strip() for c in locations_input.split(",") if c.strip()]
+    else:
+        raw = []
+        for item in locations_input:
+            for part in str(item).split(","):
+                if part.strip():
+                    raw.append(part.strip())
+    valid = []
+    for loc in raw:
+        for k in valid_cities_dict:
+            if loc.lower() == k.lower():
+                if k not in valid:
+                    valid.append(k)
+                break
+    return valid or [list(valid_cities_dict.keys())[0]]
+
+
+def scrape_hirist(category, city="Bengaluru", exp_key=None, posting_days=3, limit=10, min_exp=None, max_exp=None):
     """
     category:    one of HIRIST_CATEGORIES keys (slug)
-    city:        display city name (key of HIRIST_CITIES) — gets mapped to Hirist's spelling
-    exp_key:     one of HIRIST_EXPERIENCE keys ('any', '0-1', etc.)
+    city:        display city name, list of cities, or comma-separated string
+    exp_key:     optional key of HIRIST_EXPERIENCE ('any', '0-1', etc.)
     posting_days: int (1, 3, 7, 14, 30)
     limit:       max results
+    min_exp:     optional int min experience years
+    max_exp:     optional int max experience years
     """
     if category not in HIRIST_CATEGORIES:
         raise ValueError(f"Unknown category: {category}")
-    if city not in HIRIST_CITIES:
-        raise ValueError(f"Unknown city: {city}")
-    if exp_key not in HIRIST_EXPERIENCE:
-        raise ValueError(f"Unknown experience: {exp_key}")
 
-    minexp, maxexp = HIRIST_EXPERIENCE[exp_key]
-    loc_query = HIRIST_CITIES[city]
+    locations = _normalize_locations(city, HIRIST_CITIES)
+
+    if min_exp is None or max_exp is None:
+        if exp_key and exp_key in HIRIST_EXPERIENCE:
+            minexp, maxexp = HIRIST_EXPERIENCE[exp_key]
+        else:
+            minexp, maxexp = 0, 30
+    else:
+        minexp, maxexp = min_exp, max_exp
 
     all_jobs = []
     seen_links = set()
@@ -286,10 +312,23 @@ def scrape_hirist(category, city, exp_key, posting_days, limit):
         """)
         page = context.new_page()
 
-        page_num = 1
-        while len(all_jobs) < limit:
-            url = _build_url(category, loc_query, minexp, maxexp, posting_days, page_num)
-            print(f"[Hirist] Fetching: {url}")
+        max_pages = 5
+        active_combinations = [(c, category) for c in locations]
+
+        for page_idx in range(max_pages):
+            if len(all_jobs) >= limit or not active_combinations:
+                break
+
+            page_num = page_idx + 1
+            next_active = []
+
+            for c, cat in active_combinations:
+                if len(all_jobs) >= limit:
+                    break
+
+                loc_query = HIRIST_CITIES[c]
+                url = _build_url(cat, loc_query, minexp, maxexp, posting_days, page_num)
+                print(f"[Hirist] Fetching: {url}")
 
             try:
                 page.goto(url, wait_until="domcontentloaded", timeout=30000)
@@ -396,7 +435,7 @@ def scrape_hirist(category, city, exp_key, posting_days, limit):
                         # 3. Raw HTTP detail page (JSON-LD / og:site_name).
                         if company == "N/A":
                             try:
-                                resp = context.request.get(link, timeout=10000)
+                                resp = context.request.get(link, timeout=2500)
                                 if resp.ok:
                                     detail_name = _extract_company_from_html(resp.text())
                                     if detail_name:
@@ -413,43 +452,13 @@ def scrape_hirist(category, city, exp_key, posting_days, limit):
                                 job_title = tail
                                 company_source = "title-prefix"
 
-                        # 5. Playwright-rendered detail page (slow but reliable
-                        # when Hirist's detail pages are client-rendered and the
-                        # raw HTTP fetch in Tier 3 only got an SPA shell). Only
-                        # opens a tab if all cheap tiers above already failed.
+                        # If company is still N/A, fallback to title-prefix or default
                         if company == "N/A":
-                            detail = None
-                            try:
-                                detail = context.new_page()
-                                detail.goto(link, wait_until="domcontentloaded", timeout=15000)
-                                try:
-                                    detail.wait_for_function(
-                                        """() => {
-                                            const blocks = document.querySelectorAll(
-                                                'script[type="application/ld+json"]'
-                                            );
-                                            for (const b of blocks) {
-                                                if ((b.textContent || '').includes('hiringOrganization')) return true;
-                                            }
-                                            return false;
-                                        }""",
-                                        timeout=6000,
-                                    )
-                                except Exception:
-                                    pass
-                                detail_html = detail.content()
-                                detail_name = _extract_company_from_html(detail_html)
-                                if detail_name:
-                                    company = detail_name
-                                    company_source = "detail-render"
-                            except Exception as e:
-                                print(f"[Hirist] Rendered detail failed for {link}: {e}")
-                            finally:
-                                if detail is not None:
-                                    try:
-                                        detail.close()
-                                    except Exception:
-                                        pass
+                            head, tail = _company_from_title(job_title)
+                            if head:
+                                company = head
+                                job_title = tail
+                                company_source = "title-prefix"
 
                         # If a high-confidence source found the company, also
                         # strip its name from the title when present as prefix.
@@ -493,19 +502,17 @@ def scrape_hirist(category, city, exp_key, posting_days, limit):
                 for j in all_jobs[-found_this_page:]:
                     src = j.get("_company_source") or "none"
                     source_counts[src] = source_counts.get(src, 0) + 1
-                print(f"[Hirist] Got {found_this_page} jobs from page {page_num}  "
+                print(f"[Hirist] Got {found_this_page} jobs from page {page_num} for city '{c}' "
                       f"(company sources: {source_counts})")
-                if found_this_page == 0:
-                    break
-                page_num += 1
-                time.sleep(random.uniform(1.5, 2.5))
+                if found_this_page > 0:
+                    next_active.append((c, cat))
 
             except PWTimeout:
-                print(f"[Hirist] Timeout on page {page_num}")
-                break
+                print(f"[Hirist] Timeout on page {page_num} for city '{c}'")
             except Exception as e:
-                print(f"[Hirist] Error: {e}")
-                break
+                print(f"[Hirist] Error fetching city '{c}': {e}")
+
+        active_combinations = next_active
 
         browser.close()
 

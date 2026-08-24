@@ -106,24 +106,42 @@ def _build_url(role, city_slug, city_query, job_age, experience, page=1):
     return f"https://www.naukri.com/{path}?" + "&".join(qs)
 
 
-def scrape_naukri(role, city, job_age_days, limit, experience=None):
+def _normalize_locations(locations_input, valid_cities_dict):
+    if not locations_input:
+        return list(valid_cities_dict.keys())[:1]
+    if isinstance(locations_input, str):
+        raw = [c.strip() for c in locations_input.split(",") if c.strip()]
+    else:
+        raw = []
+        for item in locations_input:
+            for part in str(item).split(","):
+                if part.strip():
+                    raw.append(part.strip())
+    valid = []
+    for loc in raw:
+        for k in valid_cities_dict:
+            if loc.lower() == k.lower():
+                if k not in valid:
+                    valid.append(k)
+                break
+    return valid or [list(valid_cities_dict.keys())[0]]
+
+
+def scrape_naukri(role, city="Bengaluru", job_age_days=7, limit=10, experience=None):
     """
     role:          free-text role (e.g. "devops engineer")
-    city:          display city name (key of NAUKRI_CITIES)
+    city:          display city name, list of cities, or comma-separated cities
     job_age_days:  int (1, 3, 7, 15, 30)
     limit:         max results
     experience:    optional int years (0..30), or None for any
     """
-    if city not in NAUKRI_CITIES:
-        raise ValueError(f"Unknown city: {city}")
     if not role.strip():
         raise ValueError("role is required")
 
-    city_slug = NAUKRI_CITIES[city]
-    # `l=` param expects the same lowercase slug
-    city_query = city_slug
+    locations = _normalize_locations(city, NAUKRI_CITIES)
 
-    os.makedirs(_PROFILE_DIR, exist_ok=True)
+    import tempfile
+    user_dir = tempfile.mkdtemp(prefix="naukri_ctx_")
 
     all_jobs = []
     seen_links = set()
@@ -134,31 +152,50 @@ def scrape_naukri(role, city, job_age_days, limit, experience=None):
         roles = [role]
 
     with sync_playwright() as p:
-        ctx = p.chromium.launch_persistent_context(
-            _PROFILE_DIR,
-            headless=False,                  # Playwright doesn't add HeadlessChrome
-            viewport={"width": 1366, "height": 900},
-            user_agent=(
-                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-                "AppleWebKit/537.36 (KHTML, like Gecko) "
-                "Chrome/132.0.0.0 Safari/537.36"
-            ),
-            locale="en-IN",
-            timezone_id="Asia/Kolkata",
-            args=[
-                "--disable-blink-features=AutomationControlled",
-                "--disable-features=AutomationControlled",
-                "--headless=new",            # Chrome's new headless (no UI, undetected)
-                "--no-first-run",
-                "--no-default-browser-check",
-            ],
-        )
-        ctx.add_init_script("""
+        args = [
+            "--disable-blink-features=AutomationControlled",
+            "--disable-features=AutomationControlled",
+            "--headless=new",
+            "--no-first-run",
+            "--no-default-browser-check",
+        ]
+        init_js = """
             Object.defineProperty(navigator,'webdriver',{get:()=>undefined});
             Object.defineProperty(navigator,'plugins',{get:()=>[1,2,3,4,5]});
             Object.defineProperty(navigator,'languages',{get:()=>['en-IN','en']});
             window.chrome = {runtime:{}, loadTimes:function(){}, csi:function(){}, app:{}};
-        """)
+        """
+        browser = None
+        try:
+            ctx = p.chromium.launch_persistent_context(
+                user_dir,
+                headless=False,                  # Playwright doesn't add HeadlessChrome
+                viewport={"width": 1366, "height": 900},
+                user_agent=(
+                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                    "AppleWebKit/537.36 (KHTML, like Gecko) "
+                    "Chrome/132.0.0.0 Safari/537.36"
+                ),
+                locale="en-IN",
+                timezone_id="Asia/Kolkata",
+                args=args,
+            )
+            ctx.add_init_script(init_js)
+        except Exception as e:
+            print(f"[Naukri] Persistent context launch failed ({e}), falling back to non-persistent launch.")
+            browser = p.chromium.launch(headless=True, args=args)
+            ctx = browser.new_context(
+                viewport={"width": 1366, "height": 900},
+                user_agent=(
+                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                    "AppleWebKit/537.36 (KHTML, like Gecko) "
+                    "Chrome/132.0.0.0 Safari/537.36"
+                ),
+                locale="en-IN",
+                timezone_id="Asia/Kolkata",
+            )
+            ctx.add_init_script(init_js)
+
         page = ctx.pages[0] if ctx.pages else ctx.new_page()
 
         # Warmup on homepage to establish Akamai trust cookies
@@ -169,20 +206,21 @@ def scrape_naukri(role, city, job_age_days, limit, experience=None):
             pass
 
         max_pages = 5
-        active_roles = list(roles)
+        active_combinations = [(c, r) for c in locations for r in roles]
 
         for page_idx in range(max_pages):
-            if len(all_jobs) >= limit or not active_roles:
+            if len(all_jobs) >= limit or not active_combinations:
                 break
 
             page_num = page_idx + 1
             next_active = []
 
-            for r in active_roles:
+            for c, r in active_combinations:
                 if len(all_jobs) >= limit:
                     break
 
-                url = _build_url(r, city_slug, city_query, job_age_days, experience, page_num)
+                city_slug = NAUKRI_CITIES[c]
+                url = _build_url(r, city_slug, city_slug, job_age_days, experience, page_num)
                 print(f"[Naukri] Fetching: {url}")
 
                 try:
@@ -203,6 +241,10 @@ def scrape_naukri(role, city, job_age_days, limit, experience=None):
                     cards = page.query_selector_all("div.srp-jobtuple-wrapper")
                     if not cards:
                         cards = page.query_selector_all("div.cust-job-tuple")
+                    if not cards:
+                        cards = page.query_selector_all("article.jobTuple")
+                    if not cards:
+                        cards = page.query_selector_all("div[data-job-id]")
 
                     if not cards:
                         print(f"[Naukri] No cards on page {page_num} for role '{r}'")
@@ -283,18 +325,23 @@ def scrape_naukri(role, city, job_age_days, limit, experience=None):
                             print(f"[Naukri] Card error: {e}")
                             continue
 
-                    print(f"[Naukri] Got {found_this_page} jobs from page {page_num} for role '{r}'")
-                    next_active.append(r)
-                    time.sleep(random.uniform(2.0, 3.5))
+                    print(f"[Naukri] Got {found_this_page} jobs from page {page_num} for city '{c}' role '{r}'")
+                    next_active.append((c, r))
 
-                except PWTimeout:
-                    print(f"[Naukri] Timeout on page {page_num} for role '{r}'")
                 except Exception as e:
-                    print(f"[Naukri] Error: {e}")
+                    print(f"[Naukri] Error fetching page {page_num} for city '{c}' role '{r}': {e}")
 
-            active_roles = next_active
+            active_combinations = next_active
 
-        ctx.close()
+        try:
+            ctx.close()
+        except Exception:
+            pass
+        if browser:
+            try:
+                browser.close()
+            except Exception:
+                pass
 
     def sort_key(j):
         try:

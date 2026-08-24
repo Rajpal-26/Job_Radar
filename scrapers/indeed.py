@@ -78,70 +78,104 @@ def _build_url(role, location, fromage_days, start=0, experience=None):
         "&sort=date"
         f"&start={int(start)}"
     )
-    if experience:
-        sc_val = None
-        if experience in ("fresher", "0-1", "0-6m", "internship"):
-            sc_val = "explvl(ENTRY_LEVEL)"
-        elif experience in ("1-2", "1-3", "3-5"):
-            sc_val = "explvl(MID_LEVEL)"
-        elif experience in ("5-7", "7-10", "10+"):
-            sc_val = "explvl(SENIOR_LEVEL)"
-        if sc_val:
-            url += f"&sc=0kf%3A{sc_val}%3B"
     return url
 
 
-import os
-
-_PROFILE_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "_indeed_profile")
-
+import tempfile
 
 def _launch(p, headless):
-    os.makedirs(_PROFILE_DIR, exist_ok=True)
-    context = p.chromium.launch_persistent_context(
-        _PROFILE_DIR,
-        headless=False,
-        viewport={"width": 1366, "height": 768},
-        user_agent=(
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-            "AppleWebKit/537.36 (KHTML, like Gecko) "
-            "Chrome/132.0.0.0 Safari/537.36"
-        ),
-        locale="en-IN",
-        timezone_id="Asia/Kolkata",
-        args=[
-            "--no-sandbox",
-            "--disable-setuid-sandbox",
-            "--disable-dev-shm-usage",
-            "--disable-blink-features=AutomationControlled",
-            "--disable-infobars",
-            "--no-first-run",
-            "--no-default-browser-check",
-        ] + (["--headless=new"] if headless else []),
-    )
-    context.add_init_script("""
+    args = [
+        "--no-sandbox",
+        "--disable-setuid-sandbox",
+        "--disable-dev-shm-usage",
+        "--disable-blink-features=AutomationControlled",
+        "--disable-infobars",
+        "--no-first-run",
+        "--no-default-browser-check",
+    ]
+    if headless:
+        args.append("--headless=new")
+
+    init_js = """
         Object.defineProperty(navigator, 'webdriver', {get: () => undefined});
         Object.defineProperty(navigator, 'plugins', {get: () => [1, 2, 3]});
         Object.defineProperty(navigator, 'languages', {get: () => ['en-IN', 'en']});
         window.chrome = {runtime: {}};
-    """)
-    return None, context
+    """
+
+    user_dir = tempfile.mkdtemp(prefix="indeed_ctx_")
+    try:
+        context = p.chromium.launch_persistent_context(
+            user_dir,
+            headless=False,
+            viewport={"width": 1366, "height": 768},
+            user_agent=(
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                "AppleWebKit/537.36 (KHTML, like Gecko) "
+                "Chrome/132.0.0.0 Safari/537.36"
+            ),
+            locale="en-IN",
+            timezone_id="Asia/Kolkata",
+            args=args,
+        )
+        context.add_init_script(init_js)
+        return None, context
+    except Exception as e:
+        print(f"[Indeed] Persistent context launch failed ({e}), falling back to non-persistent launch.")
+        browser = p.chromium.launch(headless=False, args=args)
+        context = browser.new_context(
+            viewport={"width": 1366, "height": 768},
+            user_agent=(
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                "AppleWebKit/537.36 (KHTML, like Gecko) "
+                "Chrome/132.0.0.0 Safari/537.36"
+            ),
+            locale="en-IN",
+            timezone_id="Asia/Kolkata",
+        )
+        context.add_init_script(init_js)
+        return browser, context
 
 
 def _is_blocked(page):
     """Detect bot-check page (Cloudflare, hCaptcha, Indeed's own block)."""
     title = (page.title() or "").lower()
     if "just a moment" in title or "cloudflare" in title:
+        print(f"[Indeed Debug] Blocked title: {title!r}")
         return True
     try:
         body = (page.inner_text("body") or "").lower()
     except Exception:
         return False
-    return (
+    if (
         "verifying you are human" in body
         or "additional verification required" in body
         or "you've been blocked" in body
-    )
+    ):
+        print(f"[Indeed Debug] Blocked body match in title={title!r}, snippet={body[:150]!r}")
+        return True
+    return False
+
+
+def _normalize_locations(locations_input, valid_cities_dict):
+    if not locations_input:
+        return list(valid_cities_dict.keys())[:1]
+    if isinstance(locations_input, str):
+        raw = [c.strip() for c in locations_input.split(",") if c.strip()]
+    else:
+        raw = []
+        for item in locations_input:
+            for part in str(item).split(","):
+                if part.strip():
+                    raw.append(part.strip())
+    valid = []
+    for loc in raw:
+        for k in valid_cities_dict:
+            if loc.lower() == k.lower():
+                if k not in valid:
+                    valid.append(k)
+                break
+    return valid or [list(valid_cities_dict.keys())[0]]
 
 
 def _scrape_with(p, role, fromage_days, internal_limit, locations,
@@ -151,8 +185,17 @@ def _scrape_with(p, role, fromage_days, internal_limit, locations,
     seen_links = set()
     blocked_any = False
 
+    locations = _normalize_locations(locations, INDEED_CITIES)
+
     browser, context = _launch(p, headless=headless)
-    page = context.pages[0] if context.pages else context.new_page()
+    page = context.new_page()
+
+    # Warmup on Indeed homepage to establish Cloudflare cookies
+    try:
+        page.goto("https://in.indeed.com/", wait_until="domcontentloaded", timeout=20000)
+        time.sleep(random.uniform(2.5, 4.0))
+    except Exception:
+        pass
 
     # Support multiple comma-separated job roles
     roles = [r.strip() for r in role.split(",") if r.strip()]
@@ -161,7 +204,7 @@ def _scrape_with(p, role, fromage_days, internal_limit, locations,
 
     try:
         max_pages = 5  # Indeed page safety limit (10 jobs per page)
-        active_combinations = [(city_key, r) for city_key in locations if city_key in INDEED_CITIES for r in roles]
+        active_combinations = [(city_key, r) for city_key in locations for r in roles]
 
         for page_idx in range(max_pages):
             if len(all_jobs) >= internal_limit or not active_combinations:
@@ -189,17 +232,21 @@ def _scrape_with(p, role, fromage_days, internal_limit, locations,
                         continue
 
                     # Indeed bot check
-                    deadline = time.time() + (20 if attempt == 0 else 12)
+                    deadline = time.time() + 4
                     while time.time() < deadline:
                         if not _is_blocked(page):
                             cleared = True
                             break
-                        time.sleep(1)
+                        try:
+                            page.mouse.move(random.randint(100, 500), random.randint(100, 500))
+                        except Exception:
+                            pass
+                        time.sleep(0.5)
 
                     if cleared:
                         break
                     print(f"[Indeed] Bot check failed (attempt {attempt+1}/2)")
-                    time.sleep(random.uniform(4.0, 7.0))
+                    time.sleep(1.0)
 
                 if not cleared:
                     print(f"[Indeed] Hard blocked at start={start} for '{r}' in '{city_key}'")
@@ -350,6 +397,11 @@ def _scrape_with(p, role, fromage_days, internal_limit, locations,
             context.close()
         except Exception:
             pass
+        if browser:
+            try:
+                browser.close()
+            except Exception:
+                pass
 
     return all_jobs, blocked_any
 
