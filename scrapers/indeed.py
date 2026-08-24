@@ -93,55 +93,32 @@ def _launch(p, headless):
         "--no-first-run",
         "--no-default-browser-check",
     ]
-    if headless:
-        args.append("--headless=new")
 
-    init_js = """
-        Object.defineProperty(navigator, 'webdriver', {get: () => undefined});
-        Object.defineProperty(navigator, 'plugins', {get: () => [1, 2, 3]});
-        Object.defineProperty(navigator, 'languages', {get: () => ['en-IN', 'en']});
-        window.chrome = {runtime: {}};
-    """
-
-    user_dir = tempfile.mkdtemp(prefix="indeed_ctx_")
-    try:
-        context = p.chromium.launch_persistent_context(
-            user_dir,
-            headless=False,
-            viewport={"width": 1366, "height": 768},
-            user_agent=(
-                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-                "AppleWebKit/537.36 (KHTML, like Gecko) "
-                "Chrome/132.0.0.0 Safari/537.36"
-            ),
-            locale="en-IN",
-            timezone_id="Asia/Kolkata",
-            args=args,
-        )
-        context.add_init_script(init_js)
-        return None, context
-    except Exception as e:
-        print(f"[Indeed] Persistent context launch failed ({e}), falling back to non-persistent launch.")
-        browser = p.chromium.launch(headless=False, args=args)
-        context = browser.new_context(
-            viewport={"width": 1366, "height": 768},
-            user_agent=(
-                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-                "AppleWebKit/537.36 (KHTML, like Gecko) "
-                "Chrome/132.0.0.0 Safari/537.36"
-            ),
-            locale="en-IN",
-            timezone_id="Asia/Kolkata",
-        )
-        context.add_init_script(init_js)
-        return browser, context
+    browser = p.chromium.launch(headless=headless, args=args)
+    context = browser.new_context(
+        viewport={"width": 1366, "height": 768},
+        user_agent=(
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+            "AppleWebKit/537.36 (KHTML, like Gecko) "
+            "Chrome/132.0.0.0 Safari/537.36"
+        ),
+        locale="en-IN",
+        timezone_id="Asia/Kolkata",
+    )
+    return browser, context
 
 
 def _is_blocked(page):
     """Detect bot-check page (Cloudflare, hCaptcha, Indeed's own block)."""
+    try:
+        cards = page.query_selector_all("div.cardOutline, div.job_seen_beacon, td.resultContent")
+        if cards:
+            return False
+    except Exception:
+        pass
+
     title = (page.title() or "").lower()
     if "just a moment" in title or "cloudflare" in title:
-        print(f"[Indeed Debug] Blocked title: {title!r}")
         return True
     try:
         body = (page.inner_text("body") or "").lower()
@@ -152,7 +129,6 @@ def _is_blocked(page):
         or "additional verification required" in body
         or "you've been blocked" in body
     ):
-        print(f"[Indeed Debug] Blocked body match in title={title!r}, snippet={body[:150]!r}")
         return True
     return False
 
@@ -221,52 +197,26 @@ def _scrape_with(p, role, fromage_days, internal_limit, locations,
                 url = _build_url(r, location_query, fromage_days, start, experience)
                 print(f"[Indeed] Fetching: {url}")
 
-                # Bot-check retry
-                cleared = False
-                for attempt in range(2):
-                    try:
-                        page.goto(url, wait_until="domcontentloaded", timeout=25000)
-                    except Exception as e:
-                        print(f"[Indeed] goto attempt {attempt+1} failed: {e}")
-                        time.sleep(3)
-                        continue
+                try:
+                    page.goto(url, timeout=25000)
+                    page.wait_for_timeout(3000)
+                except Exception as e:
+                    print(f"[Indeed] Navigation error for '{r}' in '{city_key}': {e}")
+                    continue
 
-                    # Indeed bot check
-                    deadline = time.time() + 4
-                    while time.time() < deadline:
-                        if not _is_blocked(page):
-                            cleared = True
-                            break
-                        try:
-                            page.mouse.move(random.randint(100, 500), random.randint(100, 500))
-                        except Exception:
-                            pass
-                        time.sleep(0.5)
-
-                    if cleared:
-                        break
-                    print(f"[Indeed] Bot check failed (attempt {attempt+1}/2)")
-                    time.sleep(1.0)
-
-                if not cleared:
-                    print(f"[Indeed] Hard blocked at start={start} for '{r}' in '{city_key}'")
-                    blocked_any = True
-                    continue  # skip to next combination
+                cards = page.query_selector_all("div.cardOutline, div.job_seen_beacon, td.resultContent")
+                if not cards:
+                    if _is_blocked(page):
+                        print(f"[Indeed] Hard blocked at start={start} for '{r}' in '{city_key}'")
+                        blocked_any = True
+                        if headless:
+                            # Fast fallback: if headless mode is blocked on page 1, exit pass immediately
+                            return all_jobs, True
+                    else:
+                        print(f"[Indeed] No cards for {city_key} role '{r}' start={start}")
+                    continue
 
                 try:
-                    try:
-                        page.wait_for_selector(".jobsearch-ResultsList", timeout=12000)
-                    except Exception:
-                        pass
-                    time.sleep(random.uniform(2.0, 3.5))
-
-                    cards = page.query_selector_all("div.job_seen_beacon")
-                    if not cards:
-                        cards = page.query_selector_all("td.resultContent")
-                    if not cards:
-                        print(f"[Indeed] No cards for {city_key} role {r} start={start}")
-                        continue  # Exhausted
-
                     found_this_page = 0
                     for card in cards:
                         if len(all_jobs) >= internal_limit:
@@ -275,6 +225,7 @@ def _scrape_with(p, role, fromage_days, internal_limit, locations,
                             # ── Title & Link ──
                             title_el = (
                                 card.query_selector("h2.jobTitle a")
+                                or card.query_selector("a.jcs-JobTitle")
                                 or card.query_selector("a[class*='JobTitle']")
                                 or card.query_selector("h2 a")
                             )
@@ -283,14 +234,18 @@ def _scrape_with(p, role, fromage_days, internal_limit, locations,
                                 continue
 
                             href = (title_el.get_attribute("href") or "").strip()
-                            if href and not href.startswith("http"):
-                                link = "https://www.indeed.com" + href
-                            else:
-                                link = href
-                            link = link.split("?")[0].strip()
-
-                            if "/rc/clk" not in link and "/company/" not in link and "/jobs/" not in link:
+                            if not href:
                                 continue
+
+                            if "jk=" in href:
+                                jk_m = re.search(r"jk=([a-f0-9]+)", href)
+                                if jk_m:
+                                    link = f"https://in.indeed.com/viewjob?jk={jk_m.group(1)}"
+                                else:
+                                    link = href if href.startswith("http") else "https://in.indeed.com" + href
+                            else:
+                                link = href if href.startswith("http") else "https://in.indeed.com" + href
+
                             if link in seen_links:
                                 continue
 
