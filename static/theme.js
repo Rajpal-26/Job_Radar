@@ -7,8 +7,12 @@
  * ============================================================================== */
 
 (function () {
-  // Apply saved theme IMMEDIATELY before DOM render to eliminate flicker (default: dark)
-  const savedTheme = localStorage.getItem("jobradar_theme") || "dark";
+  // Enforce Dark Mode by default across all screens & tabs
+  let savedTheme = localStorage.getItem("jobradar_theme");
+  if (!savedTheme) {
+    savedTheme = "dark";
+    localStorage.setItem("jobradar_theme", "dark");
+  }
   document.documentElement.setAttribute("data-theme", savedTheme);
 
   // Sync UI components when DOM is ready
@@ -20,7 +24,7 @@
 })();
 
 function updateThemeUI() {
-  const currentTheme = document.documentElement.getAttribute("data-theme") || "light";
+  const currentTheme = document.documentElement.getAttribute("data-theme") || "dark";
   const isDark = currentTheme === "dark";
 
   // Update theme label text

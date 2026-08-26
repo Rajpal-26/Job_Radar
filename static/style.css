@@ -3,37 +3,7 @@
  * Copyright (c) 2026 Rajpal Singh Tanwar. All rights reserved.
  * ============================================================================== */
 
-:root {
-  --bg: #f3f5f8;
-  --bg-accent: radial-gradient(1200px 500px at 75% -15%, #c4d9ff 0%, rgba(196, 217, 255, 0) 60%),
-               radial-gradient(900px 350px at -10% 0%, #d2f3e9 0%, rgba(210, 243, 233, 0) 55%);
-  --panel: #ffffff;
-  --panel-soft: #f7f9fd;
-  --text: #131826;
-  --subtext: #5d667a;
-  --line: #dde3ee;
-  --line-strong: #c9d3e4;
-  --primary: #0a66c2;
-  --primary-soft: #dcecff;
-  --accent: #14a37a;
-  --accent-soft: #d6f4e8;
-  --success: #14855b;
-  --warning: #ba6f10;
-  --error: #c1363f;
-  --shadow: 0 16px 34px rgba(15, 23, 42, 0.08);
-
-  /* Light Theme Card Variables */
-  --card-white: #131826;
-  --card-black: #ffffff;
-  --card-paragraph: #5d667a;
-  --card-line: #dde3ee;
-  --card-primary: #0a66c2;
-  --card-bg: #ffffff;
-  --card-bg-gradient: linear-gradient(145deg, #ffffff 0%, #f7f9fd 100%);
-  --card-border-default: #dde3ee;
-  --card-shadow: 0px 8px 20px rgba(15, 23, 42, 0.04);
-}
-
+:root,
 html[data-theme="dark"] {
   --bg: #0b111e;
   --bg-accent: radial-gradient(1200px 500px at 75% -15%, rgba(23, 84, 151, 0.4) 0%, rgba(23, 84, 151, 0) 60%),
@@ -63,6 +33,37 @@ html[data-theme="dark"] {
   --card-bg-gradient: linear-gradient(145deg, #101a2a 0%, #0f1523 100%);
   --card-border-default: #21314a;
   --card-shadow: 0px 12px 28px rgba(0, 0, 0, 0.35);
+}
+
+html[data-theme="light"] {
+  --bg: #f3f5f8;
+  --bg-accent: radial-gradient(1200px 500px at 75% -15%, #c4d9ff 0%, rgba(196, 217, 255, 0) 60%),
+               radial-gradient(900px 350px at -10% 0%, #d2f3e9 0%, rgba(210, 243, 233, 0) 55%);
+  --panel: #ffffff;
+  --panel-soft: #f7f9fd;
+  --text: #131826;
+  --subtext: #5d667a;
+  --line: #dde3ee;
+  --line-strong: #c9d3e4;
+  --primary: #0a66c2;
+  --primary-soft: #dcecff;
+  --accent: #14a37a;
+  --accent-soft: #d6f4e8;
+  --success: #14855b;
+  --warning: #ba6f10;
+  --error: #c1363f;
+  --shadow: 0 16px 34px rgba(15, 23, 42, 0.08);
+
+  /* Light Theme Card Variables */
+  --card-white: #131826;
+  --card-black: #ffffff;
+  --card-paragraph: #5d667a;
+  --card-line: #dde3ee;
+  --card-primary: #0a66c2;
+  --card-bg: #ffffff;
+  --card-bg-gradient: linear-gradient(145deg, #ffffff 0%, #f7f9fd 100%);
+  --card-border-default: #dde3ee;
+  --card-shadow: 0px 8px 20px rgba(15, 23, 42, 0.04);
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
