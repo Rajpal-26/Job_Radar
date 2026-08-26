@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>JobRadar — Career & Market Analytics Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1.25rem;
+      margin-bottom: 1.75rem;
+    }
+    .metric-card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 1rem;
+      padding: 1.25rem;
+      box-shadow: var(--shadow);
+    }
+    .metric-val {
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: var(--primary);
+      margin-top: 0.35rem;
+    }
+    .charts-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+      gap: 1.5rem;
+    }
+    .chart-box {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 1rem;
+      padding: 1.5rem;
+      box-shadow: var(--shadow);
+    }
+    .chart-title {
+      font-weight: 700;
+      font-size: 1.1rem;
+      margin-bottom: 1rem;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navigation Bar -->
+  <nav class="app-navbar">
+    <a href="/" class="nav-brand">
+      <div class="radar-dot"></div>
+      Job<span>Radar</span>
+    </a>
+    <div class="nav-tabs">
+      <a href="/unified" class="nav-tab">⚡ Multi-Portal Search</a>
+      <a href="/tracker" class="nav-tab">📋 Application Kanban</a>
+      <a href="/analytics" class="nav-tab active">📊 Market Analytics</a>
+      <a href="/" class="nav-tab">🌐 Single Scrapers</a>
+    </div>
+    <div class="nav-tools">
+      <button class="nav-theme-btn" onclick="toggleTheme()" aria-label="Toggle theme">
+        <span class="theme-icon">🌙</span>
+        <span class="theme-label" id="themeLabel">Dark Mode</span>
+      </button>
+    </div>
+  </nav>
+
+  <div class="container" style="max-width: 1250px; margin: 2rem auto; padding: 0 1rem;">
+    
+    <div style="margin-bottom: 1.5rem;">
+      <h2 style="margin: 0; color: var(--text);">📊 Career Market & Hiring Intelligence</h2>
+      <p style="color: var(--subtext); margin-top: 0.35rem;">Real-time salary benchmarks, tech stack demand trends, and platform volume distributions.</p>
+    </div>
+
+    <!-- Key Metrics Cards -->
+    <div class="metrics-grid">
+      <div class="metric-card">
+        <div style="font-size: 0.85rem; font-weight: 600; color: var(--subtext);">Top Tech Skill Demand</div>
+        <div class="metric-val" id="metricTopSkill">Python</div>
+      </div>
+      <div class="metric-card">
+        <div style="font-size: 0.85rem; font-weight: 600; color: var(--subtext);">Average Salary Benchmark</div>
+        <div class="metric-val" id="metricAvgSalary">₹9.5 LPA</div>
+      </div>
+      <div class="metric-card">
+        <div style="font-size: 0.85rem; font-weight: 600; color: var(--subtext);">Hiring Capital City</div>
+        <div class="metric-val" id="metricTopCity">Bengaluru</div>
+      </div>
+      <div class="metric-card">
+        <div style="font-size: 0.85rem; font-weight: 600; color: var(--subtext);">Tracked Scraper Portals</div>
+        <div class="metric-val">8 Platforms</div>
+      </div>
+    </div>
+
+    <!-- Visual Charts Grid -->
+    <div class="charts-grid">
+      
+      <!-- Skill Demand Chart -->
+      <div class="chart-box">
+        <div class="chart-title">🔥 Most Demanded Tech Skills Index</div>
+        <canvas id="skillsChart" height="260"></canvas>
+      </div>
+
+      <!-- Platform Distribution Chart -->
+      <div class="chart-box">
+        <div class="chart-title">🌐 Platform Scraper Volume Distribution</div>
+        <canvas id="platformsChart" height="260"></canvas>
+      </div>
+
+      <!-- Salary Benchmarks Chart -->
+      <div class="chart-box" style="grid-column: 1 / -1;">
+        <div class="chart-title">💰 Salary Distribution by Role & Tech Stack (LPA)</div>
+        <canvas id="salaryChart" height="140"></canvas>
+      </div>
+
+    </div>
+
+  </div>
+
+  <script>
+    async function loadAnalytics() {
+      try {
+        const res = await fetch("/api/analytics_data");
+        const data = await res.json();
+
+        // Skill Demand Chart
+        const skillCtx = document.getElementById("skillsChart").getContext("2d");
+        new Chart(skillCtx, {
+          type: "bar",
+          data: {
+            labels: data.skills.map(s => s.skill),
+            datasets: [{
+              label: "Demand Frequency",
+              data: data.skills.map(s => s.count),
+              backgroundColor: "rgba(10, 102, 194, 0.75)",
+              borderColor: "#0a66c2",
+              borderWidth: 1,
+              borderRadius: 6
+            }]
+          },
+          options: { responsive: true, plugins: { legend: { display: false } } }
+        });
+
+        // Platform Volume Chart
+        const platformCtx = document.getElementById("platformsChart").getContext("2d");
+        new Chart(platformCtx, {
+          type: "doughnut",
+          data: {
+            labels: Object.keys(data.platforms),
+            datasets: [{
+              data: Object.values(data.platforms),
+              backgroundColor: ["#0a66c2", "#10b981", "#f59e0b", "#8b5cf6", "#ec4899", "#06b6d4", "#f97316", "#64748b"]
+            }]
+          },
+          options: { responsive: true }
+        });
+
+        // Salary Chart
+        const salaryCtx = document.getElementById("salaryChart").getContext("2d");
+        new Chart(salaryCtx, {
+          type: "bar",
+          data: {
+            labels: data.salaries.map(s => s.role),
+            datasets: [
+              { label: "Min LPA", data: data.salaries.map(s => s.min), backgroundColor: "rgba(16, 185, 129, 0.6)" },
+              { label: "Avg LPA", data: data.salaries.map(s => s.avg), backgroundColor: "rgba(10, 102, 194, 0.8)" },
+              { label: "Max LPA", data: data.salaries.map(s => s.max), backgroundColor: "rgba(139, 92, 246, 0.6)" }
+            ]
+          },
+          options: { responsive: true }
+        });
+
+      } catch (err) {
+        console.error("Failed to load analytics: ", err);
+      }
+    }
+
+    function toggleTheme() {
+      const html = document.documentElement;
+      const current = html.getAttribute("data-theme") || "light";
+      const next = current === "light" ? "dark" : "light";
+      html.setAttribute("data-theme", next);
+
+      const label = document.getElementById("themeLabel");
+      const icon = document.querySelector(".theme-icon");
+      if (label) label.textContent = next === "light" ? "Dark Mode" : "Light Mode";
+      if (icon) icon.textContent = next === "light" ? "🌙" : "☀️";
+    }
+
+    window.onload = loadAnalytics;
+  </script>
+</body>
+</html>

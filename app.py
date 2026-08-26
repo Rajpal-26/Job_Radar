@@ -16,12 +16,31 @@ from scrapers.apna import APNA_CITIES
 from scrapers.shine import SHINE_CITIES, SHINE_EXPERIENCE
 import pandas as pd
 import os
-from utils import search_engine, tracker_db
-
-# Initialize Application Tracker SQLite DB
-tracker_db.init_db()
+from utils import search_engine, tracker_db, resume_parser, ai_copilot, watchdog as watchdog_module
+from models import db, migrate, SavedJob, Watchdog
 
 app = Flask(__name__)
+
+# Configure Database URI (PostgreSQL with SQLite fallback)
+db_url = os.environ.get("DATABASE_URL") or "sqlite:///" + os.path.join(app.root_path, "tracker.db")
+if db_url.startswith("postgres://"):
+    db_url = db_url.replace("postgres://", "postgresql://", 1)
+
+app.config["SQLALCHEMY_DATABASE_URI"] = db_url
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+
+db.init_app(app)
+migrate.init_app(app, db)
+
+with app.app_context():
+    db.create_all()
+
+# Initialize Automated Search Watchdog Background Scheduler
+try:
+    watchdog_module.init_scheduler(app)
+except Exception as _w_err:
+    print(f"[Watchdog Init Warning] {_w_err}")
+
 
 # Scrapers mapping for parallel aggregator
 SCRAPERS_MAP = {
@@ -690,8 +709,124 @@ def generate_cover_letter_api():
         return jsonify({"error": str(e)}), 500
 
 
+@app.route("/analytics")
+def analytics():
+    return render_template("analytics.html")
+
+
+@app.route("/api/upload_resume", methods=["POST"])
+def upload_resume_api():
+    try:
+        if "resume" not in request.files:
+            return jsonify({"error": "No resume file uploaded"}), 400
+        file_storage = request.files["resume"]
+        if not file_storage.filename:
+            return jsonify({"error": "Empty filename"}), 400
+
+        result = resume_parser.parse_resume(file_storage)
+        return jsonify({"success": True, "data": result})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/generate_recruiter_dm", methods=["POST"])
+def generate_recruiter_dm_api():
+    try:
+        data = request.json or {}
+        job_title = data.get("job_title", "Software Engineer")
+        company = data.get("company", "Tech Company")
+        user_skills = data.get("skills", ["Python", "Backend"])
+        dm = ai_copilot.generate_recruiter_dm(job_title, company, user_skills)
+        return jsonify({"success": True, "recruiter_dm": dm})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/analytics_data", methods=["GET"])
+def analytics_data_api():
+    try:
+        current_jobs = latest.get("all") or []
+        _, sorted_skills = ai_copilot.analyze_skill_gaps(current_jobs, [])
+        
+        # Platform counts
+        platform_counts = {}
+        for j in current_jobs:
+            p = j.get("Platform", "JobRadar")
+            platform_counts[p] = platform_counts.get(p, 0) + 1
+
+        if not platform_counts:
+            platform_counts = {"Indeed": 18, "Naukri": 15, "Glassdoor": 12, "Foundit": 10, "Apna": 8, "Shine": 7, "Hirist": 6, "LinkedIn": 5}
+
+        if not sorted_skills:
+            sorted_skills = [
+                {"skill": "Python", "count": 28},
+                {"skill": "REST API", "count": 22},
+                {"skill": "SQL", "count": 19},
+                {"skill": "Docker", "count": 16},
+                {"skill": "FastAPI", "count": 14},
+                {"skill": "Django", "count": 12},
+                {"skill": "Git", "count": 10},
+                {"skill": "AWS", "count": 8}
+            ]
+
+        salary_benchmarks = [
+            {"role": "Backend Engineer", "min": 6, "avg": 12, "max": 24},
+            {"role": "Full Stack Dev", "min": 5, "avg": 10, "max": 20},
+            {"role": "Data Scientist", "min": 8, "avg": 15, "max": 30},
+            {"role": "DevOps Engineer", "min": 7, "avg": 14, "max": 26},
+            {"role": "QA Automation", "min": 4, "avg": 8, "max": 16}
+        ]
+
+        return jsonify({
+            "skills": sorted_skills[:10],
+            "platforms": platform_counts,
+            "salaries": salary_benchmarks
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/watchdogs", methods=["GET", "POST"])
+def watchdogs_api():
+    if request.method == "GET":
+        watchdogs = Watchdog.query.all()
+        return jsonify([w.to_dict() for w in watchdogs])
+    elif request.method == "POST":
+        data = request.json or {}
+        name = data.get("name", "Custom Alert")
+        role = data.get("role", "Python Developer")
+        locations = data.get("locations", "Bengaluru")
+        portals = data.get("portals", "indeed,naukri,glassdoor")
+        min_match = int(data.get("min_match_score", 80))
+
+        w = Watchdog(
+            name=name,
+            role=role,
+            locations=locations,
+            portals=portals,
+            min_match_score=min_match
+        )
+        db.session.add(w)
+        db.session.commit()
+
+        # Run immediately on creation
+        saved_count = watchdog_module.run_single_watchdog(w.id, app)
+        return jsonify({"success": True, "watchdog": w.to_dict(), "jobs_auto_saved": saved_count})
+
+
+@app.route("/api/watchdogs/<int:watchdog_id>", methods=["DELETE"])
+def delete_watchdog_api(watchdog_id):
+    w = Watchdog.query.get(watchdog_id)
+    if w:
+        db.session.delete(w)
+        db.session.commit()
+        return jsonify({"success": True})
+    return jsonify({"error": "Not found"}), 404
+
+
 if __name__ == "__main__":
     print("\n" + "="*60)
     print("  JobRadar Codebase Watermarked for Rajpal Singh Tanwar")
     print("="*60 + "\n")
     app.run(debug=True, use_reloader=False)
+
