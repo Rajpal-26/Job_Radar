@@ -7,8 +7,8 @@
  * ============================================================================== */
 
 (function () {
-  // Apply saved theme IMMEDIATELY before DOM render to eliminate flicker
-  const savedTheme = localStorage.getItem("jobradar_theme") || "light";
+  // Apply saved theme IMMEDIATELY before DOM render to eliminate flicker (default: dark)
+  const savedTheme = localStorage.getItem("jobradar_theme") || "dark";
   document.documentElement.setAttribute("data-theme", savedTheme);
 
   // Sync UI components when DOM is ready
