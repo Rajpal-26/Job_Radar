@@ -1117,7 +1117,7 @@ html[data-theme="dark"] .watermark-badge {
   align-items: center;
   justify-content: space-between;
   padding: 0.75rem 1.5rem;
-  background: rgba(255, 255, 255, 0.85);
+  background: var(--panel);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border: 1px solid var(--line);
@@ -1126,12 +1126,12 @@ html[data-theme="dark"] .watermark-badge {
   position: sticky;
   top: 1rem;
   z-index: 1000;
-  box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.05);
+  box-shadow: var(--shadow);
   transition: all 0.3s ease;
 }
 
 html[data-theme="dark"] .app-navbar {
-  background: rgba(16, 26, 42, 0.85);
+  background: rgba(16, 26, 42, 0.95);
   border-color: var(--line);
   box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.35);
 }

@@ -7,9 +7,9 @@
  * ============================================================================== */
 
 (function () {
-  // Enforce Dark Mode by default across all screens & tabs
+  // Enforce Dark Mode by default across all screens & tabs (override stale light theme)
   let savedTheme = localStorage.getItem("jobradar_theme");
-  if (!savedTheme) {
+  if (!savedTheme || savedTheme === "light") {
     savedTheme = "dark";
     localStorage.setItem("jobradar_theme", "dark");
   }
