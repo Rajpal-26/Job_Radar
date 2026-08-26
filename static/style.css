@@ -1253,4 +1253,103 @@ html[data-theme="dark"] .app-navbar {
   transform: translateY(-1px);
 }
 
+/* ==============================================================================
+ * UNIFIED THEMED COMPONENTS (Forms, Inputs, Cards, Badges)
+ * ============================================================================== */
+
+.app-card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  box-shadow: var(--shadow);
+  color: var(--text);
+  transition: background 0.3s, border-color 0.3s;
+}
+
+.filter-drawer {
+  background: var(--panel-soft);
+  border: 1px solid var(--line);
+  border-radius: 0.75rem;
+  padding: 1.25rem;
+  margin-top: 1rem;
+}
+
+.input-field,
+.app-input {
+  width: 100%;
+  background: var(--panel);
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: 0.5rem;
+  padding: 0.6rem;
+  font-family: inherit;
+  font-size: 0.9rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.input-field:focus,
+.app-input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-soft);
+}
+
+.portal-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.85rem;
+  background: var(--panel-soft);
+  border: 1px solid var(--line);
+  color: var(--subtext);
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.2s;
+}
+
+.portal-chip input { cursor: pointer; accent-color: var(--primary); }
+
+.portal-chip:has(input:checked) {
+  background: var(--primary-soft);
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+/* Match Badges */
+.badge-match {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.65rem;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 0.8rem;
+}
+.badge-match-high { background: var(--accent-soft); color: var(--accent); }
+.badge-match-mid { background: rgba(243, 166, 58, 0.15); color: var(--warning); }
+.badge-match-low { background: rgba(239, 110, 117, 0.15); color: var(--error); }
+
+.platform-badge {
+  display: inline-block;
+  padding: 0.2rem 0.55rem;
+  background: var(--primary-soft);
+  color: var(--primary);
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  margin-right: 0.25rem;
+}
+
+.modal-content {
+  background: var(--panel);
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: 0.75rem;
+  box-shadow: var(--shadow);
+}
+
 

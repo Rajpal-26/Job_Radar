@@ -174,23 +174,23 @@
   <div class="container" style="max-width: 1200px; margin: 2rem auto; padding: 0 1rem;">
     
     <!-- Search Form Header -->
-    <div style="background: var(--bg-card, #ffffff); border-radius: 1rem; padding: 1.5rem; border: 1px solid var(--border-color, #e2e8f0); box-shadow: 0 4px 12px rgba(0,0,0,0.03);">
-      <h2 style="margin-top:0; margin-bottom: 0.5rem;">Unified Multi-Portal Aggregator</h2>
-      <p style="color: #64748b; margin-bottom: 1.25rem; font-size: 0.95rem;">Search and deduplicate jobs across all portals simultaneously with AI Match Scoring.</p>
+    <div class="app-card">
+      <h2 style="margin-top:0; margin-bottom: 0.5rem; color: var(--text);">Unified Multi-Portal Aggregator</h2>
+      <p style="color: var(--subtext); margin-bottom: 1.25rem; font-size: 0.95rem;">Search and deduplicate jobs across all portals simultaneously with AI Match Scoring.</p>
 
       <form id="unifiedForm" onsubmit="event.preventDefault(); runUnifiedSearch();">
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem;">
           <div>
-            <label style="font-weight: 700; font-size: 0.85rem;">Job Role / Title</label>
-            <input type="text" id="role" name="role" class="input-field" placeholder="e.g. Associate Software Engineer" value="Associate Software Engineer" required style="width: 100%; padding: 0.6rem; border-radius: 0.5rem; border: 1px solid #cbd5e1;" />
+            <label style="font-weight: 700; font-size: 0.85rem; color: var(--text);">Job Role / Title</label>
+            <input type="text" id="role" name="role" class="input-field" placeholder="e.g. Associate Software Engineer" value="Associate Software Engineer" required />
           </div>
           <div>
-            <label style="font-weight: 700; font-size: 0.85rem;">Locations (comma separated)</label>
-            <input type="text" id="locations" name="locations" class="input-field" placeholder="e.g. Bengaluru, Pune, Noida" value="Bengaluru, Pune, Noida" required style="width: 100%; padding: 0.6rem; border-radius: 0.5rem; border: 1px solid #cbd5e1;" />
+            <label style="font-weight: 700; font-size: 0.85rem; color: var(--text);">Locations (comma separated)</label>
+            <input type="text" id="locations" name="locations" class="input-field" placeholder="e.g. Bengaluru, Pune, Noida" value="Bengaluru, Pune, Noida" required />
           </div>
           <div>
-            <label style="font-weight: 700; font-size: 0.85rem;">Posted Within (Days)</label>
-            <select id="fromage" name="fromage" style="width: 100%; padding: 0.6rem; border-radius: 0.5rem; border: 1px solid #cbd5e1;">
+            <label style="font-weight: 700; font-size: 0.85rem; color: var(--text);">Posted Within (Days)</label>
+            <select id="fromage" name="fromage" class="input-field">
               <option value="1">1 Day (Today)</option>
               <option value="3">3 Days</option>
               <option value="7" selected>7 Days</option>
@@ -199,14 +199,14 @@
             </select>
           </div>
           <div>
-            <label style="font-weight: 700; font-size: 0.85rem;">Max Jobs per Portal</label>
-            <input type="number" id="limit" name="limit" value="20" min="5" max="100" style="width: 100%; padding: 0.6rem; border-radius: 0.5rem; border: 1px solid #cbd5e1;" />
+            <label style="font-weight: 700; font-size: 0.85rem; color: var(--text);">Max Jobs per Portal</label>
+            <input type="number" id="limit" name="limit" class="input-field" value="20" min="5" max="100" />
           </div>
         </div>
 
         <!-- Portal Selectors -->
         <div style="margin-top: 1.25rem;">
-          <label style="font-weight: 700; font-size: 0.85rem;">Select Portals to Search:</label>
+          <label style="font-weight: 700; font-size: 0.85rem; color: var(--text);">Select Portals to Search:</label>
           <div class="portal-checkboxes">
             <label class="portal-chip"><input type="checkbox" name="portals" value="indeed" checked> Indeed</label>
             <label class="portal-chip"><input type="checkbox" name="portals" value="naukri" checked> Naukri</label>
@@ -222,26 +222,26 @@
         <!-- Advanced Filter Toggle -->
         <div class="filter-drawer">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
-            <h4 style="margin: 0; color: #1e293b;">⚡ Advanced Filters & AI Resume Matcher</h4>
-            <span style="font-size: 0.8rem; color: #64748b;">Fine-tune keywords, salary & work mode</span>
+            <h4 style="margin: 0; color: var(--text);">⚡ Advanced Filters & AI Resume Matcher</h4>
+            <span style="font-size: 0.8rem; color: var(--subtext);">Fine-tune keywords, salary & work mode</span>
           </div>
 
           <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
             <div>
-              <label style="font-size: 0.8rem; font-weight: 600;">Include Keywords (Must contain)</label>
-              <input type="text" id="include_keywords" placeholder="e.g. Python, FastAPI" style="width: 100%; padding: 0.45rem; border-radius: 0.375rem; border: 1px solid #cbd5e1;" />
+              <label style="font-size: 0.8rem; font-weight: 600; color: var(--text);">Include Keywords (Must contain)</label>
+              <input type="text" id="include_keywords" class="input-field" placeholder="e.g. Python, FastAPI" />
             </div>
             <div>
-              <label style="font-size: 0.8rem; font-weight: 600;">Exclude Keywords (Must NOT contain)</label>
-              <input type="text" id="exclude_keywords" placeholder="e.g. Senior, Lead, Manager" style="width: 100%; padding: 0.45rem; border-radius: 0.375rem; border: 1px solid #cbd5e1;" />
+              <label style="font-size: 0.8rem; font-weight: 600; color: var(--text);">Exclude Keywords (Must NOT contain)</label>
+              <input type="text" id="exclude_keywords" class="input-field" placeholder="e.g. Senior, Lead, Manager" />
             </div>
             <div>
-              <label style="font-size: 0.8rem; font-weight: 600;">Min Salary (LPA)</label>
-              <input type="number" id="min_salary" placeholder="e.g. 5" step="0.5" style="width: 100%; padding: 0.45rem; border-radius: 0.375rem; border: 1px solid #cbd5e1;" />
+              <label style="font-size: 0.8rem; font-weight: 600; color: var(--text);">Min Salary (LPA)</label>
+              <input type="number" id="min_salary" class="input-field" placeholder="e.g. 5" step="0.5" />
             </div>
             <div>
-              <label style="font-size: 0.8rem; font-weight: 600;">Workplace Mode</label>
-              <select id="workplace_mode" style="width: 100%; padding: 0.45rem; border-radius: 0.375rem; border: 1px solid #cbd5e1;">
+              <label style="font-size: 0.8rem; font-weight: 600; color: var(--text);">Workplace Mode</label>
+              <select id="workplace_mode" class="input-field">
                 <option value="all">All Modes</option>
                 <option value="remote">Remote Only</option>
                 <option value="hybrid">Hybrid Only</option>
@@ -251,8 +251,8 @@
           </div>
 
           <div style="margin-top: 1rem;">
-            <label style="font-size: 0.8rem; font-weight: 600;">Paste Resume / Target Skills (for AI Match Scoring %)</label>
-            <textarea id="resume_text" rows="2" placeholder="e.g. Python, Django, REST API, SQL, Docker, Git, Problem Solving" style="width: 100%; padding: 0.5rem; border-radius: 0.375rem; border: 1px solid #cbd5e1; font-family: inherit; font-size: 0.85rem;"></textarea>
+            <label style="font-size: 0.8rem; font-weight: 600; color: var(--text);">Paste Resume / Target Skills (for AI Match Scoring %)</label>
+            <textarea id="resume_text" class="input-field" rows="2" placeholder="e.g. Python, Django, REST API, SQL, Docker, Git, Problem Solving"></textarea>
           </div>
         </div>
 
@@ -363,7 +363,7 @@
     function renderJobs(jobs) {
       const container = document.getElementById("jobsContainer");
       if (jobs.length === 0) {
-        container.innerHTML = `<div style="text-align: center; padding: 2rem; background: var(--bg-card, #ffffff); border-radius: 0.5rem; color: #64748b;">No matching jobs found. Try adjusting keywords or selecting more portals.</div>`;
+        container.innerHTML = `<div class="app-card" style="text-align: center; padding: 2rem; color: var(--subtext);">No matching jobs found. Try adjusting keywords or selecting more portals.</div>`;
         return;
       }
 
@@ -377,27 +377,27 @@
         const platformBadges = platforms.map(p => `<span class="platform-badge">${p}</span>`).join("");
         
         return `
-          <div style="background: var(--bg-card, #ffffff); border: 1px solid var(--border-color, #e2e8f0); border-radius: 0.75rem; padding: 1.25rem; position: relative;">
+          <div class="app-card" style="padding: 1.25rem; position: relative;">
             <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem;">
               <div>
                 <div style="margin-bottom: 0.35rem;">${platformBadges}</div>
-                <h3 style="margin: 0; font-size: 1.1rem; color: var(--text-color, #0f172a);">${escapeHtml(j["Job Title"])}</h3>
-                <div style="font-weight: 600; color: #3b82f6; font-size: 0.9rem; margin-top: 0.2rem;">${escapeHtml(j.Company)}</div>
+                <h3 style="margin: 0; font-size: 1.1rem; color: var(--text);">${escapeHtml(j["Job Title"])}</h3>
+                <div style="font-weight: 600; color: var(--primary); font-size: 0.9rem; margin-top: 0.2rem;">${escapeHtml(j.Company)}</div>
               </div>
               <span class="badge-match ${scoreClass}">⚡ ${score}% Match</span>
             </div>
 
-            <div style="display: flex; flex-wrap: wrap; gap: 1rem; margin-top: 0.75rem; font-size: 0.85rem; color: #64748b;">
+            <div style="display: flex; flex-wrap: wrap; gap: 1rem; margin-top: 0.75rem; font-size: 0.85rem; color: var(--subtext);">
               <span>📍 ${escapeHtml(j.Location || "India")}</span>
               <span>📅 ${escapeHtml(j.Posted || "Recently")}</span>
               ${j.Salary ? `<span>💰 ${escapeHtml(j.Salary)}</span>` : ""}
               ${j.Workplace ? `<span>🏢 ${escapeHtml(j.Workplace)}</span>` : ""}
             </div>
 
-            ${j.Description ? `<p style="margin-top: 0.75rem; font-size: 0.85rem; color: #475569; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${escapeHtml(j.Description)}</p>` : ""}
+            ${j.Description ? `<p style="margin-top: 0.75rem; font-size: 0.85rem; color: var(--subtext); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${escapeHtml(j.Description)}</p>` : ""}
 
             <div class="actions-row">
-              <a href="${j.Link}" target="_blank" class="action-btn-sm" style="text-decoration: none; color: #3b82f6; border-color: #bfdbfe; background: #eff6ff;">🔗 Apply Direct</a>
+              <a href="${j.Link}" target="_blank" class="action-btn-sm" style="text-decoration: none; color: var(--primary); border-color: var(--line); background: var(--panel-soft);">🔗 Apply Direct</a>
               <button onclick="saveToTracker(${idx})" class="action-btn-sm">📌 Save to Tracker</button>
               <button onclick="generateCoverLetter(${idx})" class="action-btn-sm">📄 AI Cover Letter</button>
             </div>
@@ -492,6 +492,11 @@
       const current = html.getAttribute("data-theme") || "light";
       const next = current === "light" ? "dark" : "light";
       html.setAttribute("data-theme", next);
+
+      const label = document.getElementById("themeLabel");
+      const icon = document.querySelector(".theme-icon");
+      if (label) label.textContent = next === "light" ? "Dark Mode" : "Light Mode";
+      if (icon) icon.textContent = next === "light" ? "🌙" : "☀️";
     }
 
     function escapeHtml(str) {

@@ -61,8 +61,8 @@
       align-items: start;
     }
     .kanban-col {
-      background: var(--bg-card, #f8fafc);
-      border: 1px solid var(--border-color, #e2e8f0);
+      background: var(--panel-soft);
+      border: 1px solid var(--line);
       border-radius: 0.75rem;
       padding: 1rem;
       min-height: 500px;
@@ -73,41 +73,44 @@
       align-items: center;
       padding-bottom: 0.75rem;
       margin-bottom: 1rem;
-      border-bottom: 2px solid var(--border-color, #cbd5e1);
+      border-bottom: 2px solid var(--line);
       font-weight: 700;
       font-size: 0.95rem;
+      color: var(--text);
     }
     .col-count {
-      background: rgba(59, 130, 246, 0.15);
-      color: #1d4ed8;
+      background: var(--primary-soft);
+      color: var(--primary);
       padding: 0.15rem 0.5rem;
       border-radius: 999px;
       font-size: 0.8rem;
     }
     .kanban-card {
-      background: var(--bg-card, #ffffff);
-      border: 1px solid var(--border-color, #e2e8f0);
+      background: var(--panel);
+      border: 1px solid var(--line);
       border-radius: 0.5rem;
       padding: 0.85rem;
       margin-bottom: 0.75rem;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+      box-shadow: var(--shadow);
       transition: transform 0.2s;
+      color: var(--text);
     }
     .kanban-card:hover { transform: translateY(-2px); }
-    .card-title { font-weight: 700; font-size: 0.95rem; margin-bottom: 0.25rem; color: var(--text-color, #0f172a); }
-    .card-company { font-weight: 600; font-size: 0.85rem; color: #3b82f6; }
-    .card-meta { font-size: 0.75rem; color: #64748b; margin-top: 0.5rem; }
+    .card-title { font-weight: 700; font-size: 0.95rem; margin-bottom: 0.25rem; color: var(--text); }
+    .card-company { font-weight: 600; font-size: 0.85rem; color: var(--primary); }
+    .card-meta { font-size: 0.75rem; color: var(--subtext); margin-top: 0.5rem; }
     .card-actions { display: flex; gap: 0.25rem; margin-top: 0.75rem; flex-wrap: wrap; }
     .card-btn {
       padding: 0.25rem 0.5rem;
       font-size: 0.7rem;
       font-weight: 600;
       border-radius: 0.25rem;
-      border: 1px solid #cbd5e1;
-      background: #ffffff;
+      border: 1px solid var(--line);
+      background: var(--panel-soft);
+      color: var(--text);
       cursor: pointer;
     }
-    .card-btn:hover { background: #3b82f6; color: white; border-color: #3b82f6; }
+    .card-btn:hover { background: var(--primary); color: white; border-color: var(--primary); }
   </style>
 </head>
 <body>
@@ -291,7 +294,13 @@
     function toggleTheme() {
       const html = document.documentElement;
       const current = html.getAttribute("data-theme") || "light";
-      html.setAttribute("data-theme", current === "light" ? "dark" : "light");
+      const next = current === "light" ? "dark" : "light";
+      html.setAttribute("data-theme", next);
+
+      const label = document.getElementById("themeLabel");
+      const icon = document.querySelector(".theme-icon");
+      if (label) label.textContent = next === "light" ? "Dark Mode" : "Light Mode";
+      if (icon) icon.textContent = next === "light" ? "🌙" : "☀️";
     }
 
     function escapeHtml(str) {
