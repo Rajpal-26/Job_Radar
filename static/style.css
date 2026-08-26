@@ -1635,4 +1635,165 @@ select::placeholder {
   }
 }
 
+/* Custom Multi-Select Location Dropdown */
+.location-dropdown-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 42px;
+  cursor: pointer;
+  padding: 0.35rem 0.75rem;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 0.5rem;
+  user-select: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.location-dropdown-trigger:hover {
+  border-color: var(--primary);
+}
+
+.selected-loc-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  flex: 1;
+}
+
+.loc-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: var(--primary-soft);
+  color: var(--primary);
+  border: 1px solid rgba(10, 102, 194, 0.25);
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.loc-pill-remove {
+  cursor: pointer;
+  font-weight: 800;
+  opacity: 0.7;
+}
+.loc-pill-remove:hover {
+  opacity: 1;
+  color: var(--error);
+}
+
+.dropdown-chevron {
+  font-size: 0.75rem;
+  color: var(--subtext);
+  margin-left: 0.5rem;
+  transition: transform 0.2s;
+}
+
+.location-dropdown-menu {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 1050;
+  margin-top: 0.35rem;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 0.75rem;
+  box-shadow: var(--shadow);
+  padding: 0.85rem;
+}
+
+.location-dropdown-menu.show {
+  display: block;
+}
+
+.loc-search-row {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.6rem;
+}
+
+.input-field-sm {
+  flex: 1;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.82rem;
+  background: var(--panel-soft);
+  border: 1px solid var(--line);
+  border-radius: 0.4rem;
+  color: var(--text);
+  outline: none;
+}
+
+.input-field-sm:focus {
+  border-color: var(--primary);
+}
+
+.btn-add-loc {
+  padding: 0.4rem 0.85rem;
+  background: var(--primary);
+  color: #ffffff;
+  border: none;
+  border-radius: 0.4rem;
+  font-weight: 700;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.btn-add-loc:hover {
+  opacity: 0.9;
+}
+
+.loc-actions-row {
+  display: flex;
+  gap: 0.5rem;
+  font-size: 0.75rem;
+  color: var(--subtext);
+  margin-bottom: 0.6rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.loc-actions-row button {
+  background: none;
+  border: none;
+  color: var(--primary);
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0;
+}
+
+.loc-checkbox-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 0.4rem;
+  max-height: 180px;
+  overflow-y: auto;
+}
+
+.loc-item {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text);
+  cursor: pointer;
+  padding: 0.25rem 0.4rem;
+  border-radius: 0.35rem;
+  user-select: none;
+}
+
+.loc-item:hover {
+  background: var(--panel-soft);
+}
+
+.loc-item input {
+  accent-color: var(--primary);
+  cursor: pointer;
+}
+
 
