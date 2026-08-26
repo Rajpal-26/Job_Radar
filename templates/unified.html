@@ -177,25 +177,31 @@
     </div>
   </nav>
 
-  <div class="container" style="max-width: 1200px; margin: 2rem auto; padding: 0 1rem;">
+  <div class="container" style="max-width: 1250px; margin: 1.5rem auto; padding: 0 1rem;">
     
     <!-- Search Form Header -->
     <div class="app-card">
-      <h2 style="margin-top:0; margin-bottom: 0.5rem; color: var(--text);">Unified Multi-Portal Aggregator</h2>
-      <p style="color: var(--subtext); margin-bottom: 1.25rem; font-size: 0.95rem;">Search and deduplicate jobs across all portals simultaneously with AI Match Scoring.</p>
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+        <div>
+          <h2 style="margin: 0; color: var(--text); font-size: 1.4rem;">⚡ Unified Multi-Portal Aggregator</h2>
+          <p style="color: var(--subtext); margin-top: 0.25rem; font-size: 0.9rem;">Search, deduplicate, and AI-match jobs across 8 platforms simultaneously.</p>
+        </div>
+      </div>
 
       <form id="unifiedForm" onsubmit="event.preventDefault(); runUnifiedSearch();">
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem;">
-          <div>
-            <label style="font-weight: 700; font-size: 0.85rem; color: var(--text);">Job Role / Title</label>
+        
+        <!-- Primary Search Inputs Row -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.25rem;">
+          <div style="grid-column: span 2;">
+            <label style="font-weight: 700; font-size: 0.85rem; color: var(--text); display: block; margin-bottom: 0.35rem;">Job Role / Title</label>
             <input type="text" id="role" name="role" class="input-field" placeholder="e.g. Associate Software Engineer" value="Associate Software Engineer" required />
           </div>
-          <div>
-            <label style="font-weight: 700; font-size: 0.85rem; color: var(--text);">Locations (comma separated)</label>
+          <div style="grid-column: span 2;">
+            <label style="font-weight: 700; font-size: 0.85rem; color: var(--text); display: block; margin-bottom: 0.35rem;">Locations (comma separated)</label>
             <input type="text" id="locations" name="locations" class="input-field" placeholder="e.g. Bengaluru, Pune, Noida" value="Bengaluru, Pune, Noida" required />
           </div>
           <div>
-            <label style="font-weight: 700; font-size: 0.85rem; color: var(--text);">Posted Within (Days)</label>
+            <label style="font-weight: 700; font-size: 0.85rem; color: var(--text); display: block; margin-bottom: 0.35rem;">Posted Within</label>
             <select id="fromage" name="fromage" class="input-field">
               <option value="1">1 Day (Today)</option>
               <option value="3">3 Days</option>
@@ -205,14 +211,21 @@
             </select>
           </div>
           <div>
-            <label style="font-weight: 700; font-size: 0.85rem; color: var(--text);">Max Jobs per Portal</label>
+            <label style="font-weight: 700; font-size: 0.85rem; color: var(--text); display: block; margin-bottom: 0.35rem;">Max Jobs per Portal</label>
             <input type="number" id="limit" name="limit" class="input-field" value="20" min="5" max="100" />
           </div>
         </div>
 
-        <!-- Portal Selectors -->
-        <div style="margin-top: 1.25rem;">
-          <label style="font-weight: 700; font-size: 0.85rem; color: var(--text);">Select Portals to Search:</label>
+        <!-- Target Portals Row -->
+        <div style="background: var(--panel-soft); border: 1px solid var(--line); border-radius: 0.75rem; padding: 1rem; margin-bottom: 1.25rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.6rem;">
+            <label style="font-weight: 700; font-size: 0.85rem; color: var(--text);">Select Portals to Search:</label>
+            <div style="display: flex; gap: 0.5rem;">
+              <button type="button" onclick="selectAllPortals(true)" style="font-size: 0.75rem; color: var(--primary); background: none; border: none; font-weight: 700; cursor: pointer;">Select All</button>
+              <span style="color: var(--subtext);">|</span>
+              <button type="button" onclick="selectAllPortals(false)" style="font-size: 0.75rem; color: var(--subtext); background: none; border: none; font-weight: 700; cursor: pointer;">Deselect All</button>
+            </div>
+          </div>
           <div class="portal-checkboxes">
             <label class="portal-chip"><input type="checkbox" name="portals" value="indeed" checked> Indeed</label>
             <label class="portal-chip"><input type="checkbox" name="portals" value="naukri" checked> Naukri</label>
@@ -225,28 +238,44 @@
           </div>
         </div>
 
-        <!-- Advanced Filter Toggle -->
-        <div class="filter-drawer">
+        <!-- Dedicated AI Resume Matcher & Skill Extractor Section -->
+        <div style="background: var(--panel-soft); border: 1px solid var(--line); border-radius: 0.75rem; padding: 1.25rem; margin-bottom: 1.25rem;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
-            <h4 style="margin: 0; color: var(--text);">⚡ Advanced Filters & AI Resume Matcher</h4>
-            <span style="font-size: 0.8rem; color: var(--subtext);">Fine-tune keywords, salary & work mode</span>
+            <div>
+              <h4 style="margin: 0; color: var(--text); font-size: 0.95rem;">📄 AI Resume Matcher & Skill Extractor</h4>
+              <span style="font-size: 0.8rem; color: var(--subtext);">Upload your resume to auto-populate skills & compute match scores.</span>
+            </div>
+            <label for="resumeUploadInput" style="font-size: 0.8rem; font-weight: 700; color: var(--primary); cursor: pointer; display: inline-flex; align-items: center; gap: 0.4rem; background: var(--panel); padding: 0.4rem 0.8rem; border-radius: 999px; border: 1px solid var(--line); box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+              📁 Upload PDF / DOCX Resume
+            </label>
+            <input type="file" id="resumeUploadInput" accept=".pdf,.docx,.txt" style="display: none;" onchange="handleResumeUpload(this)" />
+          </div>
+          
+          <textarea id="resume_text" class="input-field" rows="2" placeholder="e.g. Python, Django, REST API, SQL, Docker, Git, Problem Solving" style="margin-top: 0.25rem;"></textarea>
+          <div id="resumeStatusBadge" style="display: none; margin-top: 0.4rem; font-size: 0.8rem; color: var(--accent); font-weight: 700;"></div>
+        </div>
+
+        <!-- Advanced Filters Drawer -->
+        <div class="filter-drawer">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.85rem;">
+            <h4 style="margin: 0; color: var(--text); font-size: 0.95rem;">🎛️ Advanced Filters (Keywords, Salary & Work Mode)</h4>
           </div>
 
           <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
             <div>
-              <label style="font-size: 0.8rem; font-weight: 600; color: var(--text);">Include Keywords (Must contain)</label>
+              <label style="font-size: 0.8rem; font-weight: 600; color: var(--text); display: block; margin-bottom: 0.35rem;">Include Keywords (Must contain)</label>
               <input type="text" id="include_keywords" class="input-field" placeholder="e.g. Python, FastAPI" />
             </div>
             <div>
-              <label style="font-size: 0.8rem; font-weight: 600; color: var(--text);">Exclude Keywords (Must NOT contain)</label>
+              <label style="font-size: 0.8rem; font-weight: 600; color: var(--text); display: block; margin-bottom: 0.35rem;">Exclude Keywords (Must NOT contain)</label>
               <input type="text" id="exclude_keywords" class="input-field" placeholder="e.g. Senior, Lead, Manager" />
             </div>
             <div>
-              <label style="font-size: 0.8rem; font-weight: 600; color: var(--text);">Min Salary (LPA)</label>
+              <label style="font-size: 0.8rem; font-weight: 600; color: var(--text); display: block; margin-bottom: 0.35rem;">Min Salary (LPA)</label>
               <input type="number" id="min_salary" class="input-field" placeholder="e.g. 5" step="0.5" />
             </div>
             <div>
-              <label style="font-size: 0.8rem; font-weight: 600; color: var(--text);">Workplace Mode</label>
+              <label style="font-size: 0.8rem; font-weight: 600; color: var(--text); display: block; margin-bottom: 0.35rem;">Workplace Mode</label>
               <select id="workplace_mode" class="input-field">
                 <option value="all">All Modes</option>
                 <option value="remote">Remote Only</option>
@@ -254,24 +283,15 @@
                 <option value="on-site">On-site Only</option>
               </select>
             </div>
-            <div style="margin-top: 1rem;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.35rem;">
-              <label style="font-size: 0.8rem; font-weight: 600; color: var(--text);">Paste Resume / Target Skills (for AI Match Scoring %)</label>
-              <label for="resumeUploadInput" style="font-size: 0.8rem; font-weight: 700; color: var(--primary); cursor: pointer; display: inline-flex; align-items: center; gap: 0.3rem; background: var(--panel-soft); padding: 0.2rem 0.6rem; border-radius: 0.375rem; border: 1px solid var(--line);">
-                📄 Upload Resume (PDF / DOCX)
-              </label>
-              <input type="file" id="resumeUploadInput" accept=".pdf,.docx,.txt" style="display: none;" onchange="handleResumeUpload(this)" />
-            </div>
-            <textarea id="resume_text" class="input-field" rows="2" placeholder="e.g. Python, Django, REST API, SQL, Docker, Git, Problem Solving"></textarea>
-            <div id="resumeStatusBadge" style="display: none; margin-top: 0.35rem; font-size: 0.8rem; color: var(--accent); font-weight: 700;"></div>
           </div>
         </div>
 
-        <div style="margin-top: 1.25rem; display: flex; gap: 1rem; align-items: center;">
-          <button type="submit" id="searchBtn" style="padding: 0.75rem 1.75rem; background: #3b82f6; color: white; border: none; border-radius: 0.5rem; font-weight: 700; font-size: 1rem; cursor: pointer; display: inline-flex; align-items: center; gap: 0.5rem;">
-            <span>🔍 Launch Aggregated Search</span>
+        <!-- Action Button Row -->
+        <div style="margin-top: 1.5rem; display: flex; gap: 1rem; align-items: center;">
+          <button type="submit" id="searchBtn" style="padding: 0.75rem 2rem; background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%); color: white; border: none; border-radius: 0.5rem; font-weight: 800; font-size: 1rem; cursor: pointer; display: inline-flex; align-items: center; gap: 0.5rem; box-shadow: 0 4px 14px rgba(10, 102, 194, 0.3);">
+            <span>🚀 Launch Aggregated Search</span>
           </button>
-          <button type="button" onclick="exportResultsCSV()" style="padding: 0.75rem 1.25rem; background: #10b981; color: white; border: none; border-radius: 0.5rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 0.4rem;">
+          <button type="button" onclick="exportResultsCSV()" style="padding: 0.75rem 1.25rem; background: var(--panel-soft); color: var(--text); border: 1px solid var(--line); border-radius: 0.5rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 0.4rem;">
             📥 Export Results (CSV)
           </button>
         </div>
@@ -304,15 +324,18 @@
       <textarea id="modalBodyText" class="input-field" rows="12" style="width: 100%; font-family: monospace; font-size: 0.9rem;"></textarea>
       <div style="margin-top: 1rem; display: flex; justify-content: flex-end; gap: 0.5rem;">
         <button onclick="copyModalText()" style="padding: 0.5rem 1rem; background: #3b82f6; color: white; border: none; border-radius: 0.375rem; font-weight: 600; cursor: pointer;">📋 Copy to Clipboard</button>
-        <button onclick="closeModal()" style="padding: 0.5rem 1rem; background: var(--panel-soft); color: var(--text); border: 1px solid var(--line); border-radius: 0.375rem; font-weight: 600; cursor: pointer;">Close</button>
       </div>
-    </div>
-  </div>    </div>
     </div>
   </div>
 
   <script>
     let currentJobsList = [];
+
+    function selectAllPortals(checkState) {
+      document.querySelectorAll('input[name="portals"]').forEach(cb => {
+        cb.checked = checkState;
+      });
+    }
 
     async function runUnifiedSearch() {
       const form = document.getElementById("unifiedForm");
