@@ -357,8 +357,29 @@
         return;
       }
 
+      const portalNames = checkedPortals.map(p => p.charAt(0).toUpperCase() + p.slice(1)).join(", ");
+
       statusBox.style.display = "block";
-      statusBox.textContent = `Scraping [${checkedPortals.join(", ")}] in parallel... Please wait (~10-15s).`;
+      statusBox.innerHTML = `
+        <div class="search-loading-card">
+          <div class="radar-scan-wrapper">
+            <div class="radar-scan-ping"></div>
+            <div class="radar-scan-icon">📡</div>
+          </div>
+          <div class="search-loading-content">
+            <h3 class="search-loading-title">Scanning <span>Job Portals</span> in Real-Time...</h3>
+            <p class="search-loading-sub">Deploying parallel scrapers across <strong>${portalNames}</strong> to aggregate & deduplicate listings with AI Match Scoring.</p>
+            <div class="search-progress-bar">
+              <div class="search-progress-fill"></div>
+            </div>
+            <div class="active-status-pills">
+              <span class="active-pill">⚡ Parallel Engine Active</span>
+              <span class="active-pill">🔍 Title Boundaries Excluded</span>
+              <span class="active-pill">🤖 AI Skill Match Scoring % Enabled</span>
+            </div>
+          </div>
+        </div>
+      `;
       jobsContainer.innerHTML = "";
       resultsHeader.style.display = "none";
       searchBtn.disabled = true;

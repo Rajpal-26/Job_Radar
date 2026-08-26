@@ -1393,6 +1393,113 @@ html[data-theme="dark"] .app-navbar {
   box-shadow: var(--shadow);
 }
 
+/* Animated Search Loading Card */
+.search-loading-card {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 1.75rem 2rem;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 1rem;
+  box-shadow: var(--shadow);
+  color: var(--text);
+  margin-top: 1.5rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.radar-scan-wrapper {
+  position: relative;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--panel-soft);
+  border: 2px solid var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.75rem;
+  flex-shrink: 0;
+  box-shadow: 0 0 15px var(--primary-soft);
+}
+
+.radar-scan-ping {
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+  border: 2px solid var(--accent);
+  animation: radarScanPing 2s infinite ease-out;
+  opacity: 0.6;
+}
+
+@keyframes radarScanPing {
+  0% { transform: scale(0.8); opacity: 0.9; }
+  100% { transform: scale(2.2); opacity: 0; }
+}
+
+.search-loading-content {
+  flex: 1;
+}
+
+.search-loading-title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--text);
+}
+
+.search-loading-title span {
+  background: linear-gradient(90deg, #00c6ff, #0072ff, #8e2de2);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.search-loading-sub {
+  margin: 0.35rem 0 0.85rem 0;
+  font-size: 0.88rem;
+  color: var(--subtext);
+}
+
+.search-progress-bar {
+  width: 100%;
+  height: 6px;
+  background: var(--panel-soft);
+  border-radius: 999px;
+  overflow: hidden;
+  position: relative;
+}
+
+.search-progress-fill {
+  height: 100%;
+  width: 40%;
+  background: linear-gradient(90deg, var(--primary), var(--accent));
+  border-radius: 999px;
+  animation: searchProgressSweep 2s ease-in-out infinite alternate;
+}
+
+@keyframes searchProgressSweep {
+  0% { transform: translateX(-50%); width: 30%; }
+  100% { transform: translateX(180%); width: 50%; }
+}
+
+.active-status-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.active-pill {
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.2rem 0.65rem;
+  border-radius: 999px;
+  background: var(--primary-soft);
+  color: var(--primary);
+  border: 1px solid rgba(10, 102, 194, 0.2);
+}
+
 /* Input Placeholder Visibility */
 input::placeholder,
 textarea::placeholder,
