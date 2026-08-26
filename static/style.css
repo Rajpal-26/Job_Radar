@@ -1508,4 +1508,138 @@ select::placeholder {
   opacity: 0.65;
 }
 
+/* ==============================================================================
+ * COMPREHENSIVE RESPONSIVE DESIGN (Mobiles, Tablets, Laptops & Desktops)
+ * ============================================================================== */
+
+/* Base Container Responsiveness */
+.container {
+  width: 100% !important;
+  max-width: 1320px;
+  margin: 1.5rem auto;
+  padding: 0 1rem;
+}
+
+/* Tablet & Mobile Screens (<= 992px) */
+@media (max-width: 992px) {
+  .app-navbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.85rem;
+    padding: 0.85rem 1rem;
+    top: 0.5rem;
+  }
+
+  .app-navbar .nav-tools {
+    align-self: flex-end;
+    position: absolute;
+    top: 0.85rem;
+    right: 1rem;
+  }
+
+  .app-navbar .nav-tabs {
+    overflow-x: auto;
+    width: 100%;
+    justify-content: flex-start;
+    padding: 0.35rem;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .app-navbar .nav-tab {
+    padding: 0.4rem 0.85rem;
+    font-size: 0.8rem;
+  }
+
+  .kanban-board {
+    display: flex !important;
+    overflow-x: auto;
+    padding-bottom: 1rem;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .kanban-col {
+    min-width: 280px;
+    flex-shrink: 0;
+    scroll-snap-align: start;
+  }
+
+  .charts-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* Mobile Phones (<= 640px) */
+@media (max-width: 640px) {
+  body {
+    padding: 12px 8px;
+  }
+
+  .span-2-col {
+    grid-column: span 1 !important;
+  }
+
+  .primary-actions-row {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+
+  .primary-actions-row button {
+    width: 100% !important;
+    justify-content: center !important;
+  }
+
+  .app-card {
+    padding: 1rem !important;
+    border-radius: 0.75rem;
+  }
+
+  .app-navbar .nav-brand {
+    font-size: 1.1rem;
+  }
+
+  .actions-row {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .action-btn-sm {
+    width: 100%;
+    justify-content: center;
+    padding: 0.5rem;
+    text-align: center;
+  }
+
+  .search-loading-card {
+    flex-direction: column;
+    text-align: center;
+    padding: 1.25rem 1rem;
+  }
+
+  .radar-scan-wrapper {
+    margin: 0 auto;
+  }
+
+  .active-status-pills {
+    justify-content: center;
+  }
+
+  .watermark-badge {
+    bottom: 10px;
+    right: 10px;
+    font-size: 10px;
+    padding: 4px 8px;
+  }
+
+  .portal-chip {
+    padding: 0.35rem 0.65rem;
+    font-size: 0.78rem;
+  }
+
+  .modal-content {
+    padding: 1rem;
+    max-height: 90vh;
+  }
+}
+
 

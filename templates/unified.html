@@ -191,12 +191,12 @@
       <form id="unifiedForm" onsubmit="event.preventDefault(); runUnifiedSearch();">
         
         <!-- Primary Search Inputs Row -->
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.25rem;">
-          <div style="grid-column: span 2;">
+        <div class="search-grid-primary" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.25rem;">
+          <div class="span-2-col" style="grid-column: span 2;">
             <label style="font-weight: 700; font-size: 0.85rem; color: var(--text); display: block; margin-bottom: 0.35rem;">Job Role / Title</label>
             <input type="text" id="role" name="role" class="input-field" placeholder="e.g. Associate Software Engineer" value="Associate Software Engineer" required />
           </div>
-          <div style="grid-column: span 2;">
+          <div class="span-2-col" style="grid-column: span 2;">
             <label style="font-weight: 700; font-size: 0.85rem; color: var(--text); display: block; margin-bottom: 0.35rem;">Locations (comma separated)</label>
             <input type="text" id="locations" name="locations" class="input-field" placeholder="e.g. Bengaluru, Pune, Noida" value="Bengaluru, Pune, Noida" required />
           </div>
