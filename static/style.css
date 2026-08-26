@@ -1143,7 +1143,14 @@ html[data-theme="dark"] .app-navbar {
   box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.35);
 }
 
-/* Brand Logo */
+/* Animated Radar Logo Gradient Shift */
+@keyframes radarGradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Brand Logo (Fixed 'Job', Continuous Color Changing 'Radar') */
 .app-navbar .nav-brand {
   display: flex;
   align-items: center;
@@ -1151,7 +1158,6 @@ html[data-theme="dark"] .app-navbar {
   font-family: "Plus Jakarta Sans", sans-serif;
   font-weight: 800;
   font-size: 1.25rem;
-  color: var(--text);
   text-decoration: none;
   transition: transform 0.2s;
 }
@@ -1160,8 +1166,28 @@ html[data-theme="dark"] .app-navbar {
   transform: scale(1.02);
 }
 
-.app-navbar .nav-brand span {
-  color: var(--primary);
+.nav-brand,
+.landing-head h1,
+.brand {
+  color: var(--text) !important;
+}
+
+.nav-brand span,
+.landing-head h1 span,
+.brand span {
+  background: linear-gradient(
+    90deg,
+    #00c6ff 0%,
+    #0072ff 25%,
+    #8e2de2 50%,
+    #ff007f 75%,
+    #00c6ff 100%
+  );
+  background-size: 300% 300%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: radarGradientShift 4s ease infinite;
+  display: inline-block;
 }
 
 .app-navbar .radar-dot {
