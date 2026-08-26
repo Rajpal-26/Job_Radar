@@ -1117,23 +1117,25 @@ html[data-theme="dark"] .watermark-badge {
   align-items: center;
   justify-content: space-between;
   padding: 0.75rem 1.5rem;
-  background: var(--panel);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.45);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.5);
   border-radius: 1rem;
   margin-bottom: 1.5rem;
   position: sticky;
   top: 1rem;
   z-index: 1000;
-  box-shadow: var(--shadow);
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.08);
   transition: all 0.3s ease;
 }
 
 html[data-theme="dark"] .app-navbar {
-  background: rgba(16, 26, 42, 0.95);
-  border-color: var(--line);
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.35);
+  background: rgba(16, 26, 42, 0.45);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
 }
 
 /* Animated Radar Logo Gradient Shift */
@@ -1212,10 +1214,16 @@ html[data-theme="dark"] .app-navbar {
   display: flex;
   align-items: center;
   gap: 0.35rem;
-  background: var(--panel-soft);
+  background: rgba(255, 255, 255, 0.25);
   padding: 0.25rem 0.4rem;
   border-radius: 999px;
-  border: 1px solid var(--line);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(12px);
+}
+
+html[data-theme="dark"] .app-navbar .nav-tabs {
+  background: rgba(0, 0, 0, 0.25);
+  border-color: rgba(255, 255, 255, 0.08);
 }
 
 .app-navbar .nav-tab {
