@@ -27,26 +27,17 @@
   --card-black: #ffffff;
   --card-paragraph: #5d667a;
   --card-line: #dde3ee;
-  --card-primary: hsl(266, 92%, 58%);
+  --card-primary: #0a66c2;
   --card-bg: #ffffff;
-  --card-bg-gradient: radial-gradient(
-      at 88% 40%,
-      rgba(243, 245, 248, 1) 0px,
-      transparent 85%
-    ),
-    radial-gradient(at 49% 30%, rgba(243, 245, 248, 1) 0px, transparent 85%),
-    radial-gradient(at 14% 26%, rgba(243, 245, 248, 1) 0px, transparent 85%),
-    radial-gradient(at 0% 64%, hsla(263, 93%, 94%, 0.8) 0px, transparent 85%),
-    radial-gradient(at 41% 94%, hsla(284, 100%, 96%, 0.8) 0px, transparent 85%),
-    radial-gradient(at 100% 99%, hsla(306, 100%, 94%, 0.8) 0px, transparent 85%);
+  --card-bg-gradient: linear-gradient(145deg, #ffffff 0%, #f7f9fd 100%);
   --card-border-default: #dde3ee;
-  --card-shadow: 0px -16px 24px 0px rgba(0, 0, 0, 0.02) inset;
+  --card-shadow: 0px 8px 20px rgba(15, 23, 42, 0.04);
 }
 
 html[data-theme="dark"] {
   --bg: #0b111e;
-  --bg-accent: radial-gradient(1200px 500px at 75% -15%, rgba(23, 84, 151, 0.55) 0%, rgba(23, 84, 151, 0) 60%),
-               radial-gradient(900px 350px at -10% 0%, rgba(25, 89, 74, 0.5) 0%, rgba(25, 89, 74, 0) 55%);
+  --bg-accent: radial-gradient(1200px 500px at 75% -15%, rgba(23, 84, 151, 0.4) 0%, rgba(23, 84, 151, 0) 60%),
+               radial-gradient(900px 350px at -10% 0%, rgba(25, 89, 74, 0.35) 0%, rgba(25, 89, 74, 0) 55%);
   --panel: #101a2a;
   --panel-soft: #0f1523;
   --text: #e7edf8;
@@ -63,36 +54,37 @@ html[data-theme="dark"] {
   --shadow: 0 18px 36px rgba(0, 0, 0, 0.35);
 
   /* Dark Theme Card Variables */
-  --card-white: hsl(0, 0%, 100%);
-  --card-black: hsl(240, 15%, 9%);
-  --card-paragraph: hsl(0, 0%, 83%);
-  --card-line: hsl(240, 9%, 17%);
-  --card-primary: hsl(266, 92%, 58%);
-  --card-bg: hsla(240, 15%, 9%, 1);
-  --card-bg-gradient: radial-gradient(
-      at 88% 40%,
-      hsla(240, 15%, 9%, 1) 0px,
-      transparent 85%
-    ),
-    radial-gradient(at 49% 30%, hsla(240, 15%, 9%, 1) 0px, transparent 85%),
-    radial-gradient(at 14% 26%, hsla(240, 15%, 9%, 1) 0px, transparent 85%),
-    radial-gradient(at 0% 64%, hsla(263, 93%, 56%, 1) 0px, transparent 85%),
-    radial-gradient(at 41% 94%, hsla(284, 100%, 84%, 1) 0px, transparent 85%),
-    radial-gradient(at 100% 99%, hsla(306, 100%, 57%, 1) 0px, transparent 85%);
-  --card-border-default: hsl(240, 9%, 17%);
-  --card-shadow: 0px -16px 24px 0px rgba(255, 255, 255, 0.25) inset;
+  --card-white: #ffffff;
+  --card-black: #0b111e;
+  --card-paragraph: #9aa9c3;
+  --card-line: #21314a;
+  --card-primary: #4ea3ff;
+  --card-bg: #101a2a;
+  --card-bg-gradient: linear-gradient(145deg, #101a2a 0%, #0f1523 100%);
+  --card-border-default: #21314a;
+  --card-shadow: 0px 12px 28px rgba(0, 0, 0, 0.35);
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
+html {
+  background-color: var(--bg) !important;
+  color: var(--text) !important;
+  min-height: 100vh;
+  width: 100%;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
 body {
   font-family: "Manrope", sans-serif;
-  background: var(--bg);
-  background-image: var(--bg-accent);
-  color: var(--text);
+  background-color: var(--bg) !important;
+  background-image: var(--bg-accent) !important;
+  color: var(--text) !important;
   min-height: 100vh;
+  width: 100%;
   line-height: 1.35;
   padding: 24px;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 /* ───────── Landing ───────── */
