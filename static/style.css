@@ -1359,16 +1359,31 @@ html[data-theme="dark"] .app-navbar {
 .badge-match-mid { background: rgba(243, 166, 58, 0.15); color: var(--warning); }
 .badge-match-low { background: rgba(239, 110, 117, 0.15); color: var(--error); }
 
+/* Platform Badges with Custom Brand Colors */
 .platform-badge {
-  display: inline-block;
-  padding: 0.2rem 0.55rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  margin-right: 0.35rem;
+  margin-bottom: 0.35rem;
   background: var(--primary-soft);
   color: var(--primary);
-  border-radius: 0.25rem;
-  font-size: 0.75rem;
-  font-weight: 700;
-  margin-right: 0.25rem;
+  border: 1px solid rgba(10, 102, 194, 0.25);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.02);
 }
+
+.platform-badge.indeed { background: rgba(33, 100, 244, 0.15); color: #2164f4; border-color: rgba(33, 100, 244, 0.3); }
+.platform-badge.naukri { background: rgba(255, 117, 24, 0.15); color: #ff7518; border-color: rgba(255, 117, 24, 0.3); }
+.platform-badge.glassdoor { background: rgba(12, 170, 65, 0.15); color: #0caa41; border-color: rgba(12, 170, 65, 0.3); }
+.platform-badge.foundit { background: rgba(108, 43, 217, 0.15); color: #6c2bd9; border-color: rgba(108, 43, 217, 0.3); }
+.platform-badge.apna { background: rgba(236, 72, 153, 0.15); color: #ec4899; border-color: rgba(236, 72, 153, 0.3); }
+.platform-badge.shine { background: rgba(245, 158, 11, 0.15); color: #d97706; border-color: rgba(245, 158, 11, 0.3); }
+.platform-badge.hirist { background: rgba(6, 182, 212, 0.15); color: #0891b2; border-color: rgba(6, 182, 212, 0.3); }
+.platform-badge.linkedin { background: rgba(10, 102, 194, 0.15); color: #0a66c2; border-color: rgba(10, 102, 194, 0.3); }
 
 .modal-content {
   background: var(--panel);

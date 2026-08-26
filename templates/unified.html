@@ -419,7 +419,7 @@
         else if (score < 60) scoreClass = "badge-match-low";
 
         const platforms = j.Platforms || [j.Platform || "JobRadar"];
-        const platformBadges = platforms.map(p => `<span class="platform-badge">${p}</span>`).join("");
+        const platformBadges = platforms.map(p => `<span class="platform-badge ${String(p).toLowerCase()}">🌐 ${escapeHtml(p)}</span>`).join("");
         
         const missingBadges = (j.Missing_Skills && j.Missing_Skills.length)
           ? `<div style="margin-top: 0.5rem; font-size: 0.78rem; color: var(--warning); font-weight: 600;">⚠️ Skills to add: ${j.Missing_Skills.map(s => `<span style="background: rgba(243, 166, 58, 0.15); padding: 0.1rem 0.4rem; border-radius: 0.25rem; margin-right: 0.25rem;">${escapeHtml(s)}</span>`).join("")}</div>`

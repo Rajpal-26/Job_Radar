@@ -226,23 +226,30 @@
           return;
         }
 
-        colContainer.innerHTML = jobsInCol.map(job => `
-          <div class="kanban-card">
-            <div class="card-title">${escapeHtml(job.job_title)}</div>
-            <div class="card-company">${escapeHtml(job.company)}</div>
-            <div class="card-meta">
-              <span>📍 ${escapeHtml(job.location || 'India')}</span> • 
-              <span>🏷️ ${escapeHtml(job.platform || 'JobRadar')}</span>
+        colContainer.innerHTML = jobsInCol.map(job => {
+          const pName = job.platform || 'JobRadar';
+          const pClass = String(pName).toLowerCase();
+          return `
+            <div class="kanban-card">
+              <div style="margin-bottom: 0.35rem;">
+                <span class="platform-badge ${pClass}">🌐 ${escapeHtml(pName)}</span>
+              </div>
+              <div class="card-title">${escapeHtml(job.job_title)}</div>
+              <div class="card-company">${escapeHtml(job.company)}</div>
+              <div class="card-meta">
+                <span>📍 ${escapeHtml(job.location || 'India')}</span> • 
+                <span>⚡ ${job.match_score || 75}% Match</span>
+              </div>
+              
+              <div class="card-actions">
+                ${STATUS_LIST.filter(s => s !== status).map(nextStatus => `
+                  <button class="card-btn" onclick="moveStatus(${job.id}, '${nextStatus}')">➔ ${nextStatus.split(" ")[0]}</button>
+                `).join("")}
+                <button class="card-btn" style="color: #ef4444; border-color: #fca5a5;" onclick="deleteJob(${job.id})">🗑️</button>
+              </div>
             </div>
-            
-            <div class="card-actions">
-              ${STATUS_LIST.filter(s => s !== status).map(nextStatus => `
-                <button class="card-btn" onclick="moveStatus(${job.id}, '${nextStatus}')">➔ ${nextStatus.split(" ")[0]}</button>
-              `).join("")}
-              <button class="card-btn" style="color: #ef4444; border-color: #fca5a5;" onclick="deleteJob(${job.id})">🗑️</button>
-            </div>
-          </div>
-        `).join("");
+          `;
+        }).join("");
       });
     }
 
