@@ -1352,4 +1352,12 @@ html[data-theme="dark"] .app-navbar {
   box-shadow: var(--shadow);
 }
 
+/* Input Placeholder Visibility */
+input::placeholder,
+textarea::placeholder,
+select::placeholder {
+  color: var(--subtext);
+  opacity: 0.65;
+}
+
 
