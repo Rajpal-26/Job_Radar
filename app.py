@@ -16,13 +16,29 @@ from scrapers.apna import APNA_CITIES
 from scrapers.shine import SHINE_CITIES, SHINE_EXPERIENCE
 import pandas as pd
 import os
+from utils import search_engine, tracker_db
+
+# Initialize Application Tracker SQLite DB
+tracker_db.init_db()
 
 app = Flask(__name__)
+
+# Scrapers mapping for parallel aggregator
+SCRAPERS_MAP = {
+    "linkedin": scrape_linkedin,
+    "glassdoor": scrape_glassdoor,
+    "indeed": scrape_indeed,
+    "hirist": scrape_hirist,
+    "naukri": scrape_naukri,
+    "foundit": scrape_foundit,
+    "apna": scrape_apna,
+    "shine": scrape_shine,
+}
 
 # Per-portal cache of the most recent search results
 latest = {"linkedin": [], "glassdoor": [], "indeed": [],
           "hirist": [], "naukri": [], "foundit": [],
-          "apna": [], "shine": []}
+          "apna": [], "shine": [], "all": []}
 
 
 def _parse_locations(req):
@@ -558,6 +574,120 @@ def export_results(source, fmt):
 @app.route("/download/<source>")
 def download(source):
     return export_results(source, 'xlsx')
+
+
+# ==============================================================================
+# UNIFIED AGGREGATOR & KANBAN TRACKER ROUTES
+# ==============================================================================
+
+@app.route("/unified")
+def unified_page():
+    return render_template("unified.html")
+
+
+@app.route("/tracker")
+def tracker_page():
+    return render_template("tracker.html")
+
+
+@app.route("/search/all", methods=["POST"])
+def search_all():
+    try:
+        role             = request.form.get("role", "").strip()
+        fromage          = int(request.form.get("fromage", 7))
+        limit            = int(request.form.get("limit", 20))
+        apply_mode       = request.form.get("apply_mode", "include_easy").strip().lower()
+        locations        = _parse_locations(request)
+        experience       = request.form.get("experience", "").strip()
+        portals_str      = request.form.get("portals", "indeed,naukri,glassdoor,foundit,apna,shine,hirist,linkedin")
+        
+        include_keywords = request.form.get("include_keywords", "").strip()
+        exclude_keywords = request.form.get("exclude_keywords", "").strip()
+        min_salary       = request.form.get("min_salary", "0").strip()
+        workplace_mode   = request.form.get("workplace_mode", "all").strip()
+        resume_text      = request.form.get("resume_text", "").strip()
+
+        if not role:
+            return jsonify({"error": "Please enter a job role"}), 400
+        if not locations:
+            return jsonify({"error": "Select at least one location"}), 400
+
+        selected_portals = [p.strip().lower() for p in portals_str.split(",") if p.strip()]
+
+        raw_jobs = search_engine.execute_parallel_search(
+            scrapers_map=SCRAPERS_MAP,
+            role=role,
+            fromage_days=fromage,
+            limit=limit,
+            locations=locations,
+            apply_mode=apply_mode,
+            experience=experience or None,
+            selected_portals=selected_portals,
+        )
+
+        # Cross-platform deduplication
+        deduped = search_engine.deduplicate_jobs(raw_jobs)
+
+        # Advanced filtering & match scoring
+        final_jobs = search_engine.filter_and_rank_jobs(
+            jobs=deduped,
+            include_kw=include_keywords,
+            exclude_kw=exclude_keywords,
+            min_salary=min_salary,
+            workplace_mode=workplace_mode,
+            resume_text=resume_text,
+        )
+
+        latest["all"] = final_jobs
+        return jsonify({
+            "jobs": final_jobs,
+            "count": len(final_jobs),
+            "raw_total": len(raw_jobs),
+            "duplicates_removed": len(raw_jobs) - len(deduped),
+        })
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/saved_jobs", methods=["GET", "POST"])
+def saved_jobs_api():
+    if request.method == "GET":
+        jobs = tracker_db.get_all_saved_jobs()
+        return jsonify(jobs)
+    elif request.method == "POST":
+        job_data = request.json or request.form.to_dict()
+        if not job_data:
+            return jsonify({"error": "No job data provided"}), 400
+        job_id, is_new = tracker_db.save_job(job_data)
+        msg = "Saved to Kanban Tracker!" if is_new else "Already in Kanban Tracker!"
+        return jsonify({"success": True, "id": job_id, "is_new": is_new, "message": msg})
+
+
+@app.route("/api/saved_jobs/<int:job_id>", methods=["PUT", "DELETE"])
+def saved_job_detail_api(job_id):
+    if request.method == "PUT":
+        data = request.json or {}
+        status = data.get("status")
+        notes = data.get("notes")
+        cover_letter = data.get("cover_letter")
+        tracker_db.update_job_status(job_id, status=status, notes=notes, cover_letter=cover_letter)
+        return jsonify({"success": True})
+    elif request.method == "DELETE":
+        tracker_db.delete_saved_job(job_id)
+        return jsonify({"success": True})
+
+
+@app.route("/api/generate_cover_letter", methods=["POST"])
+def generate_cover_letter_api():
+    try:
+        data = request.json or {}
+        job = data.get("job") or {}
+        resume_text = data.get("resume_text", "")
+        letter = search_engine.generate_cover_letter_text(job, resume_text)
+        return jsonify({"success": True, "cover_letter": letter})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 if __name__ == "__main__":

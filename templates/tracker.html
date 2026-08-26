@@ -1,0 +1,304 @@
+<!--
+  WATERMARK: Rajpal Singh Tanwar
+  Copyright (c) 2026 Rajpal Singh Tanwar. All rights reserved.
+-->
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>JobRadar - Kanban Application Tracker</title>
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+  <style>
+    .nav-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 2rem;
+      background: var(--bg-card, #ffffff);
+      border-bottom: 1px solid var(--border-color, #e2e8f0);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-weight: 800;
+      font-size: 1.25rem;
+      color: var(--text-color, #0f172a);
+      text-decoration: none;
+    }
+    .nav-brand span { color: var(--primary, #3b82f6); }
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    .nav-link {
+      padding: 0.5rem 1rem;
+      border-radius: 0.5rem;
+      font-weight: 600;
+      font-size: 0.9rem;
+      color: var(--text-color, #475569);
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+    .nav-link:hover, .nav-link.active {
+      background: rgba(59, 130, 246, 0.1);
+      color: var(--primary, #3b82f6);
+    }
+    .kanban-board {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 1rem;
+      margin-top: 1.5rem;
+      align-items: start;
+    }
+    .kanban-col {
+      background: var(--bg-card, #f8fafc);
+      border: 1px solid var(--border-color, #e2e8f0);
+      border-radius: 0.75rem;
+      padding: 1rem;
+      min-height: 500px;
+    }
+    .col-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 0.75rem;
+      margin-bottom: 1rem;
+      border-bottom: 2px solid var(--border-color, #cbd5e1);
+      font-weight: 700;
+      font-size: 0.95rem;
+    }
+    .col-count {
+      background: rgba(59, 130, 246, 0.15);
+      color: #1d4ed8;
+      padding: 0.15rem 0.5rem;
+      border-radius: 999px;
+      font-size: 0.8rem;
+    }
+    .kanban-card {
+      background: var(--bg-card, #ffffff);
+      border: 1px solid var(--border-color, #e2e8f0);
+      border-radius: 0.5rem;
+      padding: 0.85rem;
+      margin-bottom: 0.75rem;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+      transition: transform 0.2s;
+    }
+    .kanban-card:hover { transform: translateY(-2px); }
+    .card-title { font-weight: 700; font-size: 0.95rem; margin-bottom: 0.25rem; color: var(--text-color, #0f172a); }
+    .card-company { font-weight: 600; font-size: 0.85rem; color: #3b82f6; }
+    .card-meta { font-size: 0.75rem; color: #64748b; margin-top: 0.5rem; }
+    .card-actions { display: flex; gap: 0.25rem; margin-top: 0.75rem; flex-wrap: wrap; }
+    .card-btn {
+      padding: 0.25rem 0.5rem;
+      font-size: 0.7rem;
+      font-weight: 600;
+      border-radius: 0.25rem;
+      border: 1px solid #cbd5e1;
+      background: #ffffff;
+      cursor: pointer;
+    }
+    .card-btn:hover { background: #3b82f6; color: white; border-color: #3b82f6; }
+  </style>
+</head>
+<body>
+
+  <!-- Navigation Bar -->
+  <nav class="nav-bar">
+    <a href="/" class="nav-brand">
+      <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10" stroke="#3b82f6" stroke-dasharray="3 3"></circle>
+        <circle cx="12" cy="12" r="6" stroke="#3b82f6"></circle>
+        <circle cx="12" cy="12" r="2" fill="#3b82f6"></circle>
+      </svg>
+      Job<span>Radar</span>
+    </a>
+    <div class="nav-links">
+      <a href="/unified" class="nav-link">🚀 Unified Aggregator</a>
+      <a href="/tracker" class="nav-link active">📋 Kanban Tracker</a>
+      <a href="/" class="nav-link">🌐 Single Portals</a>
+      <button class="theme-btn" onclick="toggleTheme()">🌙</button>
+    </div>
+  </nav>
+
+  <div class="container" style="max-width: 1400px; margin: 2rem auto; padding: 0 1rem;">
+    
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+      <div>
+        <h2 style="margin: 0;">Kanban Job Application Tracker</h2>
+        <p style="color: #64748b; margin-top: 0.25rem; font-size: 0.9rem;">Organize, track, and manage your job applications across stages.</p>
+      </div>
+      <button onclick="exportTrackerCSV()" style="padding: 0.6rem 1.2rem; background: #10b981; color: white; border: none; border-radius: 0.5rem; font-weight: 600; cursor: pointer;">
+        📥 Export Tracker (CSV)
+      </button>
+    </div>
+
+    <!-- Kanban Board -->
+    <div class="kanban-board">
+
+      <!-- Bookmarked -->
+      <div class="kanban-col">
+        <div class="col-header">
+          <span>📌 Bookmarked</span>
+          <span class="col-count" id="count-Bookmarked">0</span>
+        </div>
+        <div id="col-Bookmarked"></div>
+      </div>
+
+      <!-- Applied -->
+      <div class="kanban-col">
+        <div class="col-header">
+          <span>📝 Applied</span>
+          <span class="col-count" id="count-Applied">0</span>
+        </div>
+        <div id="col-Applied"></div>
+      </div>
+
+      <!-- Interviewing -->
+      <div class="kanban-col">
+        <div class="col-header">
+          <span>🎯 Interviewing</span>
+          <span class="col-count" id="count-Interviewing">0</span>
+        </div>
+        <div id="col-Interviewing"></div>
+      </div>
+
+      <!-- Offer Received -->
+      <div class="kanban-col">
+        <div class="col-header">
+          <span>🎉 Offer Received</span>
+          <span class="col-count" id="count-Offer">0</span>
+        </div>
+        <div id="col-Offer Received"></div>
+      </div>
+
+      <!-- Rejected -->
+      <div class="kanban-col">
+        <div class="col-header">
+          <span>❌ Rejected</span>
+          <span class="col-count" id="count-Rejected">0</span>
+        </div>
+        <div id="col-Rejected"></div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <script>
+    const STATUS_LIST = ["Bookmarked", "Applied", "Interviewing", "Offer Received", "Rejected"];
+    let savedJobs = [];
+
+    async function loadTrackerData() {
+      try {
+        const res = await fetch("/api/saved_jobs");
+        savedJobs = await res.json();
+        renderKanban();
+      } catch (err) {
+        console.error("Failed to load saved jobs:", err);
+      }
+    }
+
+    function renderKanban() {
+      STATUS_LIST.forEach(status => {
+        const colContainer = document.getElementById(`col-${status}`);
+        const countSpan = document.getElementById(`count-${status === "Offer Received" ? "Offer" : status}`);
+        
+        const jobsInCol = savedJobs.filter(j => (j.status || "Bookmarked") === status);
+        countSpan.textContent = jobsInCol.length;
+
+        if (jobsInCol.length === 0) {
+          colContainer.innerHTML = `<div style="text-align: center; padding: 1.5rem; color: #94a3b8; font-size: 0.8rem; border: 1px dashed #cbd5e1; border-radius: 0.375rem;">No jobs in this stage</div>`;
+          return;
+        }
+
+        colContainer.innerHTML = jobsInCol.map(job => `
+          <div class="kanban-card">
+            <div class="card-title">${escapeHtml(job.job_title)}</div>
+            <div class="card-company">${escapeHtml(job.company)}</div>
+            <div class="card-meta">
+              <span>📍 ${escapeHtml(job.location || 'India')}</span> • 
+              <span>🏷️ ${escapeHtml(job.platform || 'JobRadar')}</span>
+            </div>
+            
+            <div class="card-actions">
+              ${STATUS_LIST.filter(s => s !== status).map(nextStatus => `
+                <button class="card-btn" onclick="moveStatus(${job.id}, '${nextStatus}')">➔ ${nextStatus.split(" ")[0]}</button>
+              `).join("")}
+              <button class="card-btn" style="color: #ef4444; border-color: #fca5a5;" onclick="deleteJob(${job.id})">🗑️</button>
+            </div>
+          </div>
+        `).join("");
+      });
+    }
+
+    async function moveStatus(jobId, newStatus) {
+      try {
+        const res = await fetch(`/api/saved_jobs/${jobId}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status: newStatus })
+        });
+        const data = await res.json();
+        if (data.success) {
+          loadTrackerData();
+        }
+      } catch (err) {
+        alert("Failed to update status: " + err);
+      }
+    }
+
+    async function deleteJob(jobId) {
+      if (!confirm("Are you sure you want to remove this job from your tracker?")) return;
+      try {
+        const res = await fetch(`/api/saved_jobs/${jobId}`, { method: "DELETE" });
+        const data = await res.json();
+        if (data.success) {
+          loadTrackerData();
+        }
+      } catch (err) {
+        alert("Failed to delete job: " + err);
+      }
+    }
+
+    function exportTrackerCSV() {
+      if (savedJobs.length === 0) {
+        alert("No saved jobs to export.");
+        return;
+      }
+      let csv = "Job Title,Company,Location,Status,Platform,Match Score,Link,Saved At\n";
+      savedJobs.forEach(j => {
+        csv += `"${j.job_title}","${j.company}","${j.location}","${j.status}","${j.platform}",${j.match_score},"${j.link}","${j.created_at}"\n`;
+      });
+      const blob = new Blob([csv], { type: "text/csv" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `JobTracker_Export_${new Date().toISOString().slice(0,10)}.csv`;
+      a.click();
+    }
+
+    function toggleTheme() {
+      const html = document.documentElement;
+      const current = html.getAttribute("data-theme") || "light";
+      html.setAttribute("data-theme", current === "light" ? "dark" : "light");
+    }
+
+    function escapeHtml(str) {
+      if (!str) return "";
+      return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+    }
+
+    window.onload = loadTrackerData;
+  </script>
+</body>
+</html>
