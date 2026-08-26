@@ -191,18 +191,6 @@
       }
     }
 
-    function toggleTheme() {
-      const html = document.documentElement;
-      const current = html.getAttribute("data-theme") || "light";
-      const next = current === "light" ? "dark" : "light";
-      html.setAttribute("data-theme", next);
-
-      const label = document.getElementById("themeLabel");
-      const icon = document.querySelector(".theme-icon");
-      if (label) label.textContent = next === "light" ? "Dark Mode" : "Light Mode";
-      if (icon) icon.textContent = next === "light" ? "🌙" : "☀️";
-    }
-
     window.onload = loadAnalytics;
   </script>
 </body>

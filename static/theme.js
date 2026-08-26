@@ -46,11 +46,12 @@ function updateThemeUI() {
 }
 
 function toggleTheme() {
-  const currentTheme = document.documentElement.getAttribute("data-theme") || "light";
-  const newTheme = currentTheme === "light" ? "dark" : "light";
+  const currentTheme = document.documentElement.getAttribute("data-theme") || "dark";
+  const newTheme = currentTheme === "dark" ? "light" : "dark";
 
   document.documentElement.setAttribute("data-theme", newTheme);
   localStorage.setItem("jobradar_theme", newTheme);
+  localStorage.setItem("jobscout_theme", newTheme);
 
   updateThemeUI();
 }

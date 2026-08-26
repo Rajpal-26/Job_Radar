@@ -442,25 +442,8 @@
   <script>
     const SUN_SVG = '<svg viewBox="0 0 24 24" width="14" height="14"><path fill="currentColor" d="M12 4.5a1 1 0 0 1-1-1V1.5a1 1 0 1 1 2 0v2a1 1 0 0 1-1 1zm0 18a1 1 0 0 1-1-1v-2a1 1 0 1 1 2 0v2a1 1 0 0 1-1 1zM4.5 13a1 1 0 0 1-1-1H1.5a1 1 0 1 1 0-2h2a1 1 0 0 1 0 2zm18 0h-2a1 1 0 1 1 0-2h2a1 1 0 1 1 0 2zM6.34 7.76a1 1 0 0 1-.71-.29L4.22 6.05a1 1 0 1 1 1.41-1.41l1.41 1.41a1 1 0 0 1-.71 1.71zm12.02 12.02a1 1 0 0 1-.71-.29l-1.41-1.41a1 1 0 1 1 1.41-1.41l1.41 1.41a1 1 0 0 1-.71 1.71zM5.63 19.78a1 1 0 0 1-.71-1.71l1.41-1.41a1 1 0 1 1 1.41 1.41l-1.41 1.41a1 1 0 0 1-.71.29zm12.02-12.02a1 1 0 0 1-.71-1.71l1.41-1.41a1 1 0 1 1 1.41 1.41l-1.41 1.41a1 1 0 0 1-.71.29zM12 7a5 5 0 1 0 0 10 5 5 0 0 0 0-10z"/></svg>';
     const MOON_SVG = '<svg viewBox="0 0 24 24" width="14" height="14"><path fill="currentColor" d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 0 0 9.79 9.79z"/></svg>';
-    function updateThemeButton() {
-      const dark = document.documentElement.getAttribute("data-theme") === "dark";
-      document.getElementById("themeLabel").textContent = dark ? "Light Mode" : "Dark Mode";
-      document.getElementById("themeIcon").innerHTML = dark ? SUN_SVG : MOON_SVG;
-    }
-    function toggleTheme() {
-      const root = document.documentElement;
-      const next = root.getAttribute("data-theme") === "dark" ? "light" : "dark";
-      root.setAttribute("data-theme", next);
-      localStorage.setItem("jobscout_theme", next);
-      updateThemeButton();
-    }
-    (function initTheme() {
-      const saved = localStorage.getItem("jobscout_theme");
-      if (saved === "dark" || saved === "light") {
-        document.documentElement.setAttribute("data-theme", saved);
-      }
-      updateThemeButton();
-    })();
+    
+    
   </script>
 </body>
 </html>

@@ -177,24 +177,8 @@
       });
     }
 
-    function updateThemeButton() {
-      const dark = document.documentElement.getAttribute("data-theme") === "dark";
-      document.getElementById("themeBtn").textContent = dark ? "Light Mode" : "Dark Mode";
-    }
-    function toggleTheme() {
-      const root = document.documentElement;
-      const next = root.getAttribute("data-theme") === "dark" ? "light" : "dark";
-      root.setAttribute("data-theme", next);
-      localStorage.setItem("jobscout_theme", next);
-      updateThemeButton();
-    }
-    (function initTheme() {
-      const saved = localStorage.getItem("jobscout_theme");
-      if (saved === "dark" || saved === "light") {
-        document.documentElement.setAttribute("data-theme", saved);
-      }
-      updateThemeButton();
-    })();
+    
+    
 
     function setFilter(type, buttonEl) {
       currentFilter = type;
