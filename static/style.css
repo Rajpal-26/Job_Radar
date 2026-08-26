@@ -1115,3 +1115,142 @@ html[data-theme="dark"] .watermark-badge {
   box-shadow: 0 0 8px var(--accent);
 }
 
+/* ==============================================================================
+ * UNIFIED THEMED NAVIGATION BAR (Light & Dark Mode Adaptive)
+ * ============================================================================== */
+
+.app-navbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1.5rem;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--line);
+  border-radius: 1rem;
+  margin-bottom: 1.5rem;
+  position: sticky;
+  top: 1rem;
+  z-index: 1000;
+  box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.05);
+  transition: all 0.3s ease;
+}
+
+html[data-theme="dark"] .app-navbar {
+  background: rgba(16, 26, 42, 0.85);
+  border-color: var(--line);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.35);
+}
+
+/* Brand Logo */
+.app-navbar .nav-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-family: "Plus Jakarta Sans", sans-serif;
+  font-weight: 800;
+  font-size: 1.25rem;
+  color: var(--text);
+  text-decoration: none;
+  transition: transform 0.2s;
+}
+
+.app-navbar .nav-brand:hover {
+  transform: scale(1.02);
+}
+
+.app-navbar .nav-brand span {
+  color: var(--primary);
+}
+
+.app-navbar .radar-dot {
+  width: 10px;
+  height: 10px;
+  background: var(--accent);
+  border-radius: 50%;
+  box-shadow: 0 0 10px var(--accent);
+  position: relative;
+}
+
+.app-navbar .radar-dot::after {
+  content: "";
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  border: 1.5px solid var(--accent);
+  animation: radarPulse 2s infinite ease-out;
+  opacity: 0.6;
+}
+
+@keyframes radarPulse {
+  0% { transform: scale(0.8); opacity: 0.8; }
+  100% { transform: scale(2.2); opacity: 0; }
+}
+
+/* Navigation Tabs */
+.app-navbar .nav-tabs {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: var(--panel-soft);
+  padding: 0.25rem 0.4rem;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+}
+
+.app-navbar .nav-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 1rem;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: var(--subtext);
+  text-decoration: none;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  white-space: nowrap;
+}
+
+.app-navbar .nav-tab:hover {
+  color: var(--text);
+  background: rgba(10, 102, 194, 0.08);
+}
+
+.app-navbar .nav-tab.active {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+  color: #ffffff !important;
+  box-shadow: 0 4px 14px rgba(10, 102, 194, 0.35);
+}
+
+/* Right Tools (Theme Toggle) */
+.app-navbar .nav-tools {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.app-navbar .nav-theme-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 0.9rem;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 0.8rem;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+}
+
+.app-navbar .nav-theme-btn:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+  transform: translateY(-1px);
+}
+
+

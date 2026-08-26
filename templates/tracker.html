@@ -113,20 +113,21 @@
 <body>
 
   <!-- Navigation Bar -->
-  <nav class="nav-bar">
+  <nav class="app-navbar">
     <a href="/" class="nav-brand">
-      <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2">
-        <circle cx="12" cy="12" r="10" stroke="#3b82f6" stroke-dasharray="3 3"></circle>
-        <circle cx="12" cy="12" r="6" stroke="#3b82f6"></circle>
-        <circle cx="12" cy="12" r="2" fill="#3b82f6"></circle>
-      </svg>
+      <div class="radar-dot"></div>
       Job<span>Radar</span>
     </a>
-    <div class="nav-links">
-      <a href="/unified" class="nav-link">🚀 Unified Aggregator</a>
-      <a href="/tracker" class="nav-link active">📋 Kanban Tracker</a>
-      <a href="/" class="nav-link">🌐 Single Portals</a>
-      <button class="theme-btn" onclick="toggleTheme()">🌙</button>
+    <div class="nav-tabs">
+      <a href="/unified" class="nav-tab">⚡ Multi-Portal Search</a>
+      <a href="/tracker" class="nav-tab active">📋 Application Kanban</a>
+      <a href="/" class="nav-tab">🌐 Single Scrapers</a>
+    </div>
+    <div class="nav-tools">
+      <button class="nav-theme-btn" onclick="toggleTheme()" aria-label="Toggle theme">
+        <span class="theme-icon">🌙</span>
+        <span class="theme-label" id="themeLabel">Dark Mode</span>
+      </button>
     </div>
   </nav>
 
