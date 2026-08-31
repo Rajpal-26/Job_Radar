@@ -311,36 +311,43 @@
       }
     }
 
+    function handleCardClick(event, url) {
+      if (event.target.closest('a') || event.target.closest('button')) {
+        return; // Let the inner button handle its own click
+      }
+      window.open(url, '_blank');
+    }
+
     function renderDecisionMakerCards(data) {
       const container = document.getElementById("peopleCardsContainer");
       document.getElementById("resCompanyHeading").textContent = data.company;
       
       const makers = data.decision_makers || [];
-      document.getElementById("resultsCountBadge").textContent = `${makers.length} Hiring Channels Available`;
+      document.getElementById("resultsCountBadge").textContent = `${makers.length} Hiring Personnel & Channels Found`;
 
       container.innerHTML = makers.map((m, idx) => {
         return `
-          <div class="person-card">
+          <div class="person-card" onclick="handleCardClick(event, '${m.links.linkedin_search}')" style="cursor: pointer;" title="Click to view LinkedIn profiles for ${escapeHtml(m.title)}">
             <div>
               <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 0.75rem; margin-bottom: 0.85rem;">
                 <div style="display: flex; align-items: center; gap: 0.75rem;">
-                  <div class="person-avatar" style="background: ${m.badge_color};">
+                  <div class="person-avatar" style="background: ${m.badge_color}; box-shadow: 0 4px 12px ${m.badge_color}40;">
                     ${m.icon}
                   </div>
                   <div>
-                    <h4 style="margin: 0; font-size: 1.05rem; color: var(--text);">${escapeHtml(m.title)}</h4>
+                    <h4 style="margin: 0; font-size: 1.05rem; color: var(--text); font-weight: 800;">${escapeHtml(m.title)}</h4>
                     <span style="font-size: 0.75rem; font-weight: 700; color: ${m.badge_color};">${escapeHtml(m.category)}</span>
                   </div>
                 </div>
               </div>
 
-              <p style="font-size: 0.82rem; color: var(--subtext); margin: 0 0 1rem 0; line-height: 1.45;">
+              <p style="font-size: 0.84rem; color: var(--subtext); margin: 0 0 1rem 0; line-height: 1.45;">
                 ${escapeHtml(m.description)}
               </p>
 
               <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1.25rem; font-size: 0.75rem; color: var(--subtext);">
-                <span style="background: var(--panel-soft); padding: 0.2rem 0.5rem; border-radius: 0.3rem; border: 1px solid var(--line);">🏢 ${escapeHtml(m.company)}</span>
-                <span style="background: var(--panel-soft); padding: 0.2rem 0.5rem; border-radius: 0.3rem; border: 1px solid var(--line);">📍 ${escapeHtml(m.location)}</span>
+                <span style="background: var(--panel-soft); padding: 0.2rem 0.55rem; border-radius: 0.35rem; border: 1px solid var(--line); font-weight: 600;">🏢 ${escapeHtml(m.company)}</span>
+                <span style="background: var(--panel-soft); padding: 0.2rem 0.55rem; border-radius: 0.35rem; border: 1px solid var(--line); font-weight: 600;">📍 ${escapeHtml(m.location)}</span>
               </div>
             </div>
 
@@ -349,10 +356,10 @@
                 <span>🔗 View People on LinkedIn</span> &rarr;
               </a>
               <div style="display: flex; gap: 0.4rem;">
-                <a href="${m.links.company_people}" target="_blank" class="action-btn-sm" style="flex: 1; text-align: center; text-decoration: none; font-size: 0.76rem; padding: 0.35rem 0.4rem;" title="View Company Directory on LinkedIn">
-                  🏢 Company Page
-                </a>
-                <a href="${m.links.google_xray}" target="_blank" class="action-btn-sm" style="flex: 1; text-align: center; text-decoration: none; font-size: 0.76rem; padding: 0.35rem 0.4rem;" title="Run Google X-Ray Search for direct profiles">
+                <button type="button" onclick="selectCardPitch(${idx})" class="action-btn-sm" style="flex: 1.2; text-align: center; font-size: 0.76rem; padding: 0.4rem 0.4rem; color: var(--primary); font-weight: 700;" title="Load tailored message for this specific person">
+                  ✉️ Prepare Pitch
+                </button>
+                <a href="${m.links.google_xray}" target="_blank" class="action-btn-sm" style="flex: 1; text-align: center; text-decoration: none; font-size: 0.76rem; padding: 0.4rem 0.4rem;" title="Run Google X-Ray Search for direct profiles">
                   🔎 Google X-Ray
                 </a>
               </div>
@@ -361,9 +368,22 @@
         `;
       }).join("");
 
-      // Update pitch studio
-      switchPitchMode("em");
+      // Update pitch studio with first item
+      if (makers.length > 0) {
+        selectCardPitch(0);
+      }
       document.getElementById("resultsWrapper").style.display = "block";
+    }
+
+    function selectCardPitch(idx) {
+      if (!currentRecruiterData || !currentRecruiterData.decision_makers[idx]) return;
+      const maker = currentRecruiterData.decision_makers[idx];
+      
+      if (maker && maker.pitch) {
+        document.getElementById("livePitchSubject").value = maker.pitch.subject;
+        document.getElementById("livePitchBody").value = maker.pitch.body;
+        document.getElementById("liveGmailBtn").href = maker.pitch.gmail_url;
+      }
     }
 
     function switchPitchMode(mode) {
@@ -375,7 +395,7 @@
       document.getElementById("btnTabRecruiter").style.background = mode === "recruiter" ? "var(--primary)" : "none";
       document.getElementById("btnTabRecruiter").style.color = mode === "recruiter" ? "white" : "var(--text)";
 
-      const maker = currentRecruiterData.decision_makers.find(m => (mode === "em" ? m.role_key === "em_lead" : m.role_key === "tech_recruiter")) || currentRecruiterData.decision_makers[0];
+      const maker = currentRecruiterData.decision_makers.find(m => (mode === "em" ? m.category.includes("Engineering") : m.category.includes("Talent"))) || currentRecruiterData.decision_makers[0];
 
       if (maker && maker.pitch) {
         document.getElementById("livePitchSubject").value = maker.pitch.subject;
