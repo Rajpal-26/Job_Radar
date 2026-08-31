@@ -7,6 +7,7 @@ from flask import Flask, render_template, request, jsonify, send_file, abort, Re
 from scrapers import (scrape_linkedin, scrape_glassdoor, scrape_indeed,
                       scrape_hirist, scrape_naukri, scrape_foundit,
                       scrape_apna, scrape_shine)
+from scrapers import recruiter_people_scraper
 from scrapers.glassdoor import GLASSDOOR_CITIES
 from scrapers.indeed import INDEED_CITIES
 from scrapers.hirist import HIRIST_CATEGORIES, HIRIST_CITIES, HIRIST_EXPERIENCE
@@ -765,6 +766,31 @@ def recruiter_intelligence_api():
             location=location
         )
         return jsonify({"success": True, "data": intel})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/search_recruiters", methods=["POST"])
+def search_recruiters_api():
+    try:
+        data = request.json or {}
+        company = data.get("company", "").strip()
+        target_keyword = data.get("recruiter_keyword", "").strip()
+        location = data.get("location", "India").strip()
+        skills = data.get("skills", [])
+        user_name = data.get("user_name", "Applicant")
+
+        if not company:
+            return jsonify({"error": "Please enter a company name"}), 400
+
+        result = recruiter_people_scraper.search_company_decision_makers(
+            company=company,
+            target_keyword=target_keyword,
+            location=location,
+            user_skills=skills,
+            user_name=user_name
+        )
+        return jsonify({"success": True, "data": result})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
