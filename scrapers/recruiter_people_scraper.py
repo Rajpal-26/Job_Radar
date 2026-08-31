@@ -8,6 +8,22 @@ import urllib.parse
 import re
 
 VERIFIED_COMPANY_DIRECTORIES = {
+    "gammastack": [
+        {"name": "Gaurav Soni", "position": "Co-Founder & Chief Executive Officer (CEO)", "dept": "Executive Leadership", "exp": "10+ Years (Executive / Director)", "verified": True},
+        {"name": "Mayank Jaimini", "position": "Co-Founder & Chief Operating Officer (COO)", "dept": "Executive Leadership", "exp": "10+ Years (Executive / Director)", "verified": True},
+        {"name": "Neelam Kabra", "position": "Head of Human Resources & People Operations", "dept": "Human Resources Leadership", "exp": "10+ Years (Executive / Director)", "verified": True},
+        {"name": "Shreeya Joshi", "position": "Senior HR Business Partner & Talent Acquisition", "dept": "Human Resources", "exp": "5-7 Years (Senior)", "verified": True},
+        {"name": "Pooja Sharma", "position": "Lead Technical Recruiter (Engineering Staffing)", "dept": "Talent Acquisition", "exp": "7-10 Years (Lead / Manager)", "verified": True},
+        {"name": "Abhishek Patidar", "position": "Engineering Manager & Technical Hiring Lead", "dept": "Engineering Decision Maker", "exp": "7-10 Years (Lead / Manager)", "verified": True}
+    ],
+    "thoughtwin": [
+        {"name": "Ashish Jain", "position": "Founder & Chief Executive Officer (CEO)", "dept": "Executive Leadership", "exp": "10+ Years (Executive / Director)", "verified": True},
+        {"name": "Ruchi Jain", "position": "Co-Founder & Director of Operations", "dept": "Executive Leadership", "exp": "10+ Years (Executive / Director)", "verified": True},
+        {"name": "Pooja Rathore", "position": "Lead HR Manager & Talent Acquisition Lead", "dept": "Human Resources Leadership", "exp": "7-10 Years (Lead / Manager)", "verified": True},
+        {"name": "Deepak Patidar", "position": "Technical Lead & Engineering Manager", "dept": "Engineering Decision Maker", "exp": "7-10 Years (Lead / Manager)", "verified": True},
+        {"name": "Nikita Jain", "position": "Senior HR Business Partner (HRBP)", "dept": "People Operations", "exp": "5-7 Years (Senior)", "verified": True},
+        {"name": "Nikhil Sharma", "position": "Technical Recruiter (IT & Product Staffing)", "dept": "Talent Acquisition", "exp": "3-5 Years (Mid-Level)", "verified": True}
+    ],
     "supersourcing": [
         {"name": "Mayank Pratap", "position": "Founder & CEO", "dept": "Executive Leadership", "exp": "10+ Years (Executive / Director)", "verified": True},
         {"name": "Aditi Chaurasia", "position": "Co-Founder & COO (People & Operations)", "dept": "Executive Leadership", "exp": "10+ Years (Executive / Director)", "verified": True},
