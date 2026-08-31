@@ -7,7 +7,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>JobRadar - Recruiter & Decision-Maker Finder</title>
+  <title>JobRadar - Direct Hiring & Recruiter Finder</title>
   <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -37,55 +37,70 @@
       border-color: transparent;
       box-shadow: 0 4px 12px rgba(10, 102, 194, 0.3);
     }
-    .person-card {
+    .member-card {
       background: var(--panel);
       border: 1px solid var(--line);
       border-radius: 1rem;
-      padding: 1.35rem;
+      padding: 1.5rem;
       transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
       display: flex;
       flex-direction: column;
       justify-content: space-between;
       box-shadow: var(--shadow);
       position: relative;
-      overflow: hidden;
     }
-    .person-card:hover {
+    .member-card:hover {
       transform: translateY(-3px);
-      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+      box-shadow: 0 14px 32px rgba(0, 0, 0, 0.18);
       border-color: var(--primary);
     }
-    .person-avatar {
-      width: 46px;
-      height: 46px;
+    .member-avatar {
+      width: 48px;
+      height: 48px;
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 1.35rem;
+      font-size: 1.15rem;
       font-weight: 800;
       color: white;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+      box-shadow: 0 4px 12px rgba(10, 102, 194, 0.35);
       flex-shrink: 0;
     }
-    .open-linkedin-btn {
+    .linkedin-visit-btn {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      gap: 0.4rem;
-      padding: 0.6rem 1rem;
+      gap: 0.45rem;
+      padding: 0.65rem 1rem;
       border-radius: 0.5rem;
       background: #0077b5;
       color: white !important;
       font-weight: 700;
-      font-size: 0.85rem;
+      font-size: 0.88rem;
       text-decoration: none;
-      transition: opacity 0.2s, transform 0.2s;
+      transition: all 0.2s;
       width: 100%;
-      box-shadow: 0 3px 10px rgba(0, 119, 181, 0.25);
+      box-shadow: 0 4px 12px rgba(0, 119, 181, 0.3);
     }
-    .open-linkedin-btn:hover {
+    .linkedin-visit-btn:hover {
       opacity: 0.92;
       transform: translateY(-1px);
+    }
+    .badge-pill {
+      font-size: 0.76rem;
+      font-weight: 700;
+      padding: 0.25rem 0.6rem;
+      border-radius: 0.35rem;
+      background: var(--panel-soft);
+      border: 1px solid var(--line);
+      color: var(--text);
+    }
+    .badge-exp {
+      background: rgba(16, 185, 129, 0.12);
+      color: #10b981;
+      border-color: rgba(16, 185, 129, 0.3);
     }
   </style>
 </head>
@@ -115,35 +130,35 @@
     <!-- Hero Header -->
     <div class="app-card" style="margin-bottom: 1.5rem; text-align: center; padding: 2rem 1.5rem;">
       <div style="display: inline-flex; align-items: center; gap: 0.5rem; background: var(--primary-soft); color: var(--primary); padding: 0.35rem 0.85rem; border-radius: 999px; font-weight: 700; font-size: 0.82rem; margin-bottom: 0.75rem;">
-        <span>🎯 Direct Hiring Manager & Recruiter Search</span> &bull; <span>Bypass the ATS</span>
+        <span>🎯 Direct Hiring Manager & Recruiter Finder</span> &bull; <span>Bypass the ATS</span>
       </div>
       <h1 style="font-size: 1.85rem; font-weight: 800; color: var(--text); margin: 0 0 0.5rem 0;">
         Recruiter & Decision-Maker <span>Radar</span>
       </h1>
       <p style="color: var(--subtext); max-width: 680px; margin: 0 auto; font-size: 0.95rem; line-height: 1.5;">
-        Enter any company name and targeted recruiter role (<strong>Technical Recruiter, Talent Acquisition Manager, HR Manager, Tech Lead</strong>) to find and connect with the exact hiring people on LinkedIn.
+        Enter any <strong>Company Name</strong> and <strong>Recruiter Role</strong> (e.g. <em>HR Manager, Technical Recruiter, Talent Acquisition Manager</em>) to discover verified company members and their direct LinkedIn profiles.
       </p>
     </div>
 
     <!-- Search Form -->
     <div class="app-card" style="margin-bottom: 1.5rem; padding: 1.5rem;">
-      <form id="recruiterSearchForm" onsubmit="event.preventDefault(); runRecruiterSearch();">
+      <form id="recruiterSearchForm" onsubmit="event.preventDefault(); runMemberSearch();">
         
         <!-- Primary Search Inputs -->
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
           <div>
             <label style="font-weight: 700; font-size: 0.85rem; color: var(--text); display: block; margin-bottom: 0.35rem;">Target Company Name *</label>
-            <input type="text" id="companyInput" class="input-field" placeholder="e.g. Razorpay, Swiggy, Google, Flipkart, Zomato" value="Razorpay" required />
+            <input type="text" id="companyInput" class="input-field" placeholder="e.g. supersourcing technologies pvt ltd, Razorpay, Swiggy" value="supersourcing technologies pvt ltd" required />
           </div>
           
           <div>
             <label style="font-weight: 700; font-size: 0.85rem; color: var(--text); display: block; margin-bottom: 0.35rem;">Targeted Hiring / Recruiter Keyword</label>
-            <input type="text" id="keywordInput" class="input-field" placeholder="e.g. Technical Recruiter, Talent Acquisition, HR Manager" value="Technical Recruiter" />
+            <input type="text" id="keywordInput" class="input-field" placeholder="e.g. HR Manager, Technical Recruiter, Talent Acquisition" value="HR Manager" required />
           </div>
 
           <div>
             <label style="font-weight: 700; font-size: 0.85rem; color: var(--text); display: block; margin-bottom: 0.35rem;">Location (Optional)</label>
-            <input type="text" id="locationInput" class="input-field" placeholder="e.g. India, Bengaluru, Remote" value="India" />
+            <input type="text" id="locationInput" class="input-field" placeholder="e.g. India, Indore, Bengaluru, Remote" value="India" />
           </div>
         </div>
 
@@ -151,37 +166,28 @@
         <div style="margin-bottom: 1.25rem;">
           <label style="font-weight: 700; font-size: 0.8rem; color: var(--subtext); display: block; margin-bottom: 0.4rem;">Quick Role Filter:</label>
           <div style="display: flex; flex-wrap: wrap; gap: 0.4rem;">
-            <button type="button" class="role-chip-btn active" onclick="setRoleFilter('Technical Recruiter', this)">👔 Technical Recruiter</button>
+            <button type="button" class="role-chip-btn active" onclick="setRoleFilter('HR Manager', this)">📋 HR Manager / People Ops</button>
+            <button type="button" class="role-chip-btn" onclick="setRoleFilter('Technical Recruiter', this)">👔 Technical Recruiter</button>
             <button type="button" class="role-chip-btn" onclick="setRoleFilter('Talent Acquisition Manager', this)">🎯 Talent Acquisition Manager</button>
-            <button type="button" class="role-chip-btn" onclick="setRoleFilter('HR Manager', this)">📋 HR Manager / People Ops</button>
             <button type="button" class="role-chip-btn" onclick="setRoleFilter('Engineering Manager', this)">👨‍💻 Engineering Manager / Tech Lead</button>
             <button type="button" class="role-chip-btn" onclick="setRoleFilter('VP of Engineering', this)">🚀 VP of Engineering / CTO</button>
-            <button type="button" class="role-chip-btn" onclick="setRoleFilter('', this)">✨ All Decision Makers</button>
           </div>
         </div>
 
-        <!-- Skills Input for AI Outreach Generator -->
-        <div style="margin-bottom: 1.25rem;">
-          <label style="font-weight: 700; font-size: 0.85rem; color: var(--text); display: block; margin-bottom: 0.35rem;">Your Top Skills / Strengths (Included in Auto-Pitch)</label>
-          <input type="text" id="skillsInput" class="input-field" placeholder="e.g. Python, FastAPI, React, System Design, SQL" value="Python, FastAPI, Microservices, PostgreSQL, System Design" />
-        </div>
-
         <!-- Popular Companies Row -->
-        <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; margin-bottom: 1.25rem;">
+        <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; margin-bottom: 1.5rem;">
           <span style="font-size: 0.8rem; font-weight: 700; color: var(--subtext); margin-right: 0.3rem;">🔥 Quick Company:</span>
-          <button type="button" class="action-btn-sm" onclick="setCompanyQuick('Google')">Google</button>
-          <button type="button" class="action-btn-sm" onclick="setCompanyQuick('Microsoft')">Microsoft</button>
-          <button type="button" class="action-btn-sm" onclick="setCompanyQuick('Amazon')">Amazon</button>
-          <button type="button" class="action-btn-sm" onclick="setCompanyQuick('Swiggy')">Swiggy</button>
-          <button type="button" class="action-btn-sm" onclick="setCompanyQuick('Zomato')">Zomato</button>
+          <button type="button" class="action-btn-sm" onclick="setCompanyQuick('supersourcing technologies pvt ltd')">Supersourcing</button>
           <button type="button" class="action-btn-sm" onclick="setCompanyQuick('Razorpay')">Razorpay</button>
+          <button type="button" class="action-btn-sm" onclick="setCompanyQuick('Swiggy')">Swiggy</button>
+          <button type="button" class="action-btn-sm" onclick="setCompanyQuick('Google')">Google</button>
+          <button type="button" class="action-btn-sm" onclick="setCompanyQuick('Zomato')">Zomato</button>
           <button type="button" class="action-btn-sm" onclick="setCompanyQuick('CRED')">CRED</button>
           <button type="button" class="action-btn-sm" onclick="setCompanyQuick('Flipkart')">Flipkart</button>
-          <button type="button" class="action-btn-sm" onclick="setCompanyQuick('Zepto')">Zepto</button>
-          <button type="button" class="action-btn-sm" onclick="setCompanyQuick('Uber')">Uber</button>
+          <button type="button" class="action-btn-sm" onclick="setCompanyQuick('Microsoft')">Microsoft</button>
         </div>
 
-        <button type="submit" id="searchRecruiterBtn" style="padding: 0.75rem 2rem; background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%); color: white; border: none; border-radius: 0.5rem; font-weight: 800; font-size: 1rem; cursor: pointer; display: inline-flex; align-items: center; gap: 0.5rem; box-shadow: 0 4px 14px rgba(10, 102, 194, 0.3);">
+        <button type="submit" id="searchRecruiterBtn" style="padding: 0.8rem 2.25rem; background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%); color: white; border: none; border-radius: 0.5rem; font-weight: 800; font-size: 1.05rem; cursor: pointer; display: inline-flex; align-items: center; gap: 0.5rem; box-shadow: 0 4px 14px rgba(10, 102, 194, 0.35);">
           <span>🔍 Find Hiring People on LinkedIn</span>
         </button>
       </form>
@@ -191,52 +197,23 @@
     <div id="resultsWrapper" style="display: none;">
       
       <!-- Section Header -->
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
-        <h3 style="font-size: 1.25rem; font-weight: 800; color: var(--text); margin: 0;">
-          👥 Hiring People & Recruiter Channels for <span id="resCompanyHeading" style="color: var(--primary);">Razorpay</span>
-        </h3>
-        <span id="resultsCountBadge" style="font-size: 0.82rem; font-weight: 700; color: var(--primary); background: var(--primary-soft); padding: 0.25rem 0.75rem; border-radius: 999px;">
-          5 Decision-Maker Channels
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 0.5rem;">
+        <div>
+          <h3 style="font-size: 1.3rem; font-weight: 800; color: var(--text); margin: 0;">
+            👥 Hiring Members at <span id="resCompanyHeading" style="color: var(--primary);">supersourcing technologies pvt ltd</span>
+          </h3>
+          <p style="margin: 0.2rem 0 0 0; font-size: 0.85rem; color: var(--subtext);">
+            Targeted Role: <strong id="resKeywordHeading" style="color: var(--text);">HR Manager</strong>
+          </p>
+        </div>
+        <span id="resultsCountBadge" style="font-size: 0.85rem; font-weight: 700; color: var(--primary); background: var(--primary-soft); padding: 0.35rem 0.85rem; border-radius: 999px;">
+          6 Members Listed
         </span>
       </div>
 
-      <!-- People / Decision Makers Grid -->
-      <div id="peopleCardsContainer" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.25rem; margin-bottom: 2rem;">
-        <!-- Cards dynamically injected here -->
-      </div>
-
-      <!-- Live Cold Pitch & InMail Studio -->
-      <div class="app-card" style="padding: 1.5rem;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.75rem;">
-          <div>
-            <h3 style="margin: 0; font-size: 1.2rem; color: var(--text);">✉️ Personalized InMail & Email Pitch</h3>
-            <p style="margin: 0.2rem 0 0 0; font-size: 0.82rem; color: var(--subtext);">Tailored message ready to send to decision makers when you open their LinkedIn profile.</p>
-          </div>
-          
-          <div style="display: flex; gap: 0.35rem; background: var(--panel-soft); padding: 0.25rem; border-radius: 0.5rem; border: 1px solid var(--line);">
-            <button type="button" id="btnTabEM" class="action-btn-sm" style="background: var(--primary); color: white; border: none;" onclick="switchPitchMode('em')">👨‍💻 EM Technical Pitch</button>
-            <button type="button" id="btnTabRecruiter" class="action-btn-sm" style="background: none; border: none;" onclick="switchPitchMode('recruiter')">👔 Recruiter Note</button>
-          </div>
-        </div>
-
-        <div style="margin-bottom: 0.75rem;">
-          <label style="font-weight: 700; font-size: 0.8rem; color: var(--subtext); display: block; margin-bottom: 0.25rem;">Subject Line</label>
-          <input type="text" id="livePitchSubject" class="input-field" style="font-weight: 600;" readonly />
-        </div>
-
-        <div style="margin-bottom: 1rem;">
-          <label style="font-weight: 700; font-size: 0.8rem; color: var(--subtext); display: block; margin-bottom: 0.25rem;">Pitch Body</label>
-          <textarea id="livePitchBody" class="input-field" rows="8" style="font-family: 'JetBrains Mono', monospace; font-size: 0.88rem; line-height: 1.6;"></textarea>
-        </div>
-
-        <div style="display: flex; justify-content: flex-end; gap: 0.75rem; flex-wrap: wrap;">
-          <button type="button" onclick="copyLivePitch()" class="action-btn-sm" style="padding: 0.6rem 1.25rem; font-weight: 700; background: var(--panel-soft); color: var(--text);">
-            📋 Copy Message
-          </button>
-          <a id="liveGmailBtn" href="#" target="_blank" class="action-btn-sm" style="text-decoration: none; padding: 0.6rem 1.25rem; font-weight: 700; background: #ea4335; color: white; border: none; display: inline-flex; align-items: center; gap: 0.4rem;">
-            ✉️ Launch in Gmail Compose
-          </a>
-        </div>
+      <!-- Members Grid -->
+      <div id="membersContainer" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.25rem; margin-bottom: 2rem;">
+        <!-- Injected via JavaScript -->
       </div>
 
     </div>
@@ -251,26 +228,22 @@
   <a href="https://mail.google.com/mail/?view=cm&fs=1&to=rajpaltanwar2608@gmail.com&su=JobRadar%20Query%20%2F%20Feature%20Request&body=Hi%20Rajpal%2C%0A%0AI%20have%20a%20query%2Frequest%20regarding%20JobRadar%3A%0A%0A" target="_blank" class="watermark-badge" style="text-decoration: none; color: var(--text);" title="Send email query to Rajpal Singh Tanwar">Developed by <span style="font-weight: 700; color: var(--primary);">Rajpal Singh Tanwar ✉️</span></a>
 
   <script>
-    let currentRecruiterData = null;
-    let selectedPitchRole = "em";
-
     function setRoleFilter(keyword, btn) {
       document.getElementById("keywordInput").value = keyword;
       document.querySelectorAll(".role-chip-btn").forEach(b => b.classList.remove("active"));
       if (btn) btn.classList.add("active");
-      runRecruiterSearch();
+      runMemberSearch();
     }
 
     function setCompanyQuick(name) {
       document.getElementById("companyInput").value = name;
-      runRecruiterSearch();
+      runMemberSearch();
     }
 
-    async function runRecruiterSearch() {
+    async function runMemberSearch() {
       const company = document.getElementById("companyInput").value.trim();
       const keyword = document.getElementById("keywordInput").value.trim();
       const location = document.getElementById("locationInput").value.trim();
-      const skills = document.getElementById("skillsInput").value.split(",").map(s => s.trim()).filter(Boolean);
 
       if (!company) {
         alert("Please enter a company name.");
@@ -279,7 +252,7 @@
 
       const btn = document.getElementById("searchRecruiterBtn");
       btn.disabled = true;
-      btn.innerHTML = "<span>⏳ Finding Decision Makers & Scraped Profiles...</span>";
+      btn.innerHTML = "<span>⏳ Finding Hiring Members on LinkedIn...</span>";
 
       try {
         const res = await fetch("/api/search_recruiters", {
@@ -288,9 +261,7 @@
           body: JSON.stringify({
             company: company,
             recruiter_keyword: keyword,
-            location: location,
-            skills: skills,
-            user_name: "Applicant"
+            location: location
           })
         });
 
@@ -299,8 +270,7 @@
         btn.innerHTML = "<span>🔍 Find Hiring People on LinkedIn</span>";
 
         if (data.success && data.data) {
-          currentRecruiterData = data.data;
-          renderDecisionMakerCards(currentRecruiterData);
+          renderMemberCards(data.data);
         } else {
           alert("Error: " + (data.error || "Failed to search recruiters"));
         }
@@ -311,56 +281,58 @@
       }
     }
 
-    function handleCardClick(event, url) {
-      if (event.target.closest('a') || event.target.closest('button')) {
-        return; // Let the inner button handle its own click
-      }
-      window.open(url, '_blank');
-    }
-
-    function renderDecisionMakerCards(data) {
-      const container = document.getElementById("peopleCardsContainer");
+    function renderMemberCards(data) {
+      const container = document.getElementById("membersContainer");
       document.getElementById("resCompanyHeading").textContent = data.company;
+      document.getElementById("resKeywordHeading").textContent = data.keyword || "Recruiter";
       
-      const makers = data.decision_makers || [];
-      document.getElementById("resultsCountBadge").textContent = `${makers.length} Hiring Personnel & Channels Found`;
+      const members = data.members || [];
+      document.getElementById("resultsCountBadge").textContent = `${members.length} Members Found`;
 
-      container.innerHTML = makers.map((m, idx) => {
+      container.innerHTML = members.map((m, idx) => {
         return `
-          <div class="person-card" onclick="handleCardClick(event, '${m.links.linkedin_search}')" style="cursor: pointer;" title="Click to view LinkedIn profiles for ${escapeHtml(m.title)}">
+          <div class="member-card">
             <div>
-              <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 0.75rem; margin-bottom: 0.85rem;">
-                <div style="display: flex; align-items: center; gap: 0.75rem;">
-                  <div class="person-avatar" style="background: ${m.badge_color}; box-shadow: 0 4px 12px ${m.badge_color}40;">
-                    ${m.icon}
-                  </div>
-                  <div>
-                    <h4 style="margin: 0; font-size: 1.05rem; color: var(--text); font-weight: 800;">${escapeHtml(m.title)}</h4>
-                    <span style="font-size: 0.75rem; font-weight: 700; color: ${m.badge_color};">${escapeHtml(m.category)}</span>
-                  </div>
+              <!-- Header with Avatar, Name, and Department -->
+              <div style="display: flex; align-items: center; gap: 0.85rem; margin-bottom: 0.85rem;">
+                <div class="member-avatar">
+                  ${m.initials || "HR"}
+                </div>
+                <div>
+                  <h4 style="margin: 0; font-size: 1.15rem; color: var(--text); font-weight: 800;">
+                    ${escapeHtml(m.name)}
+                  </h4>
+                  <span style="font-size: 0.78rem; font-weight: 700; color: var(--primary);">
+                    ${escapeHtml(m.department)}
+                  </span>
                 </div>
               </div>
 
-              <p style="font-size: 0.84rem; color: var(--subtext); margin: 0 0 1rem 0; line-height: 1.45;">
-                ${escapeHtml(m.description)}
-              </p>
+              <!-- Position / Title -->
+              <div style="font-size: 0.92rem; font-weight: 700; color: var(--text); margin-bottom: 0.75rem; line-height: 1.4;">
+                ${escapeHtml(m.position)}
+              </div>
 
-              <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1.25rem; font-size: 0.75rem; color: var(--subtext);">
-                <span style="background: var(--panel-soft); padding: 0.2rem 0.55rem; border-radius: 0.35rem; border: 1px solid var(--line); font-weight: 600;">🏢 ${escapeHtml(m.company)}</span>
-                <span style="background: var(--panel-soft); padding: 0.2rem 0.55rem; border-radius: 0.35rem; border: 1px solid var(--line); font-weight: 600;">📍 ${escapeHtml(m.location)}</span>
+              <!-- Badges: Company, Experience Level, Location -->
+              <div style="display: flex; flex-wrap: wrap; gap: 0.45rem; margin-bottom: 1.25rem;">
+                <span class="badge-pill">🏢 ${escapeHtml(m.company)}</span>
+                <span class="badge-pill badge-exp">⏳ ${escapeHtml(m.experience)}</span>
+                <span class="badge-pill">📍 ${escapeHtml(m.location)}</span>
               </div>
             </div>
 
-            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-              <a href="${m.links.linkedin_search}" target="_blank" class="open-linkedin-btn" title="Open LinkedIn People Search in a new tab">
-                <span>🔗 View People on LinkedIn</span> &rarr;
+            <!-- Direct Actions -->
+            <div style="display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.5rem;">
+              <a href="${m.profile_url}" target="_blank" class="linkedin-visit-btn" title="Open LinkedIn Profile for ${escapeHtml(m.name)}">
+                <span>🔗 Visit Profile on LinkedIn</span> &rarr;
               </a>
+              
               <div style="display: flex; gap: 0.4rem;">
-                <button type="button" onclick="selectCardPitch(${idx})" class="action-btn-sm" style="flex: 1.2; text-align: center; font-size: 0.76rem; padding: 0.4rem 0.4rem; color: var(--primary); font-weight: 700;" title="Load tailored message for this specific person">
-                  ✉️ Prepare Pitch
-                </button>
-                <a href="${m.links.google_xray}" target="_blank" class="action-btn-sm" style="flex: 1; text-align: center; text-decoration: none; font-size: 0.76rem; padding: 0.4rem 0.4rem;" title="Run Google X-Ray Search for direct profiles">
-                  🔎 Google X-Ray
+                <a href="${m.company_people_url}" target="_blank" class="action-btn-sm" style="flex: 1; text-align: center; text-decoration: none; font-size: 0.76rem; padding: 0.35rem 0.4rem;" title="View all employees on company page">
+                  🏢 Company People
+                </a>
+                <a href="${m.google_xray_url}" target="_blank" class="action-btn-sm" style="flex: 1; text-align: center; text-decoration: none; font-size: 0.76rem; padding: 0.35rem 0.4rem;" title="Google profile search">
+                  🔎 Google Profile
                 </a>
               </div>
             </div>
@@ -368,47 +340,8 @@
         `;
       }).join("");
 
-      // Update pitch studio with first item
-      if (makers.length > 0) {
-        selectCardPitch(0);
-      }
       document.getElementById("resultsWrapper").style.display = "block";
-    }
-
-    function selectCardPitch(idx) {
-      if (!currentRecruiterData || !currentRecruiterData.decision_makers[idx]) return;
-      const maker = currentRecruiterData.decision_makers[idx];
-      
-      if (maker && maker.pitch) {
-        document.getElementById("livePitchSubject").value = maker.pitch.subject;
-        document.getElementById("livePitchBody").value = maker.pitch.body;
-        document.getElementById("liveGmailBtn").href = maker.pitch.gmail_url;
-      }
-    }
-
-    function switchPitchMode(mode) {
-      selectedPitchRole = mode;
-      if (!currentRecruiterData) return;
-
-      document.getElementById("btnTabEM").style.background = mode === "em" ? "var(--primary)" : "none";
-      document.getElementById("btnTabEM").style.color = mode === "em" ? "white" : "var(--text)";
-      document.getElementById("btnTabRecruiter").style.background = mode === "recruiter" ? "var(--primary)" : "none";
-      document.getElementById("btnTabRecruiter").style.color = mode === "recruiter" ? "white" : "var(--text)";
-
-      const maker = currentRecruiterData.decision_makers.find(m => (mode === "em" ? m.category.includes("Engineering") : m.category.includes("Talent"))) || currentRecruiterData.decision_makers[0];
-
-      if (maker && maker.pitch) {
-        document.getElementById("livePitchSubject").value = maker.pitch.subject;
-        document.getElementById("livePitchBody").value = maker.pitch.body;
-        document.getElementById("liveGmailBtn").href = maker.pitch.gmail_url;
-      }
-    }
-
-    function copyLivePitch() {
-      const txt = document.getElementById("livePitchBody");
-      txt.select();
-      navigator.clipboard.writeText(txt.value);
-      alert("Pitch message copied to clipboard!");
+      document.getElementById("resultsWrapper").scrollIntoView({ behavior: 'smooth' });
     }
 
     function escapeHtml(str) {
@@ -421,9 +354,9 @@
         .replace(/'/g, "&#039;");
     }
 
-    // Auto-run on load
+    // Auto-run initial search
     document.addEventListener("DOMContentLoaded", () => {
-      runRecruiterSearch();
+      runMemberSearch();
     });
   </script>
 </body>
