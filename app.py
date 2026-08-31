@@ -604,6 +604,11 @@ def unified_page():
     return render_template("unified.html")
 
 
+@app.route("/recruiters")
+def recruiters_page():
+    return render_template("recruiters.html")
+
+
 @app.route("/tracker")
 def tracker_page():
     return render_template("tracker.html")
@@ -738,6 +743,28 @@ def generate_recruiter_dm_api():
         user_skills = data.get("skills", ["Python", "Backend"])
         dm = ai_copilot.generate_recruiter_dm(job_title, company, user_skills)
         return jsonify({"success": True, "recruiter_dm": dm})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/recruiter_intelligence", methods=["POST"])
+def recruiter_intelligence_api():
+    try:
+        data = request.json or {}
+        company = data.get("company", "Tech Company")
+        job_title = data.get("job_title", "Software Engineer")
+        user_skills = data.get("skills", [])
+        user_name = data.get("user_name", "Applicant")
+        location = data.get("location", "India")
+        
+        intel = ai_copilot.generate_recruiter_intelligence(
+            company=company,
+            job_title=job_title,
+            user_skills=user_skills,
+            user_name=user_name,
+            location=location
+        )
+        return jsonify({"success": True, "data": intel})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
