@@ -134,12 +134,11 @@ def get_deterministic_members(company, recruiter_keyword="HR Manager", location=
                 pos = item["position"]
                 exp = item["exp"]
                 
-                # Direct profile & search links
-                query = f'{name} {comp_clean} {kw_raw}'
-                profile_url = f"https://www.linkedin.com/search/results/people/?keywords={urllib.parse.quote(query)}"
+                # Direct public profile & search links (No LinkedIn login wall)
+                name_slug = re.sub(r'[^a-zA-Z0-9]+', '-', name.lower()).strip('-')
+                direct_profile_url = f"https://www.linkedin.com/in/{name_slug}"
                 google_xray = f"https://www.google.com/search?q={urllib.parse.quote(f'site:linkedin.com/in/ \"{name}\" \"{comp_clean}\"')}"
-                comp_slug = re.sub(r'[^a-zA-Z0-9]+', '-', comp_clean.lower()).strip('-')
-                company_people = f"https://www.linkedin.com/company/{comp_slug}/people/?keywords={urllib.parse.quote(kw_raw)}"
+                bing_xray = f"https://www.bing.com/search?q={urllib.parse.quote(f'site:linkedin.com/in/ \"{name}\" \"{comp_clean}\"')}"
                 initials = "".join([w[0].upper() for w in name.split()[:2] if w])
                 
                 members.append({
@@ -150,9 +149,10 @@ def get_deterministic_members(company, recruiter_keyword="HR Manager", location=
                     "experience": exp,
                     "location": loc_clean,
                     "initials": initials,
-                    "profile_url": profile_url,
-                    "company_people_url": company_people,
-                    "google_xray_url": google_xray
+                    "profile_url": google_xray,
+                    "direct_profile_url": direct_profile_url,
+                    "google_xray_url": google_xray,
+                    "bing_xray_url": bing_xray
                 })
             return {
                 "company": comp_clean,
@@ -216,12 +216,10 @@ def get_deterministic_members(company, recruiter_keyword="HR Manager", location=
         first_name = INDIAN_FIRST_NAMES[fn_idx]
         last_name = INDIAN_LAST_NAMES[ln_idx]
         full_name = f"{first_name} {last_name}"
-        
-        query = f'{full_name} {comp_clean} {kw_raw}'
-        profile_url = f"https://www.linkedin.com/search/results/people/?keywords={urllib.parse.quote(query)}"
+        name_slug = re.sub(r'[^a-zA-Z0-9]+', '-', full_name.lower()).strip('-')
+        direct_profile_url = f"https://www.linkedin.com/in/{name_slug}"
         google_xray = f"https://www.google.com/search?q={urllib.parse.quote(f'site:linkedin.com/in/ \"{full_name}\" \"{comp_clean}\"')}"
-        comp_slug = re.sub(r'[^a-zA-Z0-9]+', '-', comp_clean.lower()).strip('-')
-        company_people = f"https://www.linkedin.com/company/{comp_slug}/people/?keywords={urllib.parse.quote(kw_raw)}"
+        bing_xray = f"https://www.bing.com/search?q={urllib.parse.quote(f'site:linkedin.com/in/ \"{full_name}\" \"{comp_clean}\"')}"
         initials = "".join([w[0].upper() for w in full_name.split()[:2] if w])
         
         members.append({
@@ -232,9 +230,10 @@ def get_deterministic_members(company, recruiter_keyword="HR Manager", location=
             "experience": exp,
             "location": loc_clean,
             "initials": initials,
-            "profile_url": profile_url,
-            "company_people_url": company_people,
-            "google_xray_url": google_xray
+            "profile_url": google_xray,
+            "direct_profile_url": direct_profile_url,
+            "google_xray_url": google_xray,
+            "bing_xray_url": bing_xray
         })
         
     return {

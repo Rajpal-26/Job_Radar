@@ -321,18 +321,18 @@
               </div>
             </div>
 
-            <!-- Direct Actions -->
+            <!-- Direct Actions (No Login Required) -->
             <div style="display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.5rem;">
-              <a href="${m.profile_url}" target="_blank" class="linkedin-visit-btn" title="Open LinkedIn Profile for ${escapeHtml(m.name)}">
-                <span>🔗 Visit Profile on LinkedIn</span> &rarr;
+              <a href="${m.profile_url}" target="_blank" class="linkedin-visit-btn" title="View verified public LinkedIn profile for ${escapeHtml(m.name)}">
+                <span>🔗 View Profile on LinkedIn</span> &rarr;
               </a>
               
               <div style="display: flex; gap: 0.4rem;">
-                <a href="${m.company_people_url}" target="_blank" class="action-btn-sm" style="flex: 1; text-align: center; text-decoration: none; font-size: 0.76rem; padding: 0.35rem 0.4rem;" title="View all employees on company page">
-                  🏢 Company People
+                <a href="${m.direct_profile_url}" target="_blank" class="action-btn-sm" style="flex: 1; text-align: center; text-decoration: none; font-size: 0.76rem; padding: 0.35rem 0.4rem;" title="Direct LinkedIn profile URL">
+                  👤 Direct URL
                 </a>
-                <a href="${m.google_xray_url}" target="_blank" class="action-btn-sm" style="flex: 1; text-align: center; text-decoration: none; font-size: 0.76rem; padding: 0.35rem 0.4rem;" title="Google profile search">
-                  🔎 Google Profile
+                <a href="${m.bing_xray_url}" target="_blank" class="action-btn-sm" style="flex: 1; text-align: center; text-decoration: none; font-size: 0.76rem; padding: 0.35rem 0.4rem;" title="Bing public profile lookup">
+                  🔎 Public Lookup
                 </a>
               </div>
             </div>
