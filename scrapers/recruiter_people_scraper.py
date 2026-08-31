@@ -159,10 +159,45 @@ INDIAN_LAST_NAMES = [
 ]
 
 
+COMPANY_SLUG_MAP = {
+    "gammastack": "gammastack",
+    "thoughtwin": "thoughtwin-it-solutions-pvt-ltd",
+    "thoughtwin it solutions": "thoughtwin-it-solutions-pvt-ltd",
+    "supersourcing": "supersourcing",
+    "supersourcing technologies pvt ltd": "supersourcing",
+    "razorpay": "razorpay",
+    "swiggy": "swiggy-in",
+    "zomato": "zomato",
+    "google": "google",
+    "microsoft": "microsoft",
+    "amazon": "amazon",
+    "cred": "cred_club",
+    "flipkart": "flipkart",
+    "zepto": "zeptonow",
+    "meesho": "meesho",
+    "phonepe": "phonepe-internet",
+    "zerodha": "zerodha",
+    "groww": "groww-in",
+    "infosys": "infosys",
+    "tcs": "tata-consultancy-services",
+    "wipro": "wipro"
+}
+
+def resolve_company_slug(company_name):
+    clean = company_name.lower().strip()
+    for k, v in COMPANY_SLUG_MAP.items():
+        if k in clean or clean in k:
+            return v
+    return re.sub(r'[^a-zA-Z0-9]+', '-', clean).strip('-')
+
 def get_deterministic_members(company, recruiter_keyword="HR Manager", location="India"):
     comp_clean = (company or "Tech Company").strip()
     loc_clean = (location or "India").strip()
     kw_raw = (recruiter_keyword or "HR Manager").strip()
+    comp_slug = resolve_company_slug(comp_clean)
+    
+    company_people_url = f"https://www.linkedin.com/company/{comp_slug}/people/?keywords={urllib.parse.quote(kw_raw)}"
+    company_page_url = f"https://www.linkedin.com/company/{comp_slug}/"
     
     # Check if company matches a known corporate directory
     comp_lower = re.sub(r'[^a-zA-Z0-9]', '', comp_clean.lower())
@@ -193,6 +228,7 @@ def get_deterministic_members(company, recruiter_keyword="HR Manager", location=
                     "verified": True,
                     "profile_url": direct_profile_url,
                     "direct_profile_url": direct_profile_url,
+                    "company_people_url": company_people_url,
                     "google_xray_url": google_xray,
                     "bing_xray_url": bing_xray
                 })
@@ -200,6 +236,9 @@ def get_deterministic_members(company, recruiter_keyword="HR Manager", location=
                 "company": comp_clean,
                 "location": loc_clean,
                 "keyword": kw_raw,
+                "company_slug": comp_slug,
+                "company_page_url": company_page_url,
+                "company_people_url": company_people_url,
                 "count": len(members),
                 "members": members
             }
@@ -273,6 +312,7 @@ def get_deterministic_members(company, recruiter_keyword="HR Manager", location=
             "verified": False,
             "profile_url": google_xray,
             "direct_profile_url": direct_profile_url,
+            "company_people_url": company_people_url,
             "google_xray_url": google_xray,
             "bing_xray_url": bing_xray
         })
@@ -281,6 +321,9 @@ def get_deterministic_members(company, recruiter_keyword="HR Manager", location=
         "company": comp_clean,
         "location": loc_clean,
         "keyword": kw_raw,
+        "company_slug": comp_slug,
+        "company_page_url": company_page_url,
+        "company_people_url": company_people_url,
         "count": len(members),
         "members": members
     }

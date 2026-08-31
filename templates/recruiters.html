@@ -198,6 +198,22 @@
     <!-- Results Section -->
     <div id="resultsWrapper" style="display: none;">
       
+      <!-- Official LinkedIn Company People Tab Banner -->
+      <div id="companyPeopleBanner" style="background: linear-gradient(135deg, rgba(14, 118, 168, 0.15), rgba(10, 102, 194, 0.25)); border: 1px solid rgba(10, 102, 194, 0.45); border-radius: 12px; padding: 1.15rem 1.4rem; margin-bottom: 1.5rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
+        <div style="flex: 1; min-width: 260px;">
+          <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.35rem;">
+            <span style="background: #0a66c2; color: #fff; font-size: 0.72rem; font-weight: 800; padding: 0.2rem 0.55rem; border-radius: 4px;">OFFICIAL LINKEDIN PEOPLE TAB</span>
+            <h4 id="bannerCompanyHeading" style="margin: 0; color: var(--text); font-size: 1.1rem; font-weight: 800;">Company People Directory</h4>
+          </div>
+          <p style="margin: 0; color: var(--subtext); font-size: 0.88rem; line-height: 1.4;">
+            View and scrape all current employees & hiring decision makers directly on <span id="bannerCompanyNameText" style="color: var(--text); font-weight: 700;">Company</span>'s verified <strong>People tab</strong> on LinkedIn.
+          </p>
+        </div>
+        <a id="companyPeopleBannerBtn" href="#" target="_blank" class="btn" style="background: #0a66c2; color: #fff; font-weight: 800; font-size: 0.92rem; padding: 0.75rem 1.35rem; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem; box-shadow: 0 4px 14px rgba(10, 102, 194, 0.35); transition: all 0.2s ease;">
+          <span>🏢 Open Official People Tab on LinkedIn</span> &rarr;
+        </a>
+      </div>
+
       <!-- Section Header -->
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 0.5rem;">
         <div>
@@ -288,10 +304,17 @@
       document.getElementById("resCompanyHeading").textContent = data.company;
       document.getElementById("resKeywordHeading").textContent = data.keyword || "Recruiter";
       
+      // Update Official People Tab Banner
+      document.getElementById("bannerCompanyHeading").textContent = `${data.company} — People Directory`;
+      document.getElementById("bannerCompanyNameText").textContent = data.company;
+      const companyPeopleUrl = data.company_people_url || `https://www.linkedin.com/company/${encodeURIComponent(data.company)}/people/`;
+      document.getElementById("companyPeopleBannerBtn").href = companyPeopleUrl;
+
       const members = data.members || [];
       document.getElementById("resultsCountBadge").textContent = `${members.length} Members Found`;
 
       container.innerHTML = members.map((m, idx) => {
+        const memberPeopleUrl = m.company_people_url || companyPeopleUrl;
         return `
           <div class="member-card">
             <div>
@@ -324,18 +347,18 @@
               </div>
             </div>
 
-            <!-- Direct Actions (No Login Required) -->
+            <!-- Direct Actions -->
             <div style="display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.5rem;">
-              <a href="${m.profile_url}" target="_blank" class="linkedin-visit-btn" title="View verified public LinkedIn profile for ${escapeHtml(m.name)}">
+              <a href="${m.profile_url}" target="_blank" class="linkedin-visit-btn" title="View profile for ${escapeHtml(m.name)}">
                 <span>🔗 View Profile on LinkedIn</span> &rarr;
               </a>
               
               <div style="display: flex; gap: 0.4rem;">
-                <a href="${m.direct_profile_url}" target="_blank" class="action-btn-sm" style="flex: 1; text-align: center; text-decoration: none; font-size: 0.76rem; padding: 0.35rem 0.4rem;" title="Direct LinkedIn profile URL">
-                  👤 Direct URL
+                <a href="${memberPeopleUrl}" target="_blank" class="action-btn-sm" style="flex: 1; text-align: center; text-decoration: none; font-size: 0.76rem; padding: 0.35rem 0.4rem; background: rgba(10, 102, 194, 0.15); color: #38bdf8; border-color: rgba(10, 102, 194, 0.3);" title="Open Company People tab on LinkedIn">
+                  🏢 Company People
                 </a>
-                <a href="${m.bing_xray_url}" target="_blank" class="action-btn-sm" style="flex: 1; text-align: center; text-decoration: none; font-size: 0.76rem; padding: 0.35rem 0.4rem;" title="Bing public profile lookup">
-                  🔎 Public Lookup
+                <a href="${m.google_xray_url}" target="_blank" class="action-btn-sm" style="flex: 1; text-align: center; text-decoration: none; font-size: 0.76rem; padding: 0.35rem 0.4rem;" title="Google profile search">
+                  🔎 Google Profile
                 </a>
               </div>
             </div>
