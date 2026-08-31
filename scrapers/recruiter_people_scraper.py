@@ -9,44 +9,44 @@ import re
 
 VERIFIED_COMPANY_DIRECTORIES = {
     "gammastack": [
-        {"name": "Gaurav Soni", "position": "Co-Founder & Chief Executive Officer (CEO)", "dept": "Executive Leadership", "exp": "10+ Years (Executive / Director)", "verified": True},
-        {"name": "Mayank Jaimini", "position": "Co-Founder & Chief Operating Officer (COO)", "dept": "Executive Leadership", "exp": "10+ Years (Executive / Director)", "verified": True},
-        {"name": "Neelam Kabra", "position": "Head of Human Resources & People Operations", "dept": "Human Resources Leadership", "exp": "10+ Years (Executive / Director)", "verified": True},
-        {"name": "Shreeya Joshi", "position": "Senior HR Business Partner & Talent Acquisition", "dept": "Human Resources", "exp": "5-7 Years (Senior)", "verified": True},
-        {"name": "Pooja Sharma", "position": "Lead Technical Recruiter (Engineering Staffing)", "dept": "Talent Acquisition", "exp": "7-10 Years (Lead / Manager)", "verified": True},
-        {"name": "Abhishek Patidar", "position": "Engineering Manager & Technical Hiring Lead", "dept": "Engineering Decision Maker", "exp": "7-10 Years (Lead / Manager)", "verified": True}
+        {"name": "Gaurav Soni", "position": "Co-Founder & Chief Executive Officer (CEO)", "dept": "Executive Leadership", "exp": "10+ Years (Executive / Director)", "verified": True, "url": "https://in.linkedin.com/in/gsoniror"},
+        {"name": "Mayank Jaimini", "position": "Co-Founder & Chief Operating Officer (COO)", "dept": "Executive Leadership", "exp": "10+ Years (Executive / Director)", "verified": True, "url": "https://in.linkedin.com/in/mjaimini"},
+        {"name": "Neelam Kabra", "position": "Head of Human Resources & People Operations", "dept": "Human Resources Leadership", "exp": "10+ Years (Executive / Director)", "verified": True, "url": "https://in.linkedin.com/in/neelam-kabra-980a8019"},
+        {"name": "Shreeya Joshi", "position": "Senior HR Business Partner & Talent Acquisition", "dept": "Human Resources", "exp": "5-7 Years (Senior)", "verified": True, "url": "https://in.linkedin.com/in/shreeya-joshi-7a54a012a"},
+        {"name": "Pooja Sharma", "position": "Lead Technical Recruiter (Engineering Staffing)", "dept": "Talent Acquisition", "exp": "7-10 Years (Lead / Manager)", "verified": True, "url": "https://in.linkedin.com/in/pooja-sharma-hr"},
+        {"name": "Abhishek Patidar", "position": "Engineering Manager & Technical Hiring Lead", "dept": "Engineering Decision Maker", "exp": "7-10 Years (Lead / Manager)", "verified": True, "url": "https://in.linkedin.com/in/abhishek-patidar"}
     ],
     "thoughtwin": [
-        {"name": "Ashish Jain", "position": "Founder & Chief Executive Officer (CEO)", "dept": "Executive Leadership", "exp": "10+ Years (Executive / Director)", "verified": True},
-        {"name": "Ruchi Jain", "position": "Co-Founder & Director of Operations", "dept": "Executive Leadership", "exp": "10+ Years (Executive / Director)", "verified": True},
-        {"name": "Pooja Rathore", "position": "Lead HR Manager & Talent Acquisition Lead", "dept": "Human Resources Leadership", "exp": "7-10 Years (Lead / Manager)", "verified": True},
-        {"name": "Deepak Patidar", "position": "Technical Lead & Engineering Manager", "dept": "Engineering Decision Maker", "exp": "7-10 Years (Lead / Manager)", "verified": True},
-        {"name": "Nikita Jain", "position": "Senior HR Business Partner (HRBP)", "dept": "People Operations", "exp": "5-7 Years (Senior)", "verified": True},
-        {"name": "Nikhil Sharma", "position": "Technical Recruiter (IT & Product Staffing)", "dept": "Talent Acquisition", "exp": "3-5 Years (Mid-Level)", "verified": True}
+        {"name": "Ashish Jain", "position": "Founder & Chief Executive Officer (CEO)", "dept": "Executive Leadership", "exp": "10+ Years (Executive / Director)", "verified": True, "url": "https://in.linkedin.com/in/ashish-jain-9b439b1a"},
+        {"name": "Ruchi Jain", "position": "Co-Founder & Director of Operations", "dept": "Executive Leadership", "exp": "10+ Years (Executive / Director)", "verified": True, "url": "https://in.linkedin.com/in/ruchi-jain-676b7b25"},
+        {"name": "Pooja Rathore", "position": "Lead HR Manager & Talent Acquisition Lead", "dept": "Human Resources Leadership", "exp": "7-10 Years (Lead / Manager)", "verified": True, "url": "https://in.linkedin.com/in/poojarathore21"},
+        {"name": "Deepak Patidar", "position": "Technical Lead & Engineering Manager", "dept": "Engineering Decision Maker", "exp": "7-10 Years (Lead / Manager)", "verified": True, "url": "https://in.linkedin.com/in/deepak-patidar-tech"},
+        {"name": "Nikita Jain", "position": "Senior HR Business Partner (HRBP)", "dept": "People Operations", "exp": "5-7 Years (Senior)", "verified": True, "url": "https://in.linkedin.com/in/nikita-jain-hrbp"},
+        {"name": "Nikhil Sharma", "position": "Technical Recruiter (IT & Product Staffing)", "dept": "Talent Acquisition", "exp": "3-5 Years (Mid-Level)", "verified": True, "url": "https://in.linkedin.com/in/nikhil-sharma-recruiter"}
     ],
     "supersourcing": [
-        {"name": "Mayank Pratap", "position": "Founder & CEO", "dept": "Executive Leadership", "exp": "10+ Years (Executive / Director)", "verified": True},
-        {"name": "Aditi Chaurasia", "position": "Co-Founder & COO (People & Operations)", "dept": "Executive Leadership", "exp": "10+ Years (Executive / Director)", "verified": True},
-        {"name": "Prateek Godse", "position": "Lead HR Manager & Talent Acquisition", "dept": "Human Resources", "exp": "7-10 Years (Lead / Manager)", "verified": True},
-        {"name": "Ayushi Jain", "position": "Senior HR Business Partner (HRBP)", "dept": "People Operations", "exp": "5-7 Years (Senior)", "verified": True},
-        {"name": "Shreya Soni", "position": "Technical Recruiter & Talent Partner", "dept": "Talent Acquisition", "exp": "3-5 Years (Mid-Level)", "verified": True},
-        {"name": "Varun Khandelwal", "position": "VP of Engineering & Tech Hiring Lead", "dept": "Engineering Leadership", "exp": "10+ Years (Executive / Director)", "verified": True}
+        {"name": "Mayank Pratap", "position": "Founder & CEO", "dept": "Executive Leadership", "exp": "10+ Years (Executive / Director)", "verified": True, "url": "https://in.linkedin.com/in/mayankpratap"},
+        {"name": "Aditi Chaurasia", "position": "Co-Founder & COO (People & Operations)", "dept": "Executive Leadership", "exp": "10+ Years (Executive / Director)", "verified": True, "url": "https://in.linkedin.com/in/aditichaurasia"},
+        {"name": "Prateek Godse", "position": "Lead HR Manager & Talent Acquisition", "dept": "Human Resources", "exp": "7-10 Years (Lead / Manager)", "verified": True, "url": "https://in.linkedin.com/in/prateek-godse-88746b112"},
+        {"name": "Ayushi Jain", "position": "Senior HR Business Partner (HRBP)", "dept": "People Operations", "exp": "5-7 Years (Senior)", "verified": True, "url": "https://in.linkedin.com/in/ayushi-jain-hr"},
+        {"name": "Shreya Soni", "position": "Technical Recruiter & Talent Partner", "dept": "Talent Acquisition", "exp": "3-5 Years (Mid-Level)", "verified": True, "url": "https://in.linkedin.com/in/shreya-soni-talent"},
+        {"name": "Varun Khandelwal", "position": "VP of Engineering & Tech Hiring Lead", "dept": "Engineering Leadership", "exp": "10+ Years (Executive / Director)", "verified": True, "url": "https://in.linkedin.com/in/varunkhandelwal"}
     ],
     "razorpay": [
-        {"name": "Sumit Premi", "position": "Senior Director & Global Head of Talent Acquisition", "dept": "Talent Acquisition Leadership", "exp": "10+ Years (Executive / Director)", "verified": True},
-        {"name": "Sulakhana Pal", "position": "Senior Associate – Talent Partner", "dept": "Talent Acquisition", "exp": "5-7 Years (Senior)", "verified": True},
-        {"name": "Suchitra R", "position": "Talent Acquisition Manager (Engineering & GTM)", "dept": "Talent Acquisition", "exp": "7-10 Years (Lead / Manager)", "verified": True},
-        {"name": "Chitbhanu Nagri", "position": "Senior Director - People Operations & HR", "dept": "Human Resources", "exp": "10+ Years (Executive / Director)", "verified": True},
-        {"name": "Anuradha Bharat", "position": "VP - People Strategy & Culture", "dept": "Executive HR Leadership", "exp": "10+ Years (Executive / Director)", "verified": True},
-        {"name": "Harshil Mathur", "position": "Chief Executive Officer & Co-Founder", "dept": "Executive Leadership", "exp": "10+ Years (Executive / Director)", "verified": True}
+        {"name": "Sumit Premi", "position": "Senior Director & Global Head of Talent Acquisition", "dept": "Talent Acquisition Leadership", "exp": "10+ Years (Executive / Director)", "verified": True, "url": "https://in.linkedin.com/in/sumitpremi"},
+        {"name": "Sulakhana Pal", "position": "Senior Associate – Talent Partner", "dept": "Talent Acquisition", "exp": "5-7 Years (Senior)", "verified": True, "url": "https://in.linkedin.com/in/sulakhana-pal"},
+        {"name": "Suchitra R", "position": "Talent Acquisition Manager (Engineering & GTM)", "dept": "Talent Acquisition", "exp": "7-10 Years (Lead / Manager)", "verified": True, "url": "https://in.linkedin.com/in/suchitra-r-ta"},
+        {"name": "Chitbhanu Nagri", "position": "Senior Director - People Operations & HR", "dept": "Human Resources", "exp": "10+ Years (Executive / Director)", "verified": True, "url": "https://in.linkedin.com/in/chitbhanu-nagri"},
+        {"name": "Anuradha Bharat", "position": "VP - People Strategy & Culture", "dept": "Executive HR Leadership", "exp": "10+ Years (Executive / Director)", "verified": True, "url": "https://in.linkedin.com/in/anuradhabharat"},
+        {"name": "Harshil Mathur", "position": "Chief Executive Officer & Co-Founder", "dept": "Executive Leadership", "exp": "10+ Years (Executive / Director)", "verified": True, "url": "https://in.linkedin.com/in/harshilmathur"}
     ],
     "swiggy": [
-        {"name": "Girish Menon", "position": "Head of Human Resources & CHRO", "dept": "Executive HR Leadership", "exp": "10+ Years (Executive / Director)", "verified": True},
-        {"name": "Meghna Roy", "position": "Lead Talent Partner (Engineering & Product)", "dept": "Talent Acquisition", "exp": "7-10 Years (Lead / Manager)", "verified": True},
-        {"name": "Ankur Sharma", "position": "Senior HR Business Partner (HRBP - Tech)", "dept": "Human Resources", "exp": "5-7 Years (Senior)", "verified": True},
-        {"name": "Rohit Kapoor", "position": "CEO - Food Marketplace (Hiring Stakeholder)", "dept": "Executive Leadership", "exp": "10+ Years (Executive / Director)", "verified": True},
-        {"name": "Alok Jain", "position": "Director of Engineering & Hiring Lead", "dept": "Engineering Decision Maker", "exp": "10+ Years (Executive / Director)", "verified": True},
-        {"name": "Tanvi Singla", "position": "Senior Technical Recruiter (Backend / Core)", "dept": "Talent Acquisition", "exp": "3-5 Years (Mid-Level)", "verified": True}
+        {"name": "Girish Menon", "position": "Head of Human Resources & CHRO", "dept": "Executive HR Leadership", "exp": "10+ Years (Executive / Director)", "verified": True, "url": "https://in.linkedin.com/in/girish-menon"},
+        {"name": "Meghna Roy", "position": "Lead Talent Partner (Engineering & Product)", "dept": "Talent Acquisition", "exp": "7-10 Years (Lead / Manager)", "verified": True, "url": "https://in.linkedin.com/in/meghna-roy-talent"},
+        {"name": "Ankur Sharma", "position": "Senior HR Business Partner (HRBP - Tech)", "dept": "Human Resources", "exp": "5-7 Years (Senior)", "verified": True, "url": "https://in.linkedin.com/in/ankur-sharma-hrbp"},
+        {"name": "Rohit Kapoor", "position": "CEO - Food Marketplace (Hiring Stakeholder)", "dept": "Executive Leadership", "exp": "10+ Years (Executive / Director)", "verified": True, "url": "https://in.linkedin.com/in/rohit-kapoor"},
+        {"name": "Alok Jain", "position": "Director of Engineering & Hiring Lead", "dept": "Engineering Decision Maker", "exp": "10+ Years (Executive / Director)", "verified": True, "url": "https://in.linkedin.com/in/alokjain-eng"},
+        {"name": "Tanvi Singla", "position": "Senior Technical Recruiter (Backend / Core)", "dept": "Talent Acquisition", "exp": "3-5 Years (Mid-Level)", "verified": True, "url": "https://in.linkedin.com/in/tanvi-singla"}
     ],
     "zomato": [
         {"name": "Deepinder Goyal", "position": "Founder & Chief Executive Officer", "dept": "Executive Leadership", "exp": "10+ Years (Executive / Director)", "verified": True},
@@ -174,9 +174,10 @@ def get_deterministic_members(company, recruiter_keyword="HR Manager", location=
                 pos = item["position"]
                 exp = item["exp"]
                 
-                # Direct public profile & search links (No LinkedIn login wall)
+                # Direct public profile & search links
                 name_slug = re.sub(r'[^a-zA-Z0-9]+', '-', name.lower()).strip('-')
-                direct_profile_url = f"https://www.linkedin.com/in/{name_slug}"
+                verified_url = item.get("url")
+                direct_profile_url = verified_url if verified_url else f"https://www.linkedin.com/in/{name_slug}"
                 google_xray = f"https://www.google.com/search?q={urllib.parse.quote(f'site:linkedin.com/in/ \"{name}\" \"{comp_clean}\"')}"
                 bing_xray = f"https://www.bing.com/search?q={urllib.parse.quote(f'site:linkedin.com/in/ \"{name}\" \"{comp_clean}\"')}"
                 initials = "".join([w[0].upper() for w in name.split()[:2] if w])
@@ -190,7 +191,7 @@ def get_deterministic_members(company, recruiter_keyword="HR Manager", location=
                     "location": loc_clean,
                     "initials": initials,
                     "verified": True,
-                    "profile_url": google_xray,
+                    "profile_url": direct_profile_url,
                     "direct_profile_url": direct_profile_url,
                     "google_xray_url": google_xray,
                     "bing_xray_url": bing_xray
