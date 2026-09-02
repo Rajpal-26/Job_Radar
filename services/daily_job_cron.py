@@ -191,6 +191,16 @@ def run_daily_scraper_pipeline(portal_limit=50, recipient_email=None, time_filte
     all_curated_jobs = ats_jobs + linkedin_jobs + indeed_jobs
     print(f"[Summary] Total curated matching jobs: {len(all_curated_jobs)} (ATS: {len(ats_jobs)}, LinkedIn: {len(linkedin_jobs)}, Indeed: {len(indeed_jobs)})")
     
+    # Save full curated jobs list to JSON file
+    os.makedirs("data", exist_ok=True)
+    json_path = os.path.join("data", "latest_scraped_jobs.json")
+    try:
+        import json
+        with open(json_path, "w", encoding="utf-8") as f:
+            json.dump(all_curated_jobs, f, indent=2, ensure_ascii=False)
+    except Exception as e:
+        print(f"[JSON Save Warning] {e}")
+
     # 4. Dispatch Email Digest
     print("\n--- Generating and Dispatching Daily Email Digest ---")
     email_result = send_job_digest_email(
