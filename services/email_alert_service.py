@@ -12,12 +12,34 @@ from email.mime.text import MIMEText
 from datetime import datetime
 import json
 
-# Default configuration (can be overridden via environment variables)
-DEFAULT_SMTP_HOST = os.getenv("SMTP_HOST", "smtp.gmail.com")
-DEFAULT_SMTP_PORT = int(os.getenv("SMTP_PORT", "587"))
-DEFAULT_SMTP_USER = os.getenv("SMTP_USER", "")
-DEFAULT_SMTP_PASSWORD = os.getenv("SMTP_PASSWORD", "")
-DEFAULT_RECIPIENT = os.getenv("ALERT_RECIPIENT_EMAIL", "rajpaltanwar2608@gmail.com")
+def load_env_vars():
+    """Reads .env file dynamically."""
+    env_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), ".env")
+    env_vars = {}
+    if os.path.exists(env_path):
+        with open(env_path, "r", encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if line and not line.startswith("#") and "=" in line:
+                    k, v = line.split("=", 1)
+                    env_vars[k.strip()] = v.strip()
+                    os.environ[k.strip()] = v.strip()
+    return env_vars
+
+load_env_vars()
+
+# Dynamic getters for configuration
+def get_smtp_config():
+    env = load_env_vars()
+    return {
+        "host": os.getenv("SMTP_HOST") or env.get("SMTP_HOST", "smtp.gmail.com"),
+        "port": int(os.getenv("SMTP_PORT") or env.get("SMTP_PORT", 587)),
+        "user": os.getenv("SMTP_USER") or env.get("SMTP_USER", ""),
+        "password": os.getenv("SMTP_PASSWORD") or env.get("SMTP_PASSWORD", ""),
+        "recipient": os.getenv("ALERT_RECIPIENT_EMAIL") or env.get("ALERT_RECIPIENT_EMAIL", "rajpaltanwar2608@gmail.com")
+    }
+
+DEFAULT_RECIPIENT = get_smtp_config()["recipient"]
 
 
 def generate_digest_html(jobs, target_roles, target_exp, target_locations, recipient_email=DEFAULT_RECIPIENT):
@@ -178,11 +200,12 @@ def send_job_digest_email(jobs, target_roles, target_exp, target_locations, reci
     Sends the HTML job digest email via SMTP.
     If SMTP credentials are not configured, saves a local HTML preview and returns status.
     """
-    recipient = recipient_email or DEFAULT_RECIPIENT
-    smtp_host = (smtp_config or {}).get("host") or DEFAULT_SMTP_HOST
-    smtp_port = int((smtp_config or {}).get("port") or DEFAULT_SMTP_PORT)
-    smtp_user = (smtp_config or {}).get("user") or DEFAULT_SMTP_USER
-    smtp_pass = (smtp_config or {}).get("password") or DEFAULT_SMTP_PASSWORD
+    cfg = get_smtp_config()
+    recipient = recipient_email or cfg["recipient"]
+    smtp_host = (smtp_config or {}).get("host") or cfg["host"]
+    smtp_port = int((smtp_config or {}).get("port") or cfg["port"])
+    smtp_user = (smtp_config or {}).get("user") or cfg["user"]
+    smtp_pass = (smtp_config or {}).get("password") or cfg["password"]
     
     html_content = generate_digest_html(
         jobs=jobs,
@@ -212,8 +235,8 @@ def send_job_digest_email(jobs, target_roles, target_exp, target_locations, reci
         
     # Live SMTP Dispatch
     try:
-        today_str = datetime.now().strftime("%d %b %Y")
-        subject = f"🎯 JobRadar Daily Alert ({len(jobs)} Jobs): Python, ASE & AI Roles - {today_str}"
+        today_formatted = datetime.now().strftime("%A, %d %b %Y")
+        subject = f"🎯 JobRadar Daily Digest ({len(jobs)} Jobs): Python, Associate SE & AI Roles - {today_formatted}"
         
         msg = MIMEMultipart("alternative")
         msg["Subject"] = subject

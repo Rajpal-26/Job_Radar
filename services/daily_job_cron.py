@@ -124,10 +124,11 @@ def normalize_job_dict(job, portal):
     }
 
 
-def run_daily_scraper_pipeline(limit=50, recipient_email=None, time_filter=86400, smtp_config=None):
+def run_daily_scraper_pipeline(limit=50, recipient_email=None, time_filter=604800, smtp_config=None):
     """
     Runs the daily scraper pipeline across LinkedIn and Indeed,
-    filters the top matching 50 jobs, and sends the email digest.
+    filters the top matching 50 jobs (posted within 7 days across startups, mid-size, & MNCs),
+    and sends the email digest.
     """
     start_time = time.time()
     recipient = recipient_email or DEFAULT_RECIPIENT
