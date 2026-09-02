@@ -236,7 +236,10 @@ def send_job_digest_email(jobs, target_roles, target_exp, target_locations, reci
     # Live SMTP Dispatch
     try:
         today_formatted = datetime.now().strftime("%A, %d %b %Y")
-        subject = f"🎯 JobRadar Daily Digest ({len(jobs)} Jobs): Python, Associate SE & AI Roles - {today_formatted}"
+        linkedin_count = sum(1 for j in jobs if j.get("portal", "").lower() == "linkedin" or "linkedin" in j.get("link", "").lower())
+        indeed_count = sum(1 for j in jobs if j.get("portal", "").lower() == "indeed" or "indeed" in j.get("link", "").lower())
+        
+        subject = f"🎯 JobRadar Daily Alert: {len(jobs)} Jobs (LinkedIn: {linkedin_count}, Indeed: {indeed_count}) - {today_formatted}"
         
         msg = MIMEMultipart("alternative")
         msg["Subject"] = subject
