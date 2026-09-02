@@ -43,6 +43,8 @@ except Exception as _w_err:
     print(f"[Watchdog Init Warning] {_w_err}")
 
 
+from scrapers.ats_scraper import scrape_ats_jobs
+
 # Scrapers mapping for parallel aggregator
 SCRAPERS_MAP = {
     "linkedin": scrape_linkedin,
@@ -53,12 +55,13 @@ SCRAPERS_MAP = {
     "foundit": scrape_foundit,
     "apna": scrape_apna,
     "shine": scrape_shine,
+    "ats": scrape_ats_jobs,
 }
 
 # Per-portal cache of the most recent search results
 latest = {"linkedin": [], "glassdoor": [], "indeed": [],
           "hirist": [], "naukri": [], "foundit": [],
-          "apna": [], "shine": [], "all": []}
+          "apna": [], "shine": [], "ats": [], "all": []}
 
 
 def _parse_locations(req):

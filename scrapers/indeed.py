@@ -81,7 +81,7 @@ def _build_url(role, location, fromage_days, start=0, experience=None):
     return url
 
 
-import tempfile
+from scrapers.stealth_driver import create_stealth_context, STEALTH_JS
 
 def _launch(p, headless):
     args = [
@@ -95,16 +95,7 @@ def _launch(p, headless):
     ]
 
     browser = p.chromium.launch(headless=headless, args=args)
-    context = browser.new_context(
-        viewport={"width": 1366, "height": 768},
-        user_agent=(
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-            "AppleWebKit/537.36 (KHTML, like Gecko) "
-            "Chrome/132.0.0.0 Safari/537.36"
-        ),
-        locale="en-IN",
-        timezone_id="Asia/Kolkata",
-    )
+    context = create_stealth_context(browser, locale="en-IN")
     return browser, context
 
 

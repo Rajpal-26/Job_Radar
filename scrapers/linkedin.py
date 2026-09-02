@@ -68,6 +68,8 @@ def scrape_linkedin(role, time_filter, limit, locations, apply_mode="include_eas
     if not roles:
         roles = [role]
 
+    from scrapers.stealth_driver import create_stealth_context
+
     with sync_playwright() as p:
         browser = p.chromium.launch(
             headless=True,
@@ -80,24 +82,7 @@ def scrape_linkedin(role, time_filter, limit, locations, apply_mode="include_eas
             ],
         )
 
-        context = browser.new_context(
-            user_agent=(
-                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-                "AppleWebKit/537.36 (KHTML, like Gecko) "
-                "Chrome/122.0.0.0 Safari/537.36"
-            ),
-            viewport={"width": 1366, "height": 768},
-            locale="en-IN",
-            timezone_id="Asia/Kolkata",
-        )
-
-        context.add_init_script("""
-            Object.defineProperty(navigator, 'webdriver', {get: () => undefined});
-            Object.defineProperty(navigator, 'plugins', {get: () => [1, 2, 3]});
-            Object.defineProperty(navigator, 'languages', {get: () => ['en-IN', 'en']});
-            window.chrome = {runtime: {}};
-        """)
-
+        context = create_stealth_context(browser, locale="en-IN")
         page = context.new_page()
 
         try:

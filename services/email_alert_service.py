@@ -49,7 +49,7 @@ def generate_digest_html(jobs, target_roles, target_exp, target_locations, recip
     
     linkedin_count = sum(1 for j in jobs if j.get("portal", "").lower() == "linkedin" or "linkedin" in j.get("link", "").lower())
     indeed_count = sum(1 for j in jobs if j.get("portal", "").lower() == "indeed" or "indeed" in j.get("link", "").lower())
-    other_count = total_jobs - linkedin_count - indeed_count
+    ats_count = sum(1 for j in jobs if "ats" in j.get("portal", "").lower() or "greenhouse" in j.get("link", "").lower() or "lever.co" in j.get("link", "").lower() or "ashby" in j.get("link", "").lower())
     
     # Format Job Rows
     rows_html = ""
@@ -60,9 +60,22 @@ def generate_digest_html(jobs, target_roles, target_exp, target_locations, recip
         exp = job.get("experience", "Fresher / 0-1 Yr")
         posted = job.get("posted", "Recent")
         link = job.get("link", "#")
-        portal = job.get("portal", "LinkedIn" if "linkedin" in link else "Indeed").capitalize()
+        portal = job.get("portal", "LinkedIn").upper()
+        salary = job.get("salary", "")
+        skills = job.get("skills", [])
         
-        portal_badge_bg = "#0a66c2" if portal.lower() == "linkedin" else "#2164f3"
+        if "ATS" in portal or "CAREER" in portal:
+            portal_badge_bg = "#059669"
+            portal_label = "✅ DIRECT ATS"
+        elif "LINKEDIN" in portal:
+            portal_badge_bg = "#0a66c2"
+            portal_label = "LINKEDIN"
+        else:
+            portal_badge_bg = "#2164f3"
+            portal_label = "INDEED"
+            
+        salary_html = f'<span style="background: #fef3c7; color: #b45309; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 4px; display: inline-block; margin-right: 4px;">💰 {salary}</span>' if salary else ""
+        skills_html = "".join([f'<span style="background: #ede9fe; color: #6d28d9; font-size: 10px; font-weight: 600; padding: 2px 6px; border-radius: 4px; display: inline-block; margin-right: 3px;">{s}</span>' for s in skills[:3]]) if skills else ""
         
         rows_html += f"""
         <tr style="border-bottom: 1px solid #e2e8f0; font-size: 14px;">
@@ -76,16 +89,18 @@ def generate_digest_html(jobs, target_roles, target_exp, target_locations, recip
                 <div style="color: #475569; font-weight: 600; font-size: 13px; margin-bottom: 6px;">
                     🏢 {company}
                 </div>
-                <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px;">
+                <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px;">
                     <span style="background: #f1f5f9; color: #334155; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 4px; display: inline-block; margin-right: 4px;">📍 {location}</span>
                     <span style="background: #ecfdf5; color: #059669; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 4px; display: inline-block; margin-right: 4px;">⏳ {exp}</span>
+                    {salary_html}
                     <span style="background: #f8fafc; color: #64748b; font-size: 11px; padding: 2px 8px; border-radius: 4px; display: inline-block;">🕒 {posted}</span>
                 </div>
+                {f'<div style="margin-top: 6px;">{skills_html}</div>' if skills_html else ''}
             </td>
             <td style="padding: 16px 12px; text-align: right; vertical-align: middle; white-space: nowrap;">
                 <div style="margin-bottom: 8px;">
                     <span style="background: {portal_badge_bg}; color: #ffffff; font-size: 11px; font-weight: 800; padding: 3px 8px; border-radius: 4px; text-transform: uppercase;">
-                        {portal}
+                        {portal_label}
                     </span>
                 </div>
                 <a href="{link}" target="_blank" style="background: linear-gradient(135deg, #0ea5e9, #0284c7); color: #ffffff; text-decoration: none; font-weight: 700; font-size: 12px; padding: 7px 14px; border-radius: 6px; display: inline-block; box-shadow: 0 2px 6px rgba(14,165,233,0.3);">
@@ -238,8 +253,13 @@ def send_job_digest_email(jobs, target_roles, target_exp, target_locations, reci
         today_formatted = datetime.now().strftime("%A, %d %b %Y")
         linkedin_count = sum(1 for j in jobs if j.get("portal", "").lower() == "linkedin" or "linkedin" in j.get("link", "").lower())
         indeed_count = sum(1 for j in jobs if j.get("portal", "").lower() == "indeed" or "indeed" in j.get("link", "").lower())
+        ats_count = sum(1 for j in jobs if "ats" in j.get("portal", "").lower() or "greenhouse" in j.get("link", "").lower() or "lever.co" in j.get("link", "").lower() or "ashby" in j.get("link", "").lower())
         
-        subject = f"🎯 JobRadar Daily Alert: {len(jobs)} Jobs (LinkedIn: {linkedin_count}, Indeed: {indeed_count}) - {today_formatted}"
+        breakdown_str = f"LinkedIn: {linkedin_count}, Indeed: {indeed_count}"
+        if ats_count > 0:
+            breakdown_str += f", ATS: {ats_count}"
+            
+        subject = f"🎯 JobRadar Daily Alert: {len(jobs)} Jobs ({breakdown_str}) - {today_formatted}"
         
         msg = MIMEMultipart("alternative")
         msg["Subject"] = subject
