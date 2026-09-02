@@ -80,5 +80,24 @@ def init_scheduler(app):
 
     # Schedule watchdog checks every 6 hours
     scheduler.add_job(check_and_run_all, 'interval', hours=6, id='job_watchdog_cron')
+    
+    # Schedule Daily Indeed & LinkedIn Digest at 08:00 AM daily
+    def run_daily_email_job():
+        try:
+            from services.daily_job_cron import run_daily_scraper_pipeline
+            print(f"[Daily Alert Cron] Executing scheduled daily job digest for Indeed & LinkedIn...")
+            with app.app_context():
+                run_daily_scraper_pipeline(limit=50)
+        except Exception as e:
+            print(f"[Daily Alert Cron Error] {e}")
+            
+    import os
+    digest_time_str = os.getenv("DAILY_DIGEST_TIME", "08:00")
+    try:
+        hr, mn = [int(x) for x in digest_time_str.split(":")]
+    except Exception:
+        hr, mn = 8, 0
+        
+    scheduler.add_job(run_daily_email_job, 'cron', hour=hr, minute=mn, id='daily_job_alert_digest')
     scheduler.start()
-    print("[Watchdog Scheduler] Started successfully.")
+    print(f"[Watchdog Scheduler] Started successfully. Daily Email Digest scheduled at {hr:02d}:{mn:02d} daily.")

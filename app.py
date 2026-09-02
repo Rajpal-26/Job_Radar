@@ -867,14 +867,52 @@ def watchdogs_api():
         return jsonify({"success": True, "watchdog": w.to_dict(), "jobs_auto_saved": saved_count})
 
 
-@app.route("/api/watchdogs/<int:watchdog_id>", methods=["DELETE"])
-def delete_watchdog_api(watchdog_id):
-    w = Watchdog.query.get(watchdog_id)
-    if w:
-        db.session.delete(w)
-        db.session.commit()
-        return jsonify({"success": True})
-    return jsonify({"error": "Not found"}), 404
+@app.route("/api/alerts/trigger_daily_digest", methods=["POST"])
+def trigger_daily_digest_api():
+    """Trigger the daily Indeed and LinkedIn scraper pipeline and email dispatch on-demand."""
+    from services.daily_job_cron import run_daily_scraper_pipeline
+    data = request.json or {}
+    limit = int(data.get("limit", 50))
+    recipient = data.get("recipient")
+    smtp_config = data.get("smtp_config")
+    
+    result = run_daily_scraper_pipeline(
+        limit=limit,
+        recipient_email=recipient,
+        smtp_config=smtp_config
+    )
+    return jsonify(result)
+
+
+@app.route("/api/alerts/preview", methods=["GET"])
+def preview_daily_digest_api():
+    """Serve the latest HTML email digest for browser inspection."""
+    preview_file = os.path.join(app.root_path, "data", "latest_email_digest.html")
+    if os.path.exists(preview_file):
+        return send_file(preview_file)
+    return "<h3>No daily digest has been generated yet. Trigger a run first via /api/alerts/trigger_daily_digest</h3>", 404
+
+
+@app.route("/api/alerts/status", methods=["GET"])
+def alert_status_api():
+    """Get status of daily cron and configured target filters."""
+    from services.daily_job_cron import TARGET_ROLES, TARGET_EXPERIENCE, TARGET_LOCATIONS
+    from services.email_alert_service import DEFAULT_RECIPIENT, DEFAULT_SMTP_HOST, DEFAULT_SMTP_PORT, DEFAULT_SMTP_USER
+    
+    return jsonify({
+        "status": "active",
+        "schedule": os.getenv("DAILY_DIGEST_TIME", "08:00") + " AM Daily",
+        "daily_limit": int(os.getenv("DAILY_DIGEST_JOB_LIMIT", "50")),
+        "portals": ["LinkedIn", "Indeed"],
+        "target_roles": TARGET_ROLES,
+        "target_experience": TARGET_EXPERIENCE,
+        "target_locations": TARGET_LOCATIONS,
+        "recipient_email": DEFAULT_RECIPIENT,
+        "smtp_configured": bool(DEFAULT_SMTP_USER and os.getenv("SMTP_PASSWORD")),
+        "smtp_host": DEFAULT_SMTP_HOST,
+        "smtp_port": DEFAULT_SMTP_PORT
+    })
+
 
 
 if __name__ == "__main__":
@@ -882,4 +920,5 @@ if __name__ == "__main__":
     print("  JobRadar Codebase Watermarked for Rajpal Singh Tanwar")
     print("="*60 + "\n")
     app.run(debug=True, use_reloader=False)
+
 
