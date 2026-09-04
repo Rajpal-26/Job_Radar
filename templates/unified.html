@@ -154,6 +154,75 @@
       overflow-y: auto;
       box-shadow: var(--shadow);
     }
+    .modal-lg {
+      max-width: 820px !important;
+    }
+    .resume-dropzone {
+      border: 2px dashed rgba(59, 130, 246, 0.4);
+      background: rgba(59, 130, 246, 0.04);
+      border-radius: 0.75rem;
+      padding: 1.75rem 1rem;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.25s ease;
+    }
+    .resume-dropzone:hover, .resume-dropzone.dragover {
+      border-color: var(--primary);
+      background: rgba(59, 130, 246, 0.1);
+      transform: translateY(-2px);
+    }
+    .skill-pill-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.25rem 0.65rem;
+      background: rgba(59, 130, 246, 0.12);
+      border: 1px solid rgba(59, 130, 246, 0.3);
+      color: var(--primary);
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      transition: all 0.2s;
+    }
+    .skill-pill-tag:hover {
+      background: rgba(59, 130, 246, 0.2);
+    }
+    .skill-pill-remove {
+      cursor: pointer;
+      font-size: 0.95rem;
+      line-height: 1;
+      opacity: 0.7;
+    }
+    .skill-pill-remove:hover {
+      opacity: 1;
+      color: #ef4444;
+    }
+    .copy-field-card {
+      background: var(--panel-soft);
+      border: 1px solid var(--line);
+      border-radius: 0.5rem;
+      padding: 0.6rem 0.85rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .smart-tab-btn {
+      padding: 0.5rem 1rem;
+      border-radius: 0.5rem;
+      font-size: 0.85rem;
+      font-weight: 700;
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--subtext);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .smart-tab-btn.active {
+      background: var(--primary);
+      color: #ffffff;
+      box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+    }
   </style>
 </head>
 <body>
@@ -170,6 +239,9 @@
       <a href="/" class="nav-tab">🌐 Single Scrapers</a>
     </div>
     <div class="nav-tools">
+      <button type="button" class="nav-theme-btn" onclick="openResumeStudioModal()" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(59, 130, 246, 0.2)); border-color: rgba(16, 185, 129, 0.5); color: #10b981; font-weight: 700;" title="Upload Resume & AI Auto-Apply">
+        <span id="navResumeBadge">📄 Resume & AI Auto-Apply</span>
+      </button>
       <button type="button" class="nav-theme-btn" onclick="openAlertsModal()" style="background: rgba(14, 165, 233, 0.15); border-color: rgba(14, 165, 233, 0.4); color: var(--primary);" title="Configure Daily Email Job Alerts">
         <span>⏰ Daily Alerts</span>
       </button>
@@ -452,6 +524,259 @@
     </div>
   </div>
 
+  <!-- 📄 Resume & AI Keyword Profile Studio Modal -->
+  <div id="resumeStudioModal" class="modal">
+    <div class="modal-content modal-lg">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+        <div>
+          <h3 style="margin: 0; color: var(--text); font-size: 1.35rem; font-weight: 800; display: flex; align-items: center; gap: 0.5rem;">
+            <span>📄</span> Resume & AI Auto-Apply Studio
+          </h3>
+          <p style="margin: 0.25rem 0 0 0; color: var(--subtext); font-size: 0.85rem;">
+            Upload your resume to extract contact details, technical keywords, and enable 1-click AI auto-apply.
+          </p>
+        </div>
+        <button onclick="closeResumeStudioModal()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--subtext);">&times;</button>
+      </div>
+
+      <!-- Drag and Drop Resume Zone -->
+      <div id="resumeDropzone" class="resume-dropzone" onclick="document.getElementById('studioResumeInput').click()" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleFileDrop(event)">
+        <input type="file" id="studioResumeInput" accept=".pdf,.docx,.txt" style="display: none;" onchange="handleStudioFileUpload(this)" />
+        <div style="font-size: 2.2rem; margin-bottom: 0.5rem;">📁</div>
+        <h4 style="margin: 0; color: var(--text); font-size: 1.05rem; font-weight: 700;">Drop your Resume (PDF / DOCX) here or Browse</h4>
+        <p style="margin: 0.35rem 0 0 0; color: var(--subtext); font-size: 0.82rem;">Supports PDF, DOCX, and TXT (Max 10MB)</p>
+        <div id="studioUploadStatus" style="margin-top: 0.75rem; font-size: 0.85rem; font-weight: 700; display: none;"></div>
+      </div>
+
+      <!-- Profile & Extracted Keywords Form -->
+      <div id="studioProfileContent" style="margin-top: 1.5rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+          <h4 style="margin: 0; font-size: 0.95rem; font-weight: 800; color: var(--text); text-transform: uppercase; letter-spacing: 0.5px;">
+            👤 Candidate Profile & Contact Details
+          </h4>
+          <span id="studioFilenameBadge" style="font-size: 0.78rem; color: var(--primary); font-weight: 700; background: rgba(59, 130, 246, 0.1); padding: 0.2rem 0.5rem; border-radius: 4px;"></span>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0.75rem; margin-bottom: 1.25rem;">
+          <div>
+            <label style="font-size: 0.78rem; font-weight: 700; color: var(--subtext); display: block; margin-bottom: 0.2rem;">Full Name</label>
+            <input type="text" id="studioName" class="input-field" placeholder="Full Name" />
+          </div>
+          <div>
+            <label style="font-size: 0.78rem; font-weight: 700; color: var(--subtext); display: block; margin-bottom: 0.2rem;">Email Address</label>
+            <input type="email" id="studioEmail" class="input-field" placeholder="Email" />
+          </div>
+          <div>
+            <label style="font-size: 0.78rem; font-weight: 700; color: var(--subtext); display: block; margin-bottom: 0.2rem;">Phone Number</label>
+            <input type="text" id="studioPhone" class="input-field" placeholder="+91..." />
+          </div>
+          <div>
+            <label style="font-size: 0.78rem; font-weight: 700; color: var(--subtext); display: block; margin-bottom: 0.2rem;">Experience Level</label>
+            <input type="text" id="studioExp" class="input-field" placeholder="e.g. Fresher / 0-1 Year" />
+          </div>
+          <div>
+            <label style="font-size: 0.78rem; font-weight: 700; color: var(--subtext); display: block; margin-bottom: 0.2rem;">Expected CTC</label>
+            <input type="text" id="studioCTC" class="input-field" placeholder="e.g. 6-10 LPA" />
+          </div>
+          <div>
+            <label style="font-size: 0.78rem; font-weight: 700; color: var(--subtext); display: block; margin-bottom: 0.2rem;">Notice Period</label>
+            <input type="text" id="studioNotice" class="input-field" placeholder="e.g. Immediate / 15 Days" />
+          </div>
+          <div>
+            <label style="font-size: 0.78rem; font-weight: 700; color: var(--subtext); display: block; margin-bottom: 0.2rem;">LinkedIn URL</label>
+            <input type="text" id="studioLinkedIn" class="input-field" placeholder="https://linkedin.com/in/..." />
+          </div>
+          <div>
+            <label style="font-size: 0.78rem; font-weight: 700; color: var(--subtext); display: block; margin-bottom: 0.2rem;">GitHub URL</label>
+            <input type="text" id="studioGitHub" class="input-field" placeholder="https://github.com/..." />
+          </div>
+        </div>
+
+        <!-- Target Roles -->
+        <div style="margin-bottom: 1.25rem;">
+          <label style="font-size: 0.78rem; font-weight: 700; color: var(--subtext); display: block; margin-bottom: 0.35rem;">🎯 Auto-Suggested Target Roles</label>
+          <div id="studioTargetRoles" style="display: flex; flex-wrap: wrap; gap: 0.4rem;"></div>
+        </div>
+
+        <!-- Extracted Skills Keywords -->
+        <div style="margin-bottom: 1.25rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
+            <label style="font-size: 0.78rem; font-weight: 700; color: var(--subtext); display: block;">
+              ⚡ Extracted Resume Keywords (<span id="studioSkillCount">0</span> Skills)
+            </label>
+            <div style="display: flex; gap: 0.4rem;">
+              <input type="text" id="studioNewSkillInput" class="input-field-sm" placeholder="+ Add skill..." onkeydown="if(event.key==='Enter'){event.preventDefault();addCustomSkillTag();}" style="font-size: 0.78rem; padding: 0.2rem 0.5rem;" />
+              <button type="button" onclick="addCustomSkillTag()" class="action-btn-sm" style="font-size: 0.78rem; padding: 0.2rem 0.5rem;">+ Add</button>
+            </div>
+          </div>
+          <div id="studioSkillsPills" style="display: flex; flex-wrap: wrap; gap: 0.4rem; max-height: 140px; overflow-y: auto; padding: 0.5rem; background: var(--panel-soft); border-radius: 0.5rem; border: 1px solid var(--line);"></div>
+        </div>
+
+        <!-- Studio Action Buttons -->
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.75rem; flex-wrap: wrap; margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid var(--line);">
+          <button type="button" onclick="saveCandidateProfile()" class="action-btn-sm" style="padding: 0.6rem 1.2rem; background: var(--panel-soft); color: var(--text); border: 1px solid var(--line); font-weight: 700;">
+            💾 Save Profile Details
+          </button>
+          <button type="button" onclick="autoSearchWithResume()" class="btn btn-primary" style="padding: 0.6rem 1.4rem; font-weight: 800; display: flex; align-items: center; gap: 0.4rem;">
+            <span>🚀 Auto-Search Jobs with My Resume</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ⚡ AI Smart Apply & 1-Click Form Autofill Modal -->
+  <div id="smartApplyModal" class="modal">
+    <div class="modal-content modal-lg">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+        <div>
+          <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
+            <span id="smartJobPlatform" class="platform-badge">🌐 LinkedIn</span>
+            <span id="smartMatchBadge" class="badge-match badge-match-high">🎯 96% Match</span>
+          </div>
+          <h3 id="smartJobTitle" style="margin: 0; color: var(--text); font-size: 1.25rem; font-weight: 800;">Python Developer</h3>
+          <div id="smartJobCompany" style="font-weight: 700; color: var(--primary); font-size: 0.95rem; margin-top: 0.15rem;">Razorpay</div>
+        </div>
+        <button onclick="closeSmartApplyModal()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--subtext);">&times;</button>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <div style="display: flex; gap: 0.5rem; background: var(--panel-soft); padding: 0.3rem; border-radius: 0.6rem; border: 1px solid var(--line); margin-bottom: 1.25rem;">
+        <button type="button" id="tabBtnAutofill" class="smart-tab-btn active" onclick="switchSmartApplyTab('autofill')">⚡ 1-Click Form Data</button>
+        <button type="button" id="tabBtnQASolver" class="smart-tab-btn" onclick="switchSmartApplyTab('qa')">🤖 AI Screening Questions</button>
+        <button type="button" id="tabBtnCoverLetter" class="smart-tab-btn" onclick="switchSmartApplyTab('cover')">📄 Tailored Cover Letter</button>
+      </div>
+
+      <!-- TAB 1: 1-Click Form Autofill Data -->
+      <div id="smartTabContentAutofill">
+        <p style="color: var(--subtext); font-size: 0.85rem; margin-top: 0; margin-bottom: 0.75rem;">
+          Click any field to copy its value to your clipboard, or use <strong>Copy All JSON</strong> for Chrome Extension autofill.
+        </p>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 0.6rem; margin-bottom: 1.25rem;">
+          <div class="copy-field-card">
+            <div>
+              <div style="font-size: 0.72rem; color: var(--subtext); font-weight: 700;">Full Name</div>
+              <div id="copyValName" style="font-size: 0.88rem; font-weight: 700; color: var(--text);">Candidate Name</div>
+            </div>
+            <button class="action-btn-sm" onclick="copySmartField('copyValName', this)">📋 Copy</button>
+          </div>
+          <div class="copy-field-card">
+            <div>
+              <div style="font-size: 0.72rem; color: var(--subtext); font-weight: 700;">Email</div>
+              <div id="copyValEmail" style="font-size: 0.88rem; font-weight: 700; color: var(--text);">email@example.com</div>
+            </div>
+            <button class="action-btn-sm" onclick="copySmartField('copyValEmail', this)">📋 Copy</button>
+          </div>
+          <div class="copy-field-card">
+            <div>
+              <div style="font-size: 0.72rem; color: var(--subtext); font-weight: 700;">Phone</div>
+              <div id="copyValPhone" style="font-size: 0.88rem; font-weight: 700; color: var(--text);">+91 9876543210</div>
+            </div>
+            <button class="action-btn-sm" onclick="copySmartField('copyValPhone', this)">📋 Copy</button>
+          </div>
+          <div class="copy-field-card">
+            <div>
+              <div style="font-size: 0.72rem; color: var(--subtext); font-weight: 700;">Experience</div>
+              <div id="copyValExp" style="font-size: 0.88rem; font-weight: 700; color: var(--text);">Fresher / 0-1 Year</div>
+            </div>
+            <button class="action-btn-sm" onclick="copySmartField('copyValExp', this)">📋 Copy</button>
+          </div>
+          <div class="copy-field-card">
+            <div>
+              <div style="font-size: 0.72rem; color: var(--subtext); font-weight: 700;">Notice Period</div>
+              <div id="copyValNotice" style="font-size: 0.88rem; font-weight: 700; color: var(--text);">Immediate / 15 Days</div>
+            </div>
+            <button class="action-btn-sm" onclick="copySmartField('copyValNotice', this)">📋 Copy</button>
+          </div>
+          <div class="copy-field-card">
+            <div>
+              <div style="font-size: 0.72rem; color: var(--subtext); font-weight: 700;">Expected CTC</div>
+              <div id="copyValCTC" style="font-size: 0.88rem; font-weight: 700; color: var(--text);">6-10 LPA</div>
+            </div>
+            <button class="action-btn-sm" onclick="copySmartField('copyValCTC', this)">📋 Copy</button>
+          </div>
+          <div class="copy-field-card">
+            <div>
+              <div style="font-size: 0.72rem; color: var(--subtext); font-weight: 700;">LinkedIn Profile</div>
+              <div id="copyValLinkedIn" style="font-size: 0.85rem; font-weight: 700; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 150px;">https://linkedin.com...</div>
+            </div>
+            <button class="action-btn-sm" onclick="copySmartField('copyValLinkedIn', this)">📋 Copy</button>
+          </div>
+          <div class="copy-field-card">
+            <div>
+              <div style="font-size: 0.72rem; color: var(--subtext); font-weight: 700;">GitHub Profile</div>
+              <div id="copyValGitHub" style="font-size: 0.85rem; font-weight: 700; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 150px;">https://github.com...</div>
+            </div>
+            <button class="action-btn-sm" onclick="copySmartField('copyValGitHub', this)">📋 Copy</button>
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+          <button type="button" onclick="copyAllAutofillJSON()" class="action-btn-sm" style="padding: 0.6rem 1rem; background: var(--panel-soft); border: 1px solid var(--line); font-weight: 700;">
+            📋 Copy All Form Data JSON
+          </button>
+          <a id="smartApplyDirectLink" href="#" target="_blank" class="btn btn-primary" style="padding: 0.6rem 1.4rem; text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem; font-weight: 800;">
+            <span>🚀 Open Official Application URL &rarr;</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- TAB 2: AI Screening Question Solver -->
+      <div id="smartTabContentQA" style="display: none;">
+        <div style="margin-bottom: 0.75rem;">
+          <label style="font-size: 0.8rem; font-weight: 700; color: var(--text); display: block; margin-bottom: 0.35rem;">
+            Select Quick Question or Enter Custom Form Question:
+          </label>
+          <select id="smartQuickQuestionSelect" class="input-field" onchange="handleQuickQuestionChange(this)" style="margin-bottom: 0.5rem;">
+            <option value="">-- Choose a standard screening question or type below --</option>
+            <option value="Why are you interested in this role at our company?">Why are you interested in this role at our company?</option>
+            <option value="How many years of Python experience do you have?">How many years of Python experience do you have?</option>
+            <option value="What is your notice period and when can you join?">What is your notice period and when can you join?</option>
+            <option value="What are your salary expectations (CTC)?">What are your salary expectations (CTC)?</option>
+            <option value="Describe a challenging technical project or bug you solved.">Describe a challenging technical project or bug you solved.</option>
+            <option value="Are you open to working in a hybrid/remote work environment?">Are you open to working in a hybrid/remote work environment?</option>
+          </select>
+          <textarea id="smartQuestionInput" class="input-field" rows="2" placeholder="e.g. Describe your experience building REST APIs with FastAPI..." style="width: 100%;"></textarea>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; margin-bottom: 0.75rem;">
+          <button type="button" id="smartSolveBtn" onclick="solveSmartQuestion()" class="btn btn-primary" style="padding: 0.45rem 1rem; font-size: 0.85rem; font-weight: 700;">
+            ✨ Generate AI Answer
+          </button>
+        </div>
+
+        <div>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.3rem;">
+            <span style="font-size: 0.78rem; font-weight: 700; color: var(--subtext);">Tailored AI Answer (Based on your resume context):</span>
+            <button class="action-btn-sm" onclick="copySmartField('smartAnswerOutput', this)" style="padding: 0.2rem 0.5rem; font-size: 0.75rem;">📋 Copy Answer</button>
+          </div>
+          <textarea id="smartAnswerOutput" class="input-field" rows="5" style="width: 100%; font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; line-height: 1.5;" placeholder="AI-generated answer will appear here..."></textarea>
+        </div>
+      </div>
+
+      <!-- TAB 3: Tailored Cover Letter -->
+      <div id="smartTabContentCover" style="display: none;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+          <span style="font-size: 0.8rem; font-weight: 700; color: var(--subtext);">Customized Cover Letter for this Position:</span>
+          <div style="display: flex; gap: 0.4rem;">
+            <button type="button" onclick="generateSmartCoverLetter()" class="action-btn-sm" style="background: var(--primary); color: white; border: none; font-weight: 700; font-size: 0.78rem;">✨ Regenerate</button>
+            <button type="button" onclick="copySmartField('smartCoverLetterText', this)" class="action-btn-sm" style="font-size: 0.78rem;">📋 Copy</button>
+            <button type="button" onclick="downloadSmartCoverLetter()" class="action-btn-sm" style="font-size: 0.78rem;">📥 Download .txt</button>
+          </div>
+        </div>
+        <textarea id="smartCoverLetterText" class="input-field" rows="11" style="width: 100%; font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; line-height: 1.5;"></textarea>
+      </div>
+
+      <!-- Bottom Status & Save Tracker Sync -->
+      <div style="margin-top: 1.25rem; padding-top: 0.75rem; border-top: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+        <span id="smartApplyStatusMsg" style="font-size: 0.82rem; color: var(--subtext);"></span>
+        <button type="button" id="markAppliedBtn" onclick="markAsAppliedFromModal()" class="action-btn-sm" style="background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.4); font-weight: 700; padding: 0.5rem 1rem;">
+          ✅ Mark Job as Applied in Tracker
+        </button>
+      </div>
+    </div>
+  </div>
+
   <script>
     let currentJobsList = [];
 
@@ -632,6 +957,9 @@
       }
     }
 
+    let activeSmartJob = null;
+    let activeCandidateProfile = null;
+
     function renderJobs(jobs) {
       const container = document.getElementById("jobsContainer");
       if (jobs.length === 0) {
@@ -640,7 +968,7 @@
       }
 
       container.innerHTML = jobs.map((j, idx) => {
-        const score = j.Match_Score || 75;
+        const score = j.Match_Score || j.match_score || 75;
         let scoreClass = "badge-match-mid";
         if (score >= 80) scoreClass = "badge-match-high";
         else if (score < 60) scoreClass = "badge-match-low";
@@ -649,7 +977,7 @@
         const platformBadges = platforms.map(p => `<span class="platform-badge ${String(p).toLowerCase()}">🌐 ${escapeHtml(p)}</span>`).join("");
         
         const missingBadges = (j.Missing_Skills && j.Missing_Skills.length)
-          ? `<div style="margin-top: 0.5rem; font-size: 0.78rem; color: var(--warning); font-weight: 600;">⚠️ Skills to add: ${j.Missing_Skills.map(s => `<span style="background: rgba(243, 166, 58, 0.15); padding: 0.1rem 0.4rem; border-radius: 0.25rem; margin-right: 0.25rem;">${escapeHtml(s)}</span>`).join("")}</div>`
+          ? `<div style="margin-top: 0.5rem; font-size: 0.78rem; color: var(--warning); font-weight: 600;">⚠️ Skills to highlight: ${j.Missing_Skills.map(s => `<span style="background: rgba(243, 166, 58, 0.15); padding: 0.1rem 0.4rem; border-radius: 0.25rem; margin-right: 0.25rem;">${escapeHtml(s)}</span>`).join("")}</div>`
           : "";
 
         return `
@@ -657,27 +985,30 @@
             <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem;">
               <div>
                 <div style="margin-bottom: 0.35rem;">${platformBadges}</div>
-                <h3 style="margin: 0; font-size: 1.1rem; color: var(--text);">${escapeHtml(j["Job Title"])}</h3>
-                <div style="font-weight: 600; color: var(--primary); font-size: 0.9rem; margin-top: 0.2rem;">${escapeHtml(j.Company)}</div>
+                <h3 style="margin: 0; font-size: 1.1rem; color: var(--text);">${escapeHtml(j["Job Title"] || j.title || "Software Engineer")}</h3>
+                <div style="font-weight: 600; color: var(--primary); font-size: 0.9rem; margin-top: 0.2rem;">${escapeHtml(j.Company || j.company || "Tech Company")}</div>
               </div>
-              <span class="badge-match ${scoreClass}">⚡ ${score}% Match</span>
+              <span class="badge-match ${scoreClass}">🎯 ${score}% ATS Match</span>
             </div>
 
             <div style="display: flex; flex-wrap: wrap; gap: 1rem; margin-top: 0.75rem; font-size: 0.85rem; color: var(--subtext);">
-              <span>📍 ${escapeHtml(j.Location || "India")}</span>
-              <span>📅 ${escapeHtml(j.Posted || "Recently")}</span>
-              ${j.Salary ? `<span>💰 ${escapeHtml(j.Salary)}</span>` : ""}
-              ${j.Workplace ? `<span>🏢 ${escapeHtml(j.Workplace)}</span>` : ""}
+              <span>📍 ${escapeHtml(j.Location || j.location || "India")}</span>
+              <span>📅 ${escapeHtml(j.Posted || j.posted || "Recently")}</span>
+              ${(j.Salary || j.salary) ? `<span>💰 ${escapeHtml(j.Salary || j.salary)}</span>` : ""}
+              ${(j.Workplace || j.workplace) ? `<span>🏢 ${escapeHtml(j.Workplace || j.workplace)}</span>` : ""}
             </div>
 
             ${missingBadges}
 
-            ${j.Description ? `<p style="margin-top: 0.75rem; font-size: 0.85rem; color: var(--subtext); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${escapeHtml(j.Description)}</p>` : ""}
+            ${(j.Description || j.description) ? `<p style="margin-top: 0.75rem; font-size: 0.85rem; color: var(--subtext); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${escapeHtml(j.Description || j.description)}</p>` : ""}
 
-            <div class="actions-row">
-              <a href="${j.Link}" target="_blank" class="action-btn-sm" style="text-decoration: none; color: var(--primary); border-color: var(--line); background: var(--panel-soft);">🔗 Apply Direct</a>
-              <button onclick="openDecisionMakerModal(${idx})" class="action-btn-sm" style="color: #10b981; font-weight: 700; border-color: rgba(16, 185, 129, 0.4); background: rgba(16, 185, 129, 0.08);">🎯 Find Decision Makers</button>
-              <button onclick="generateCoverLetter(${idx})" class="action-btn-sm">📄 AI Cover Letter</button>
+            <div class="actions-row" style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.85rem;">
+              <button onclick="openSmartApplyModal(${idx})" class="action-btn-sm" style="background: linear-gradient(135deg, #10b981, #059669); color: #ffffff; border: none; font-weight: 800; box-shadow: 0 2px 8px rgba(16, 185, 129, 0.35); padding: 0.4rem 0.85rem; border-radius: 6px; display: inline-flex; align-items: center; gap: 0.3rem;">
+                ⚡ Smart Apply (AI)
+              </button>
+              <a href="${j.Link || j.link || '#'}" target="_blank" class="action-btn-sm" style="text-decoration: none; color: var(--primary); border-color: var(--line); background: var(--panel-soft);">🔗 Apply Direct</a>
+              <button onclick="openDecisionMakerModal(${idx})" class="action-btn-sm" style="color: #10b981; font-weight: 700; border-color: rgba(16, 185, 129, 0.4); background: rgba(16, 185, 129, 0.08);">🎯 Decision Makers</button>
+              <button onclick="generateCoverLetter(${idx})" class="action-btn-sm">📄 Cover Letter</button>
               <button onclick="saveToTracker(${idx})" class="action-btn-sm">📌 Save</button>
             </div>
           </div>
@@ -685,33 +1016,432 @@
       }).join("");
     }
 
-    async function handleResumeUpload(input) {
+    // ==========================================
+    // RESUME & AI PROFILE STUDIO FUNCTIONS
+    // ==========================================
+
+    async function openResumeStudioModal() {
+      const modal = document.getElementById("resumeStudioModal");
+      modal.style.display = "flex";
+      await loadCandidateProfile();
+    }
+
+    function closeResumeStudioModal() {
+      document.getElementById("resumeStudioModal").style.display = "none";
+    }
+
+    async function loadCandidateProfile() {
+      try {
+        const res = await fetch("/api/resume/profile");
+        const data = await res.json();
+        if (data.profile) {
+          activeCandidateProfile = data.profile;
+          populateProfileFields(data.profile);
+          renderCandidateKeywords(data.profile);
+        }
+      } catch (e) {
+        console.error("Failed to load profile:", e);
+      }
+    }
+
+    function populateProfileFields(p) {
+      document.getElementById("studioName").value = p.full_name || "";
+      document.getElementById("studioEmail").value = p.email || "";
+      document.getElementById("studioPhone").value = p.phone || "";
+      document.getElementById("studioExp").value = p.experience_level || "Fresher (0-1 Year)";
+      document.getElementById("studioCTC").value = p.expected_ctc || "6-10 LPA";
+      document.getElementById("studioNotice").value = p.notice_period || "Immediate / 15 Days";
+      document.getElementById("studioLinkedIn").value = p.linkedin_url || "";
+      document.getElementById("studioGitHub").value = p.github_url || "";
+      
+      const fnameBadge = document.getElementById("studioFilenameBadge");
+      if (p.resume_filename && p.resume_filename !== "None uploaded") {
+        fnameBadge.textContent = `📎 ${p.resume_filename}`;
+        fnameBadge.style.display = "inline-block";
+        document.getElementById("navResumeBadge").textContent = `📄 Resume Loaded (${p.skills?.length || 0} Skills)`;
+      } else {
+        fnameBadge.style.display = "none";
+      }
+    }
+
+    function renderCandidateKeywords(p) {
+      const skillsContainer = document.getElementById("studioSkillsPills");
+      const skillCountSpan = document.getElementById("studioSkillCount");
+      const rolesContainer = document.getElementById("studioTargetRoles");
+
+      const skills = p.skills || [];
+      skillCountSpan.textContent = skills.length;
+
+      if (skills.length === 0) {
+        skillsContainer.innerHTML = `<span style="color: var(--subtext); font-size: 0.8rem;">No keywords extracted yet. Upload a resume to automatically extract skills.</span>`;
+      } else {
+        skillsContainer.innerHTML = skills.map(skill => `
+          <span class="skill-pill-tag">
+            <span>${escapeHtml(skill)}</span>
+            <span class="skill-pill-remove" onclick="removeSkillTag('${escapeHtml(skill)}')">&times;</span>
+          </span>
+        `).join("");
+      }
+
+      const roles = p.target_roles || [];
+      if (roles.length === 0) {
+        rolesContainer.innerHTML = `<span style="color: var(--subtext); font-size: 0.8rem;">Software Engineer, Python Developer</span>`;
+      } else {
+        rolesContainer.innerHTML = roles.map(r => `
+          <span style="background: var(--primary-soft); color: var(--primary); font-weight: 700; font-size: 0.78rem; padding: 0.25rem 0.6rem; border-radius: 4px; border: 1px solid var(--line);">
+            🎯 ${escapeHtml(r)}
+          </span>
+        `).join("");
+      }
+    }
+
+    async function handleStudioFileUpload(input) {
       if (!input.files || !input.files[0]) return;
       const file = input.files[0];
-      const badge = document.getElementById("resumeStatusBadge");
-      badge.style.display = "block";
-      badge.textContent = "⏳ Parsing resume file...";
+      await uploadResumeFile(file);
+    }
+
+    function handleDragOver(e) {
+      e.preventDefault();
+      document.getElementById("resumeDropzone").classList.add("dragover");
+    }
+
+    function handleDragLeave(e) {
+      e.preventDefault();
+      document.getElementById("resumeDropzone").classList.remove("dragover");
+    }
+
+    async function handleFileDrop(e) {
+      e.preventDefault();
+      document.getElementById("resumeDropzone").classList.remove("dragover");
+      if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+        await uploadResumeFile(e.dataTransfer.files[0]);
+      }
+    }
+
+    async function uploadResumeFile(file) {
+      const statusDiv = document.getElementById("studioUploadStatus");
+      statusDiv.style.display = "block";
+      statusDiv.innerHTML = `<span style="color: var(--primary);">⏳ Scanning & parsing <strong>${escapeHtml(file.name)}</strong>...</span>`;
 
       const formData = new FormData();
       formData.append("resume", file);
 
       try {
-        const res = await fetch("/api/upload_resume", { method: "POST", body: formData });
+        const res = await fetch("/api/resume/upload", { method: "POST", body: formData });
         const data = await res.json();
-        if (data.success) {
-          const skillsList = data.data.skills.join(", ");
-          document.getElementById("resume_text").value = skillsList;
-          if (data.data.suggested_role) {
-            document.getElementById("role").value = data.data.suggested_role;
+        if (data.success && data.profile) {
+          activeCandidateProfile = data.profile;
+          populateProfileFields(data.profile);
+          renderCandidateKeywords(data.profile);
+
+          statusDiv.innerHTML = `<span style="color: #10b981;">✅ Extracted ${data.profile.skills.length} technical keywords & contact info from ${escapeHtml(file.name)}!</span>`;
+          
+          // Also sync to main search input
+          if (data.profile.target_roles && data.profile.target_roles.length) {
+            document.getElementById("role").value = data.profile.target_roles[0];
           }
-          badge.textContent = `✅ Extracted ${data.data.skill_count} skills! Auto-suggested role: "${data.data.suggested_role}"`;
+          if (data.profile.skills) {
+            document.getElementById("resume_text").value = data.profile.skills.join(", ");
+          }
         } else {
-          badge.textContent = "❌ Parsing failed: " + data.error;
+          statusDiv.innerHTML = `<span style="color: #ef4444;">❌ Failed: ${data.error || "Unknown error"}</span>`;
         }
       } catch (err) {
-        badge.textContent = "❌ Upload error: " + err;
+        statusDiv.innerHTML = `<span style="color: #ef4444;">❌ Upload error: ${err}</span>`;
       }
     }
+
+    function addCustomSkillTag() {
+      const input = document.getElementById("studioNewSkillInput");
+      const val = input.value.trim();
+      if (!val) return;
+
+      if (!activeCandidateProfile) activeCandidateProfile = { skills: [] };
+      if (!activeCandidateProfile.skills.includes(val)) {
+        activeCandidateProfile.skills.push(val);
+        renderCandidateKeywords(activeCandidateProfile);
+      }
+      input.value = "";
+    }
+
+    function removeSkillTag(skill) {
+      if (!activeCandidateProfile || !activeCandidateProfile.skills) return;
+      activeCandidateProfile.skills = activeCandidateProfile.skills.filter(s => s !== skill);
+      renderCandidateKeywords(activeCandidateProfile);
+    }
+
+    async function saveCandidateProfile() {
+      if (!activeCandidateProfile) return;
+      
+      const payload = {
+        full_name: document.getElementById("studioName").value.trim(),
+        email: document.getElementById("studioEmail").value.trim(),
+        phone: document.getElementById("studioPhone").value.trim(),
+        experience_level: document.getElementById("studioExp").value.trim(),
+        expected_ctc: document.getElementById("studioCTC").value.trim(),
+        notice_period: document.getElementById("studioNotice").value.trim(),
+        linkedin_url: document.getElementById("studioLinkedIn").value.trim(),
+        github_url: document.getElementById("studioGitHub").value.trim(),
+        skills: activeCandidateProfile.skills || []
+      };
+
+      try {
+        const res = await fetch("/api/resume/update-profile", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (data.success) {
+          activeCandidateProfile = data.profile;
+          alert("✅ Candidate profile saved successfully!");
+        } else {
+          alert("❌ Failed to save: " + (data.error || "Unknown error"));
+        }
+      } catch (e) {
+        alert("Error saving profile: " + e);
+      }
+    }
+
+    async function autoSearchWithResume() {
+      await saveCandidateProfile();
+      closeResumeStudioModal();
+
+      if (activeCandidateProfile) {
+        if (activeCandidateProfile.target_roles && activeCandidateProfile.target_roles.length) {
+          document.getElementById("role").value = activeCandidateProfile.target_roles[0];
+        }
+        if (activeCandidateProfile.skills) {
+          document.getElementById("resume_text").value = activeCandidateProfile.skills.join(", ");
+        }
+        if (activeCandidateProfile.experience_level) {
+          const expSel = document.getElementById("experience");
+          if (activeCandidateProfile.experience_level.toLowerCase().includes("fresher")) {
+            expSel.value = "fresher";
+          } else if (activeCandidateProfile.experience_level.toLowerCase().includes("0-1")) {
+            expSel.value = "0-1";
+          }
+        }
+      }
+
+      // Automatically run unified search
+      runUnifiedSearch();
+    }
+
+    // ==========================================
+    // ⚡ SMART APPLY & AUTOFILL MODAL FUNCTIONS
+    // ==========================================
+
+    async function openSmartApplyModal(index) {
+      const job = currentJobsList[index];
+      if (!job) return;
+      activeSmartJob = job;
+
+      // Ensure profile loaded
+      if (!activeCandidateProfile) {
+        await loadCandidateProfile();
+      }
+
+      const p = activeCandidateProfile || {};
+      const score = job.Match_Score || job.match_score || 85;
+
+      document.getElementById("smartJobTitle").textContent = job["Job Title"] || job.title || "Software Engineer";
+      document.getElementById("smartJobCompany").textContent = job.Company || job.company || "Company";
+      document.getElementById("smartJobPlatform").textContent = `🌐 ${job.Platform || (job.Platforms ? job.Platforms[0] : 'JobRadar')}`;
+      document.getElementById("smartMatchBadge").textContent = `🎯 ${score}% Match`;
+      document.getElementById("smartApplyDirectLink").href = job.Link || job.link || "#";
+
+      // Fill copy fields
+      document.getElementById("copyValName").textContent = p.full_name || "Applicant";
+      document.getElementById("copyValEmail").textContent = p.email || "applicant@example.com";
+      document.getElementById("copyValPhone").textContent = p.phone || "+91...";
+      document.getElementById("copyValExp").textContent = p.experience_level || "Fresher (0-1 Year)";
+      document.getElementById("copyValNotice").textContent = p.notice_period || "Immediate / 15 Days";
+      document.getElementById("copyValCTC").textContent = p.expected_ctc || "6-10 LPA";
+      document.getElementById("copyValLinkedIn").textContent = p.linkedin_url || "https://linkedin.com/...";
+      document.getElementById("copyValGitHub").textContent = p.github_url || "https://github.com/...";
+
+      // Reset tabs & QA
+      switchSmartApplyTab('autofill');
+      document.getElementById("smartQuestionInput").value = "";
+      document.getElementById("smartAnswerOutput").value = "";
+      document.getElementById("smartApplyStatusMsg").textContent = "";
+
+      // Generate draft cover letter
+      generateSmartCoverLetter();
+
+      document.getElementById("smartApplyModal").style.display = "flex";
+    }
+
+    function closeSmartApplyModal() {
+      document.getElementById("smartApplyModal").style.display = "none";
+    }
+
+    function switchSmartApplyTab(tabKey) {
+      document.getElementById("tabBtnAutofill").classList.toggle("active", tabKey === "autofill");
+      document.getElementById("tabBtnQASolver").classList.toggle("active", tabKey === "qa");
+      document.getElementById("tabBtnCoverLetter").classList.toggle("active", tabKey === "cover");
+
+      document.getElementById("smartTabContentAutofill").style.display = tabKey === "autofill" ? "block" : "none";
+      document.getElementById("smartTabContentQA").style.display = tabKey === "qa" ? "block" : "none";
+      document.getElementById("smartTabContentCover").style.display = tabKey === "cover" ? "block" : "none";
+    }
+
+    function copySmartField(elementId, btn) {
+      const el = document.getElementById(elementId);
+      const text = el.value || el.textContent;
+      navigator.clipboard.writeText(text.trim());
+      
+      const origText = btn.innerHTML;
+      btn.innerHTML = "✅ Copied!";
+      btn.style.background = "#10b981";
+      btn.style.color = "#ffffff";
+      setTimeout(() => {
+        btn.innerHTML = origText;
+        btn.style.background = "";
+        btn.style.color = "";
+      }, 1500);
+    }
+
+    async function copyAllAutofillJSON() {
+      if (!activeSmartJob) return;
+      try {
+        const res = await fetch("/api/ai/autofill-package", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            job_title: activeSmartJob["Job Title"] || activeSmartJob.title,
+            company: activeSmartJob.Company || activeSmartJob.company,
+            url: activeSmartJob.Link || activeSmartJob.link
+          })
+        });
+        const data = await res.json();
+        if (data.package) {
+          navigator.clipboard.writeText(JSON.stringify(data.package, null, 2));
+          alert("✅ Complete Form Autofill JSON copied to clipboard!");
+        }
+      } catch (e) {
+        alert("Failed to package form data: " + e);
+      }
+    }
+
+    function handleQuickQuestionChange(sel) {
+      if (sel.value) {
+        document.getElementById("smartQuestionInput").value = sel.value;
+      }
+    }
+
+    async function solveSmartQuestion() {
+      const qInput = document.getElementById("smartQuestionInput");
+      const question = qInput.value.trim();
+      if (!question) {
+        alert("Please enter or select a screening question.");
+        return;
+      }
+
+      const solveBtn = document.getElementById("smartSolveBtn");
+      const output = document.getElementById("smartAnswerOutput");
+
+      solveBtn.disabled = true;
+      solveBtn.textContent = "⏳ Generating with AI...";
+      output.value = "Synthesizing answer based on candidate resume and job context...";
+
+      try {
+        const res = await fetch("/api/ai/solve-question", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            question: question,
+            job_title: activeSmartJob?.["Job Title"] || activeSmartJob?.title || "",
+            company: activeSmartJob?.Company || activeSmartJob?.company || ""
+          })
+        });
+        const data = await res.json();
+        solveBtn.disabled = false;
+        solveBtn.textContent = "✨ Generate AI Answer";
+
+        if (data.answer) {
+          output.value = data.answer;
+        } else {
+          output.value = "Error generating answer: " + (data.error || "Unknown error");
+        }
+      } catch (err) {
+        solveBtn.disabled = false;
+        solveBtn.textContent = "✨ Generate AI Answer";
+        output.value = "Error: " + err;
+      }
+    }
+
+    async function generateSmartCoverLetter() {
+      if (!activeSmartJob) return;
+      const letterText = document.getElementById("smartCoverLetterText");
+      letterText.value = "Generating tailored cover letter...";
+
+      try {
+        const res = await fetch("/api/ai/tailored-cover-letter", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            job_title: activeSmartJob["Job Title"] || activeSmartJob.title || "Software Engineer",
+            company: activeSmartJob.Company || activeSmartJob.company || "Engineering Team",
+            description: activeSmartJob.Description || activeSmartJob.description || ""
+          })
+        });
+        const data = await res.json();
+        if (data.cover_letter) {
+          letterText.value = data.cover_letter;
+        } else {
+          letterText.value = "Could not generate cover letter.";
+        }
+      } catch (e) {
+        letterText.value = "Error generating cover letter: " + e;
+      }
+    }
+
+    function downloadSmartCoverLetter() {
+      const text = document.getElementById("smartCoverLetterText").value;
+      const company = activeSmartJob?.Company || "Company";
+      const blob = new Blob([text], { type: "text/plain" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `Cover_Letter_${company.replace(/\s+/g, '_')}.txt`;
+      a.click();
+    }
+
+    async function markAsAppliedFromModal() {
+      if (!activeSmartJob) return;
+      const statusMsg = document.getElementById("smartApplyStatusMsg");
+      const btn = document.getElementById("markAppliedBtn");
+
+      btn.disabled = true;
+      statusMsg.textContent = "Saving to Application Kanban...";
+
+      try {
+        const jobPayload = { ...activeSmartJob, status: "Applied" };
+        const res = await fetch("/api/saved_jobs", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(jobPayload)
+        });
+        const data = await res.json();
+        btn.disabled = false;
+        if (data.success) {
+          statusMsg.innerHTML = `<span style="color: #10b981; font-weight: 700;">✅ Successfully marked as APPLIED in Kanban Tracker!</span>`;
+        } else {
+          statusMsg.innerHTML = `<span style="color: #ef4444;">${data.error || "Already in tracker"}</span>`;
+        }
+      } catch (e) {
+        btn.disabled = false;
+        statusMsg.textContent = "Error: " + e;
+      }
+    }
+
+    // Auto-load profile on page mount
+    document.addEventListener("DOMContentLoaded", () => {
+      loadCandidateProfile();
+    });
 
     let activeModalIntel = null;
     let activeModalTabKey = "em";
@@ -740,7 +1470,7 @@
             job_title: job["Job Title"] || job.title,
             skills: skillsArray,
             location: job.Location || "India",
-            user_name: "Applicant"
+            user_name: activeCandidateProfile?.full_name || "Applicant"
           })
         });
 
@@ -815,7 +1545,7 @@
         });
         const data = await res.json();
         if (data.cover_letter) {
-          document.getElementById("modalTitle").textContent = `📄 Cover Letter — ${job.Company}`;
+          document.getElementById("modalTitle").textContent = `📄 Cover Letter — ${job.Company || 'Company'}`;
           document.getElementById("modalBodyText").value = data.cover_letter;
           document.getElementById("aiModal").style.display = "flex";
         }
@@ -843,14 +1573,14 @@
 
       let csv = "Job Title,Company,Location,Posted,Salary,Link,Match Score,Platforms\n";
       currentJobsList.forEach(j => {
-        const title = `"${(j['Job Title']||'').replace(/"/g, '""')}"`;
-        const company = `"${(j['Company']||'').replace(/"/g, '""')}"`;
-        const location = `"${(j['Location']||'').replace(/"/g, '""')}"`;
-        const posted = `"${(j['Posted']||'').replace(/"/g, '""')}"`;
-        const salary = `"${(j['Salary']||'').replace(/"/g, '""')}"`;
-        const link = `"${(j['Link']||'').replace(/"/g, '""')}"`;
-        const score = j.Match_Score || 75;
-        const platforms = `"${(j.Platforms || []).join(';')}"`;
+        const title = `"${(j['Job Title']||j.title||'').replace(/"/g, '""')}"`;
+        const company = `"${(j['Company']||j.company||'').replace(/"/g, '""')}"`;
+        const location = `"${(j['Location']||j.location||'').replace(/"/g, '""')}"`;
+        const posted = `"${(j['Posted']||j.posted||'').replace(/"/g, '""')}"`;
+        const salary = `"${(j['Salary']||j.salary||'').replace(/"/g, '""')}"`;
+        const link = `"${(j['Link']||j.link||'').replace(/"/g, '""')}"`;
+        const score = j.Match_Score || j.match_score || 75;
+        const platforms = `"${(j.Platforms || [j.Platform || 'JobRadar']).join(';')}"`;
         csv += `${title},${company},${location},${posted},${salary},${link},${score},${platforms}\n`;
       });
 

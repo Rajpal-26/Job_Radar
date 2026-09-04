@@ -18,7 +18,8 @@ from scrapers.shine import SHINE_CITIES, SHINE_EXPERIENCE
 import pandas as pd
 import os
 from utils import search_engine, tracker_db, resume_parser, ai_copilot, watchdog as watchdog_module
-from models import db, migrate, SavedJob, Watchdog
+from services import ai_form_filler
+from models import db, migrate, SavedJob, Watchdog, CandidateProfile
 
 app = Flask(__name__)
 
@@ -724,17 +725,56 @@ def analytics():
 
 
 @app.route("/api/upload_resume", methods=["POST"])
+@app.route("/api/resume/upload", methods=["POST"])
 def upload_resume_api():
+    """Upload and parse resume PDF/DOCX, extract keywords, and persist CandidateProfile."""
     try:
         if "resume" not in request.files:
-            return jsonify({"error": "No resume file uploaded"}), 400
-        file_storage = request.files["resume"]
-        if not file_storage.filename:
-            return jsonify({"error": "Empty filename"}), 400
+            return jsonify({"error": "No resume file provided"}), 400
+        
+        file = request.files["resume"]
+        if not file or not file.filename:
+            return jsonify({"error": "Empty file"}), 400
 
-        result = resume_parser.parse_resume(file_storage)
-        return jsonify({"success": True, "data": result})
+        parsed_data = resume_parser.parse_resume(file)
+
+        # Upsert CandidateProfile in DB
+        profile = CandidateProfile.query.first()
+        if not profile:
+            profile = CandidateProfile()
+            db.session.add(profile)
+
+        profile.full_name = parsed_data.get("full_name") or profile.full_name or "Job Candidate"
+        if parsed_data.get("email"):
+            profile.email = parsed_data["email"]
+        if parsed_data.get("phone"):
+            profile.phone = parsed_data["phone"]
+        if parsed_data.get("linkedin_url"):
+            profile.linkedin_url = parsed_data["linkedin_url"]
+        if parsed_data.get("github_url"):
+            profile.github_url = parsed_data["github_url"]
+        if parsed_data.get("portfolio_url"):
+            profile.portfolio_url = parsed_data["portfolio_url"]
+        
+        profile.experience_level = parsed_data.get("experience_level") or profile.experience_level
+        profile.current_role = parsed_data.get("current_role") or profile.current_role
+        profile.target_roles = parsed_data.get("target_roles") or profile.target_roles
+        profile.skills = parsed_data.get("skills") or profile.skills
+        profile.skill_categories = parsed_data.get("skill_categories") or profile.skill_categories
+        profile.summary = parsed_data.get("summary") or profile.summary
+        profile.raw_resume_text = parsed_data.get("raw_text") or profile.raw_resume_text
+        profile.resume_filename = parsed_data.get("filename") or file.filename
+
+        db.session.commit()
+
+        return jsonify({
+            "success": True,
+            "message": f"Successfully parsed {len(profile.skills)} keywords from {profile.resume_filename}",
+            "data": parsed_data,
+            "profile": profile.to_dict()
+        })
     except Exception as e:
+        db.session.rollback()
         return jsonify({"error": str(e)}), 500
 
 
@@ -915,6 +955,198 @@ def alert_status_api():
         "smtp_host": DEFAULT_SMTP_HOST,
         "smtp_port": DEFAULT_SMTP_PORT
     })
+
+
+# ==============================================================================
+# AI RESUME KEYWORD EXTRACTION & AUTO-APPLY API SUITE
+# ==============================================================================
+
+@app.route("/api/resume/profile", methods=["GET"])
+def get_resume_profile_api():
+    """Retrieve current candidate profile and keywords."""
+    try:
+        profile = CandidateProfile.query.first()
+        if not profile:
+            # Return sensible starter defaults if user has not uploaded yet
+            default_profile = {
+                "id": 0,
+                "full_name": "Job Candidate",
+                "email": "",
+                "phone": "",
+                "location": "India",
+                "linkedin_url": "",
+                "github_url": "",
+                "portfolio_url": "",
+                "experience_level": "Fresher (0-1 Year)",
+                "current_role": "Python Developer",
+                "target_roles": ["Python Developer", "Associate Software Engineer", "AI / LLM Engineer", "Software Engineer"],
+                "skills": ["Python", "FastAPI", "Django", "SQL", "PostgreSQL", "Docker", "Git", "REST API", "Pandas"],
+                "skill_categories": {
+                    "Programming Languages": ["Python", "SQL"],
+                    "Frameworks & Backend": ["FastAPI", "Django", "REST API"],
+                    "Databases & Caching": ["PostgreSQL"],
+                    "Cloud & DevOps": ["Docker"],
+                    "Tools & Practices": ["Git"]
+                },
+                "summary": "Software engineer skilled in Python, backend API development, and distributed systems.",
+                "resume_filename": "None uploaded",
+                "notice_period": "Immediate / 15 Days",
+                "current_ctc": "",
+                "expected_ctc": "6-10 LPA",
+                "work_authorization": "Authorized to work in India",
+                "updated_at": ""
+            }
+            return jsonify({"profile": default_profile, "is_default": True})
+        return jsonify({"profile": profile.to_dict(), "is_default": False})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/resume/update-profile", methods=["POST"])
+def update_resume_profile_api():
+    """Update profile attributes, keywords, notice period, or CTC."""
+    try:
+        data = request.json or {}
+        profile = CandidateProfile.query.first()
+        if not profile:
+            profile = CandidateProfile()
+            db.session.add(profile)
+
+        if "full_name" in data:
+            profile.full_name = data["full_name"]
+        if "email" in data:
+            profile.email = data["email"]
+        if "phone" in data:
+            profile.phone = data["phone"]
+        if "location" in data:
+            profile.location = data["location"]
+        if "linkedin_url" in data:
+            profile.linkedin_url = data["linkedin_url"]
+        if "github_url" in data:
+            profile.github_url = data["github_url"]
+        if "portfolio_url" in data:
+            profile.portfolio_url = data["portfolio_url"]
+        if "experience_level" in data:
+            profile.experience_level = data["experience_level"]
+        if "target_roles" in data:
+            profile.target_roles = data["target_roles"]
+        if "skills" in data:
+            profile.skills = data["skills"]
+        if "notice_period" in data:
+            profile.notice_period = data["notice_period"]
+        if "expected_ctc" in data:
+            profile.expected_ctc = data["expected_ctc"]
+        if "current_ctc" in data:
+            profile.current_ctc = data["current_ctc"]
+
+        db.session.commit()
+        return jsonify({"success": True, "profile": profile.to_dict()})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/ai/solve-question", methods=["POST"])
+def solve_question_api():
+    """AI Question Solver: Takes a job question and generates a tailored response using candidate resume context."""
+    try:
+        data = request.json or {}
+        question = data.get("question", "")
+        if not question:
+            return jsonify({"error": "Question is required"}), 400
+
+        job_title = data.get("job_title", "")
+        company = data.get("company", "")
+
+        profile = CandidateProfile.query.first()
+        profile_dict = profile.to_dict() if profile else {}
+
+        answer = ai_form_filler.solve_screening_question(
+            question_text=question,
+            candidate_profile=profile_dict,
+            job_title=job_title,
+            company=company
+        )
+        return jsonify({"success": True, "question": question, "answer": answer})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/ai/tailored-cover-letter", methods=["POST"])
+def tailored_cover_letter_api():
+    """Generate 1-click tailored cover letter for a specific job."""
+    try:
+        data = request.json or {}
+        job_title = data.get("job_title", "Software Engineer")
+        company = data.get("company", "Engineering Team")
+        description = data.get("description", "")
+
+        profile = CandidateProfile.query.first()
+        profile_dict = profile.to_dict() if profile else {}
+
+        cover_letter = ai_form_filler.generate_tailored_cover_letter(
+            candidate_profile=profile_dict,
+            job_title=job_title,
+            company_name=company,
+            job_description=description
+        )
+        return jsonify({"success": True, "cover_letter": cover_letter})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/ai/autofill-package", methods=["POST"])
+def autofill_package_api():
+    """Return complete autofill payload for a job."""
+    try:
+        data = request.json or {}
+        job_title = data.get("job_title", "")
+        company = data.get("company", "")
+        job_url = data.get("url", "")
+
+        profile = CandidateProfile.query.first()
+        profile_dict = profile.to_dict() if profile else {}
+
+        pkg = ai_form_filler.generate_autofill_package(
+            candidate_profile=profile_dict,
+            job_title=job_title,
+            company=company,
+            job_url=job_url
+        )
+        return jsonify({"success": True, "package": pkg})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/ai/match-jobs", methods=["POST"])
+def match_jobs_api():
+    """Score a list of jobs against candidate keywords."""
+    try:
+        data = request.json or {}
+        jobs = data.get("jobs", [])
+
+        profile = CandidateProfile.query.first()
+        skills = profile.skills if profile else ["Python", "FastAPI", "SQL", "Docker", "Git"]
+
+        annotated = []
+        for job in jobs:
+            title = job.get("Job Title") or job.get("title") or ""
+            desc = job.get("Description") or job.get("description") or ""
+            match_res = ai_form_filler.calculate_ats_match(title, desc, skills)
+            
+            j_copy = dict(job)
+            j_copy["match_score"] = match_res["match_score"]
+            j_copy["matched_skills"] = match_res["matched_skills"]
+            j_copy["missing_skills"] = match_res["missing_skills"]
+            annotated.append(j_copy)
+
+        # Sort by match score descending
+        annotated.sort(key=lambda x: x.get("match_score", 0), reverse=True)
+
+        return jsonify({"success": True, "jobs": annotated})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 
 
 
