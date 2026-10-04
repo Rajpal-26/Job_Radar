@@ -1,0 +1,722 @@
+<!--
+  WATERMARK: Rajpal Singh Tanwar
+  Copyright (c) 2026 Rajpal Singh Tanwar. All rights reserved.
+-->
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>JobRadar - Recruiter Radar & Decision Maker Finder</title>
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+  <script src="{{ url_for('static', filename='theme.js') }}"></script>
+  <!-- Three.js 3D Library & Engine -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="{{ url_for('static', filename='radar3d.js') }}" defer></script>
+  <style>
+    .role-chip-btn {
+      padding: 0.45rem 0.95rem;
+      border-radius: 999px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      border: 1px solid var(--line);
+      background: var(--panel-soft);
+      color: var(--text);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+    .role-chip-btn:hover {
+      border-color: var(--primary);
+      transform: translateY(-1px);
+    }
+    .role-chip-btn.active {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+      color: white !important;
+      border-color: transparent;
+      box-shadow: 0 4px 12px rgba(10, 102, 194, 0.35);
+    }
+    .member-card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 1.15rem;
+      padding: 1.5rem;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      box-shadow: var(--shadow);
+      position: relative;
+    }
+    .member-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.25);
+      border-color: var(--primary);
+    }
+    .member-avatar {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: white;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+      box-shadow: 0 4px 14px rgba(10, 102, 194, 0.35);
+      flex-shrink: 0;
+    }
+    .linkedin-visit-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 0.7rem 1.1rem;
+      border-radius: 0.6rem;
+      background: #0077b5;
+      color: white !important;
+      font-weight: 700;
+      font-size: 0.88rem;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      width: 100%;
+      box-shadow: 0 4px 14px rgba(0, 119, 181, 0.35);
+    }
+    .linkedin-visit-btn:hover {
+      opacity: 0.94;
+      transform: translateY(-1px);
+    }
+    .badge-pill {
+      font-size: 0.76rem;
+      font-weight: 700;
+      padding: 0.28rem 0.65rem;
+      border-radius: 0.45rem;
+      background: var(--panel-soft);
+      border: 1px solid var(--line);
+      color: var(--text);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+    }
+    .badge-match {
+      background: rgba(47, 178, 130, 0.15);
+      color: var(--accent);
+      border-color: rgba(47, 178, 130, 0.35);
+      font-weight: 800;
+    }
+    .progress-bar-container {
+      background: var(--panel-soft);
+      border: 1px solid var(--line);
+      border-radius: 1rem;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      display: none;
+    }
+    .tag-bubble {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.25rem 0.6rem;
+      background: rgba(78, 163, 255, 0.15);
+      border: 1px solid rgba(78, 163, 255, 0.3);
+      color: var(--primary);
+      border-radius: 0.4rem;
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+    .tag-bubble button {
+      background: none;
+      border: none;
+      color: var(--subtext);
+      cursor: pointer;
+      font-weight: 800;
+      font-size: 0.9rem;
+      line-height: 1;
+    }
+    .tag-bubble button:hover {
+      color: var(--error);
+    }
+    .saved-drawer {
+      position: fixed;
+      top: 0;
+      right: -420px;
+      width: 400px;
+      height: 100vh;
+      background: var(--panel);
+      border-left: 1px solid var(--line);
+      box-shadow: -8px 0 32px rgba(0,0,0,0.4);
+      z-index: 1000;
+      transition: right 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      padding: 1.5rem;
+    }
+    .saved-drawer.open {
+      right: 0;
+    }
+    .drawer-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      z-index: 999;
+      display: none;
+    }
+    .drawer-overlay.open {
+      display: block;
+    }
+  </style>
+</head>
+<body class="unified-body">
+
+  <!-- Navigation Bar -->
+  <nav class="app-navbar">
+    <a href="/" class="nav-brand">
+      <div class="radar-dot"></div>
+      Job<span>Radar</span>
+    </a>
+    <div class="nav-tabs">
+      <a href="/unified" class="nav-tab">⚡ Multi-Portal Search</a>
+      <a href="/recruiters" class="nav-tab active">🎯 Recruiter Radar</a>
+      <a href="/" class="nav-tab">🌐 Single Scrapers</a>
+    </div>
+    <div class="nav-tools">
+      <button type="button" class="nav-theme-btn" onclick="toggleSavedDrawer()" style="background: rgba(47, 178, 130, 0.15); border-color: rgba(47, 178, 130, 0.4); color: var(--accent); font-weight: 700;">
+        <span>⭐ Saved Recruiters (<span id="savedCountBadge">0</span>)</span>
+      </button>
+      <button class="nav-theme-btn" onclick="toggleTheme()" aria-label="Toggle theme">
+        <span class="theme-icon">🌙</span>
+        <span class="theme-label" id="themeLabel">Dark Mode</span>
+      </button>
+    </div>
+  </nav>
+
+  <div class="main-container">
+    
+    <!-- Hero Header -->
+    <div class="app-card" style="margin-bottom: 1.5rem; text-align: center; padding: clamp(1.75rem, 3vw, 2.75rem) 1.5rem; background: var(--card-bg-gradient);">
+      <div style="display: inline-flex; align-items: center; gap: 0.5rem; background: var(--primary-soft); color: var(--primary); padding: 0.45rem 1.15rem; border-radius: 999px; font-weight: 800; font-size: 0.9rem; margin-bottom: 1rem; border: 1px solid rgba(78, 163, 255, 0.25);">
+        <span>🎯 Direct Hiring Manager & Recruiter Finder</span> &bull; <span>Bypass the ATS</span>
+      </div>
+      <h1 style="font-size: clamp(2rem, 3.8vw, 3rem); font-weight: 800; color: var(--text); margin: 0 0 0.75rem 0; letter-spacing: -0.03em;">
+        Recruiter & Decision-Maker <span style="background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Radar</span>
+      </h1>
+      <p style="color: var(--subtext); max-width: 880px; margin: 0 auto; font-size: clamp(1rem, 1.2vw, 1.12rem); line-height: 1.6;">
+        Discover verified Talent Acquisition Leaders, Technical Recruiters, and HR Decision Makers for any company with intelligent relevance scoring and canonical LinkedIn URLs.
+      </p>
+
+      <!-- 3D Floating Metric Badges -->
+      <div class="prism-3d-container" style="margin-top: 1.25rem;">
+        <div class="float-prism-3d">🏢 <span>Company-Wide Hierarchy</span></div>
+        <div class="float-prism-3d">👥 <span>Talent Decision Makers</span></div>
+        <div class="float-prism-3d">📈 <span>Smart Relevance Scoring</span></div>
+        <div class="float-prism-3d">⚡ <span>Direct InMail Discovery</span></div>
+      </div>
+    </div>
+
+    <!-- Search Form -->
+    <div class="app-card" style="margin-bottom: 1.5rem; padding: clamp(1.25rem, 2.5vw, 2.25rem);">
+      <form id="recruiterSearchForm" onsubmit="event.preventDefault(); runMemberSearch();">
+        
+        <!-- Primary Search Inputs -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.25rem; margin-bottom: 1.5rem;">
+          <div>
+            <label style="font-weight: 700; font-size: 0.95rem; color: var(--text); display: block; margin-bottom: 0.45rem;">
+              Target Company Name <span style="color: var(--error);">*</span>
+            </label>
+            <input type="text" id="companyInput" class="input-field" placeholder="e.g. GammaStack, Thoughtwin, Infosys, Swiggy" value="GammaStack" required style="width: 100%;" />
+          </div>
+          
+          <div>
+            <label style="font-weight: 700; font-size: 0.95rem; color: var(--text); display: block; margin-bottom: 0.45rem;">
+              Keywords & Roles (Comma separated or use chips) <span style="color: var(--error);">*</span>
+            </label>
+            <div style="display: flex; gap: 0.5rem; align-items: center;">
+              <input type="text" id="keywordInput" class="input-field" placeholder="e.g. Talent Acquisition, HR Manager" value="Talent Acquisition, HR" style="flex: 1;" />
+            </div>
+          </div>
+
+          <div>
+            <label style="font-weight: 700; font-size: 0.95rem; color: var(--text); display: block; margin-bottom: 0.45rem;">
+              Location (Optional)
+            </label>
+            <input type="text" id="locationInput" class="input-field" placeholder="e.g. India, Indore, Bengaluru, Remote" value="India" style="width: 100%;" />
+          </div>
+
+          <div>
+            <label style="font-weight: 700; font-size: 0.95rem; color: var(--text); display: block; margin-bottom: 0.45rem;">
+              Results Limit
+            </label>
+            <select id="limitInput" class="input-field" style="width: 100%;">
+              <option value="15" selected>15 Verified Decision Makers</option>
+              <option value="25">25 Verified Decision Makers</option>
+              <option value="50">50 Verified Decision Makers</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Quick Keyword Selector Chips -->
+        <div style="margin-bottom: 1.35rem;">
+          <label style="font-weight: 700; font-size: 0.88rem; color: var(--subtext); display: block; margin-bottom: 0.55rem;">
+            🎯 Role Presets (Click to add/replace):
+          </label>
+          <div style="display: flex; flex-wrap: wrap; gap: 0.55rem;">
+            <button type="button" class="role-chip-btn active" onclick="setRoleFilter('Talent Acquisition, HR', this)">📋 Talent Acquisition & HR</button>
+            <button type="button" class="role-chip-btn" onclick="setRoleFilter('Technical Recruiter', this)">👔 Technical Recruiter</button>
+            <button type="button" class="role-chip-btn" onclick="setRoleFilter('HR Business Partner', this)">🤝 HRBP / People Ops</button>
+            <button type="button" class="role-chip-btn" onclick="setRoleFilter('Head of HR, CHRO', this)">👑 Head of HR / CHRO</button>
+            <button type="button" class="role-chip-btn" onclick="setRoleFilter('Engineering Manager, Hiring Lead', this)">👨‍💻 Engineering Manager</button>
+          </div>
+        </div>
+
+        <!-- Popular Companies Row -->
+        <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; margin-bottom: 1.75rem;">
+          <span style="font-size: 0.88rem; font-weight: 700; color: var(--subtext); margin-right: 0.35rem;">🏢 Quick Pick:</span>
+          <button type="button" class="action-btn-sm" onclick="setCompanyQuick('GammaStack')">GammaStack</button>
+          <button type="button" class="action-btn-sm" onclick="setCompanyQuick('Thoughtwin')">Thoughtwin</button>
+          <button type="button" class="action-btn-sm" onclick="setCompanyQuick('supersourcing')">Supersourcing</button>
+          <button type="button" class="action-btn-sm" onclick="setCompanyQuick('Infosys')">Infosys</button>
+          <button type="button" class="action-btn-sm" onclick="setCompanyQuick('Tata Consultancy Services')">TCS</button>
+          <button type="button" class="action-btn-sm" onclick="setCompanyQuick('Razorpay')">Razorpay</button>
+          <button type="button" class="action-btn-sm" onclick="setCompanyQuick('Swiggy')">Swiggy</button>
+          <button type="button" class="action-btn-sm" onclick="setCompanyQuick('Zomato')">Zomato</button>
+          <button type="button" class="action-btn-sm" onclick="setCompanyQuick('Google')">Google</button>
+          <button type="button" class="action-btn-sm" onclick="setCompanyQuick('Microsoft')">Microsoft</button>
+        </div>
+
+        <!-- Search Action Button -->
+        <div style="display: flex; gap: 1rem; align-items: center;">
+          <button type="submit" id="searchRecruiterBtn" style="padding: 0.95rem 2.5rem; background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%); color: white; border: none; border-radius: 0.75rem; font-weight: 800; font-size: 1.1rem; cursor: pointer; display: inline-flex; align-items: center; gap: 0.6rem; box-shadow: 0 4px 14px rgba(10, 102, 194, 0.35); transition: all 0.2s ease;">
+            <span id="btnSearchIcon">🔍</span>
+            <span id="btnSearchText">Find Verified Recruiters on LinkedIn</span>
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Progress Indicator with 3D Kinetic Telemetry Waveform -->
+    <div id="searchProgressBar" class="progress-bar-container">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+        <span style="font-weight: 800; font-size: 0.95rem; color: var(--text);" id="progressStepText">
+          ⏳ Initiating stealth LinkedIn discovery...
+        </span>
+        <span style="font-weight: 700; font-size: 0.85rem; color: var(--primary);" id="progressPercentText">
+          35%
+        </span>
+      </div>
+      <div style="width: 100%; height: 8px; background: var(--line); border-radius: 999px; overflow: hidden; margin-bottom: 0.75rem;">
+        <div id="progressFill" style="width: 35%; height: 100%; background: linear-gradient(90deg, var(--primary) 0%, var(--accent) 100%); transition: width 0.3s ease;"></div>
+      </div>
+      <!-- 3D Live Kinetic Telemetry Waveform Ribbon -->
+      <div class="search-3d-waveform-box">
+        <canvas id="search-3d-waveform" class="search-3d-waveform-canvas"></canvas>
+      </div>
+    </div>
+
+    <!-- Results Section -->
+    <div id="resultsWrapper" style="display: none;">
+      
+      <!-- Official LinkedIn Company People Tab Banner -->
+      <div id="companyPeopleBanner" style="background: linear-gradient(135deg, rgba(14, 118, 168, 0.15), rgba(10, 102, 194, 0.25)); border: 1px solid rgba(10, 102, 194, 0.45); border-radius: 12px; padding: 1.15rem 1.4rem; margin-bottom: 1.5rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
+        <div style="flex: 1; min-width: 260px;">
+          <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.35rem;">
+            <span style="background: #0a66c2; color: #fff; font-size: 0.72rem; font-weight: 800; padding: 0.2rem 0.55rem; border-radius: 4px;">OFFICIAL LINKEDIN PEOPLE TAB</span>
+            <h4 id="bannerCompanyHeading" style="margin: 0; color: var(--text); font-size: 1.1rem; font-weight: 800;">Company People Directory</h4>
+          </div>
+          <p style="margin: 0; color: var(--subtext); font-size: 0.88rem; line-height: 1.4;">
+            View and connect with all verified employees & decision makers directly on <span id="bannerCompanyNameText" style="color: var(--text); font-weight: 700;">Company</span>'s official <strong>People tab</strong> on LinkedIn.
+          </p>
+        </div>
+        <a id="companyPeopleBannerBtn" href="#" target="_blank" class="btn" style="background: #0a66c2; color: #fff; font-weight: 800; font-size: 0.92rem; padding: 0.75rem 1.35rem; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem; box-shadow: 0 4px 14px rgba(10, 102, 194, 0.35); transition: all 0.2s ease;">
+          <span>🏢 Open Official People Tab on LinkedIn</span> &rarr;
+        </a>
+      </div>
+
+      <!-- Section Header with Stats and Export -->
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+        <div>
+          <h3 style="font-size: clamp(1.3rem, 2vw, 1.65rem); font-weight: 800; color: var(--text); margin: 0;">
+            👥 Verified Hiring Decision Makers at <span id="resCompanyHeading" style="color: var(--primary);">GammaStack</span>
+          </h3>
+          <p style="margin: 0.35rem 0 0 0; font-size: 0.95rem; color: var(--subtext);">
+            Targeted Roles: <strong id="resKeywordHeading" style="color: var(--text);">Talent Acquisition, HR</strong>
+          </p>
+        </div>
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+          <span id="resultsCountBadge" style="font-size: 0.92rem; font-weight: 800; color: var(--accent); background: rgba(47, 178, 130, 0.15); border: 1px solid rgba(47, 178, 130, 0.35); padding: 0.45rem 1rem; border-radius: 999px;">
+            0 Members Listed
+          </span>
+          <button type="button" class="action-btn-sm" onclick="exportResultsToCSV()" style="padding: 0.55rem 1.15rem; font-weight: 700; font-size: 0.9rem; background: var(--panel-soft); border-color: var(--line); color: var(--text);">
+            📥 Export CSV
+          </button>
+        </div>
+      </div>
+
+      <!-- Members Grid -->
+      <div id="membersContainer" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 360px), 1fr)); gap: 1.5rem; margin-bottom: 2.5rem;">
+        <!-- Injected via JavaScript -->
+      </div>
+
+    </div>
+
+    <!-- Footer -->
+    <footer style="margin-top: 48px; text-align: center; font-size: 13.5px; color: var(--subtext); font-family: 'Plus Jakarta Sans', sans-serif; letter-spacing: 0.03em; border-top: 1px solid var(--line); padding-top: 24px; padding-bottom: 24px;">
+      JobRadar &copy; 2026 &bull; Developed by <a href="https://mail.google.com/mail/?view=cm&fs=1&to=rajpaltanwar2608@gmail.com&su=JobRadar%20Query%20%2F%20Feature%20Request&body=Hi%20Rajpal%2C%0A%0AI%20have%20a%20query%2Frequest%20regarding%20JobRadar%3A%0A%0A" target="_blank" style="font-weight: 700; color: var(--primary); text-decoration: none;" title="Send email query to Rajpal Singh Tanwar">Rajpal Singh Tanwar ✉️</a>
+    </footer>
+
+  </div>
+
+  <!-- Saved Candidates Drawer -->
+  <div id="drawerOverlay" class="drawer-overlay" onclick="toggleSavedDrawer()"></div>
+  <div id="savedDrawer" class="saved-drawer">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; padding-bottom: 0.75rem; border-bottom: 1px solid var(--line);">
+      <h3 style="margin: 0; font-size: 1.15rem; font-weight: 800; color: var(--text);">
+        ⭐ Saved Recruiters (<span id="drawerCount">0</span>)
+      </h3>
+      <button type="button" onclick="toggleSavedDrawer()" style="background: none; border: none; font-size: 1.25rem; color: var(--subtext); cursor: pointer;">✕</button>
+    </div>
+    <div id="savedListContainer" style="flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 0.75rem; padding-right: 0.25rem;">
+      <!-- Injected via JavaScript -->
+    </div>
+    <div style="margin-top: 1rem; pt-3; border-top: 1px solid var(--line); display: flex; gap: 0.5rem;">
+      <button type="button" onclick="exportSavedToCSV()" class="btn" style="flex: 1; background: var(--primary); color: white; font-weight: 700; font-size: 0.85rem; padding: 0.6rem 0; border-radius: 0.5rem; text-align: center; border: none; cursor: pointer;">
+        📥 Export Saved to CSV
+      </button>
+      <button type="button" onclick="clearSavedRecruiters()" class="btn" style="background: var(--panel-soft); color: var(--error); border: 1px solid var(--error); font-weight: 700; font-size: 0.85rem; padding: 0.6rem 0.8rem; border-radius: 0.5rem; cursor: pointer;">
+        Clear
+      </button>
+    </div>
+  </div>
+
+  <a href="https://mail.google.com/mail/?view=cm&fs=1&to=rajpaltanwar2608@gmail.com&su=JobRadar%20Query%20%2F%20Feature%20Request&body=Hi%20Rajpal%2C%0A%0AI%20have%20a%20query%2Frequest%20regarding%20JobRadar%3A%0A%0A" target="_blank" class="watermark-badge" style="text-decoration: none; color: var(--text);" title="Send email query to Rajpal Singh Tanwar">Developed by <span style="font-weight: 700; color: var(--primary);">Rajpal Singh Tanwar ✉️</span></a>
+
+  <script>
+    let currentDiscoveredMembers = [];
+    let savedRecruiters = JSON.parse(localStorage.getItem("jobradar_saved_recruiters") || "[]");
+
+    function updateSavedBadges() {
+      const count = savedRecruiters.length;
+      document.getElementById("savedCountBadge").textContent = count;
+      document.getElementById("drawerCount").textContent = count;
+      renderSavedDrawerList();
+    }
+
+    function toggleSavedDrawer() {
+      const drawer = document.getElementById("savedDrawer");
+      const overlay = document.getElementById("drawerOverlay");
+      drawer.classList.toggle("open");
+      overlay.classList.toggle("open");
+    }
+
+    function toggleSaveRecruiter(memberJsonStr) {
+      const member = JSON.parse(decodeURIComponent(memberJsonStr));
+      const idx = savedRecruiters.findIndex(s => s.profile_url === member.profile_url);
+      if (idx > -1) {
+        savedRecruiters.splice(idx, 1);
+      } else {
+        savedRecruiters.push(member);
+      }
+      localStorage.setItem("jobradar_saved_recruiters", JSON.stringify(savedRecruiters));
+      updateSavedBadges();
+      // Re-render to update icon
+      renderMemberCards({
+        company: document.getElementById("resCompanyHeading").textContent,
+        keyword: document.getElementById("resKeywordHeading").textContent,
+        members: currentDiscoveredMembers
+      });
+    }
+
+    function renderSavedDrawerList() {
+      const container = document.getElementById("savedListContainer");
+      if (savedRecruiters.length === 0) {
+        container.innerHTML = `
+          <div style="text-align: center; color: var(--subtext); padding: 3rem 1rem;">
+            <p style="font-size: 2rem; margin-bottom: 0.5rem;">⭐</p>
+            <p style="font-weight: 700; font-size: 0.95rem;">No recruiters saved yet.</p>
+            <p style="font-size: 0.8rem;">Click 'Save to Radar' on any card to save recruiters for fast reach-out.</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = savedRecruiters.map((m, idx) => `
+        <div style="background: var(--panel-soft); border: 1px solid var(--line); border-radius: 0.75rem; padding: 0.85rem; display: flex; flex-direction: column; gap: 0.4rem;">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div>
+              <h4 style="margin: 0; font-size: 0.95rem; font-weight: 800; color: var(--text);">${escapeHtml(m.name)}</h4>
+              <p style="margin: 0; font-size: 0.78rem; font-weight: 700; color: var(--primary);">${escapeHtml(m.position)}</p>
+            </div>
+            <button onclick="toggleSaveRecruiter('${encodeURIComponent(JSON.stringify(m))}')" style="background: none; border: none; color: var(--subtext); cursor: pointer; font-size: 0.9rem;" title="Remove">✕</button>
+          </div>
+          <div style="font-size: 0.75rem; color: var(--subtext);">🏢 ${escapeHtml(m.company)} &bull; 📍 ${escapeHtml(m.location)}</div>
+          <a href="${m.profile_url}" target="_blank" class="linkedin-visit-btn" style="padding: 0.45rem 0.75rem; font-size: 0.78rem; margin-top: 0.25rem;">
+            🔗 View on LinkedIn &rarr;
+          </a>
+        </div>
+      `).join("");
+    }
+
+    function clearSavedRecruiters() {
+      if (confirm("Are you sure you want to clear all saved recruiters?")) {
+        savedRecruiters = [];
+        localStorage.setItem("jobradar_saved_recruiters", JSON.stringify(savedRecruiters));
+        updateSavedBadges();
+        if (currentDiscoveredMembers.length > 0) {
+          renderMemberCards({
+            company: document.getElementById("resCompanyHeading").textContent,
+            keyword: document.getElementById("resKeywordHeading").textContent,
+            members: currentDiscoveredMembers
+          });
+        }
+      }
+    }
+
+    function setRoleFilter(keyword, btn) {
+      document.getElementById("keywordInput").value = keyword;
+      document.querySelectorAll(".role-chip-btn").forEach(b => b.classList.remove("active"));
+      if (btn) btn.classList.add("active");
+      runMemberSearch();
+    }
+
+    function setCompanyQuick(name) {
+      document.getElementById("companyInput").value = name;
+      runMemberSearch();
+    }
+
+    async function runMemberSearch() {
+      const company = document.getElementById("companyInput").value.trim();
+      const keyword = document.getElementById("keywordInput").value.trim();
+      const location = document.getElementById("locationInput").value.trim();
+      const limit = parseInt(document.getElementById("limitInput").value) || 25;
+
+      if (!company) {
+        alert("Please enter a company name.");
+        return;
+      }
+
+      const btn = document.getElementById("searchRecruiterBtn");
+      const pBar = document.getElementById("searchProgressBar");
+      const pFill = document.getElementById("progressFill");
+      const pText = document.getElementById("progressStepText");
+      const pPercent = document.getElementById("progressPercentText");
+
+      btn.disabled = true;
+      document.getElementById("btnSearchIcon").textContent = "⏳";
+      document.getElementById("btnSearchText").textContent = "Discovering Verified Recruiters...";
+      pBar.style.display = "block";
+      pFill.style.width = "30%";
+      pText.textContent = `Resolving official LinkedIn directory for '${company}'...`;
+      pPercent.textContent = "30%";
+      if (window.triggerRadar3DScan) window.triggerRadar3DScan(true);
+
+      const progressInterval = setInterval(() => {
+        let currentW = parseInt(pFill.style.width) || 30;
+        if (currentW < 85) {
+          currentW += 10;
+          pFill.style.width = currentW + "%";
+          pPercent.textContent = currentW + "%";
+          if (currentW === 50) pText.textContent = `Querying live LinkedIn members for '${company}'...`;
+          if (currentW === 70) pText.textContent = `Deduplicating & validating exact company positions...`;
+          if (currentW === 85) pText.textContent = `Calculating relevance scores & finalizing verified profiles...`;
+        }
+      }, 700);
+
+      try {
+        const res = await fetch("/api/search_recruiters", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            company: company,
+            recruiter_keyword: keyword,
+            location: location,
+            limit: limit
+          })
+        });
+
+        clearInterval(progressInterval);
+        pFill.style.width = "100%";
+        pPercent.textContent = "100%";
+        pText.textContent = "Discovery completed successfully!";
+        if (window.triggerRadar3DScan) window.triggerRadar3DScan(false);
+
+        setTimeout(() => { pBar.style.display = "none"; }, 800);
+
+        const data = await res.json();
+        btn.disabled = false;
+        document.getElementById("btnSearchIcon").textContent = "🔍";
+        document.getElementById("btnSearchText").textContent = "Find Verified Recruiters on LinkedIn";
+
+        if (data.success && data.data) {
+          currentDiscoveredMembers = data.data.members || [];
+          renderMemberCards(data.data);
+        } else {
+          alert("Error: " + (data.error || "Failed to search recruiters"));
+        }
+      } catch (err) {
+        clearInterval(progressInterval);
+        if (window.triggerRadar3DScan) window.triggerRadar3DScan(false);
+        pBar.style.display = "none";
+        btn.disabled = false;
+        document.getElementById("btnSearchIcon").textContent = "🔍";
+        document.getElementById("btnSearchText").textContent = "Find Verified Recruiters on LinkedIn";
+        alert("Network error: " + err);
+      }
+    }
+
+    function renderMemberCards(data) {
+      const container = document.getElementById("membersContainer");
+      document.getElementById("resCompanyHeading").textContent = data.company;
+      document.getElementById("resKeywordHeading").textContent = data.keyword || "Recruiter";
+      
+      document.getElementById("bannerCompanyHeading").textContent = `${data.company} — Verified Directory`;
+      document.getElementById("bannerCompanyNameText").textContent = data.company;
+      const companyPeopleUrl = data.company_people_url || `https://www.linkedin.com/company/${encodeURIComponent(data.company)}/people/`;
+      document.getElementById("companyPeopleBannerBtn").href = companyPeopleUrl;
+
+      const members = data.members || [];
+      document.getElementById("resultsCountBadge").textContent = `${members.length} Verified Profiles Found`;
+
+      if (members.length === 0) {
+        container.innerHTML = `
+          <div style="grid-column: 1 / -1; text-align: center; padding: 3rem 1rem; color: var(--subtext);">
+            <p style="font-size: 2.5rem; margin-bottom: 0.5rem;">🔍</p>
+            <h4 style="font-size: 1.15rem; font-weight: 800; color: var(--text);">No matching recruiters found for '${escapeHtml(data.company)}'</h4>
+            <p style="font-size: 0.88rem; margin-top: 0.35rem;">Try adjusting the keyword filter or searching for broader terms like 'Talent Acquisition' or 'HR'.</p>
+          </div>
+        `;
+        document.getElementById("resultsWrapper").style.display = "block";
+        return;
+      }
+
+      container.innerHTML = members.map((m) => {
+        const isSaved = savedRecruiters.some(s => s.profile_url === m.profile_url);
+        const encodedData = encodeURIComponent(JSON.stringify(m));
+        const memberPeopleUrl = m.company_people_url || companyPeopleUrl;
+        const score = m.score || 90;
+
+        return `
+          <div class="member-card">
+            <div>
+              <!-- Header with Avatar, Name, and Department -->
+              <div style="display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 1rem;">
+                <div style="display: flex; align-items: center; gap: 0.95rem;">
+                  <div class="member-avatar" style="width: 56px; height: 56px; font-size: 1.25rem;">
+                    ${m.initials || "HR"}
+                  </div>
+                  <div>
+                    <h4 style="margin: 0; font-size: 1.25rem; color: var(--text); font-weight: 800; line-height: 1.3;">
+                      ${escapeHtml(m.name)}
+                    </h4>
+                    <span style="font-size: 0.85rem; font-weight: 700; color: var(--primary);">
+                      ${escapeHtml(m.department || "Talent Acquisition")}
+                    </span>
+                  </div>
+                </div>
+                <button type="button" onclick="toggleSaveRecruiter('${encodedData}')" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: ${isSaved ? '#f59e0b' : 'var(--subtext)'};" title="${isSaved ? 'Remove from Saved' : 'Save to Radar'}">
+                  ${isSaved ? '★' : '☆'}
+                </button>
+              </div>
+
+              <!-- Position / Title -->
+              <div style="font-size: 1.05rem; font-weight: 700; color: var(--text); margin-bottom: 0.85rem; line-height: 1.45;">
+                ${escapeHtml(m.position)}
+              </div>
+
+              <!-- Badges -->
+              <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1.15rem;">
+                <span class="badge-pill">🏢 ${escapeHtml(m.company)}</span>
+                <span class="badge-pill">📍 ${escapeHtml(m.location)}</span>
+                <span class="badge-pill badge-match">⚡ ${score}% Match</span>
+                ${m.verified ? `<span class="badge-pill" style="background: rgba(16, 185, 129, 0.15); color: #10b981; border-color: rgba(16, 185, 129, 0.4); font-weight: 800;">✅ Verified LinkedIn</span>` : ""}
+              </div>
+
+              <!-- Snippet Description -->
+              ${m.snippet ? `<p style="font-size: 0.88rem; color: var(--subtext); line-height: 1.5; margin-bottom: 1.25rem; background: var(--panel-soft); padding: 0.75rem 0.95rem; border-radius: 0.65rem; border: 1px solid var(--line);">${escapeHtml(m.snippet)}</p>` : ''}
+            </div>
+
+            <!-- Direct Actions -->
+            <div style="display: flex; flex-direction: column; gap: 0.6rem; margin-top: 0.5rem;">
+              <a href="${m.profile_url}" target="_blank" class="linkedin-visit-btn" style="padding: 0.85rem 1.25rem; font-size: 0.95rem; border-radius: 0.75rem;" title="View profile for ${escapeHtml(m.name)}">
+                <span>🔗 View Exact Profile on LinkedIn</span> &rarr;
+              </a>
+              
+              <div style="display: flex; gap: 0.5rem;">
+                <a href="${memberPeopleUrl}" target="_blank" class="action-btn-sm" style="flex: 1; text-align: center; text-decoration: none; font-size: 0.85rem; padding: 0.6rem 0.5rem; background: rgba(10, 102, 194, 0.12); color: var(--primary); border-color: rgba(10, 102, 194, 0.3); border-radius: 0.6rem;" title="Open Company People tab on LinkedIn">
+                  🏢 People Tab
+                </a>
+                <button type="button" onclick="toggleSaveRecruiter('${encodedData}')" class="action-btn-sm" style="flex: 1; text-align: center; font-size: 0.85rem; padding: 0.6rem 0.5rem; color: ${isSaved ? '#f59e0b' : 'var(--text)'}; border-radius: 0.6rem;">
+                  ${isSaved ? '★ Saved' : '⭐ Save Radar'}
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join("");
+
+      document.getElementById("resultsWrapper").style.display = "block";
+      document.getElementById("resultsWrapper").scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function exportResultsToCSV() {
+      if (!currentDiscoveredMembers || currentDiscoveredMembers.length === 0) {
+        alert("No discovered members to export.");
+        return;
+      }
+      exportListToCSV(currentDiscoveredMembers, "jobradar_discovered_recruiters.csv");
+    }
+
+    function exportSavedToCSV() {
+      if (!savedRecruiters || savedRecruiters.length === 0) {
+        alert("No saved recruiters to export.");
+        return;
+      }
+      exportListToCSV(savedRecruiters, "jobradar_saved_recruiters.csv");
+    }
+
+    function exportListToCSV(list, filename) {
+      const headers = ["Name", "Title", "Company", "Department", "Location", "LinkedIn URL", "Relevance Score"];
+      const rows = list.map(m => [
+        `"${(m.name || '').replace(/"/g, '""')}"`,
+        `"${(m.position || '').replace(/"/g, '""')}"`,
+        `"${(m.company || '').replace(/"/g, '""')}"`,
+        `"${(m.department || '').replace(/"/g, '""')}"`,
+        `"${(m.location || '').replace(/"/g, '""')}"`,
+        `"${(m.profile_url || '').replace(/"/g, '""')}"`,
+        `"${m.score || 90}%"`
+      ]);
+
+      const csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...rows.map(e => e.join(","))].join("\n");
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", filename);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    function escapeHtml(str) {
+      if (!str) return "";
+      return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    // Initialize on page load
+    document.addEventListener("DOMContentLoaded", () => {
+      updateSavedBadges();
+      runMemberSearch();
+    });
+  </script>
+</body>
+</html>

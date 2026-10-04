@@ -1,0 +1,423 @@
+<!--
+  WATERMARK: Rajpal Singh Tanwar
+  Copyright (c) 2026 Rajpal Singh Tanwar. All rights reserved.
+-->
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IndeedRadar</title>
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+  <script src="{{ url_for('static', filename='theme.js') }}"></script>
+  <style>
+    /* Indeed branding overrides — blue/yellow accent */
+    body.indeed { --primary: #2557a7; --primary-soft: #e2ecfb; --accent: #2557a7; --accent-soft: #e2ecfb; }
+    body.indeed .search-btn { background: linear-gradient(125deg, #2557a7, #4e7cd0); box-shadow: 0 10px 26px rgba(37, 87, 167, 0.32); }
+    body.indeed .portal-card .logo { background: linear-gradient(135deg, #2557a7, #4e7cd0); }
+    body.indeed .apply { background: linear-gradient(125deg, #2557a7, #4e7cd0); }
+    .skills-row { margin-top: 6px; font-size: 11px; color: var(--subtext); }
+    .skill-pill { display: inline-block; background: var(--panel-soft); border: 1px solid var(--line); padding: 2px 7px; border-radius: 999px; margin-right: 4px; margin-bottom: 3px; font-weight: 600; }
+    .salary-pill { display: inline-block; background: #fef3c7; color: #92400e; border: 1px solid #fde68a; padding: 2px 8px; border-radius: 999px; font-weight: 700; font-size: 11px; }
+    [data-theme="dark"] .salary-pill { background: #422a04; color: #fbbf24; border-color: #6b4716; }
+    .desc-row { margin-top: 6px; font-size: 12px; color: var(--subtext); line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  </style>
+</head>
+<body class="indeed">
+  <!-- Navigation Bar -->
+  <nav class="app-navbar">
+    <a href="/" class="nav-brand">
+      <div class="radar-dot"></div>
+      Job<span>Radar</span>
+    </a>
+    <div class="nav-tabs">
+      <a href="/unified" class="nav-tab">⚡ Multi-Portal Search</a>
+      <a href="/recruiters" class="nav-tab">🎯 Recruiter Radar</a>
+      <a href="/" class="nav-tab active">🌐 Single Scrapers</a>
+    </div>
+    <div class="nav-tools">
+      <button class="nav-theme-btn" onclick="toggleTheme()" aria-label="Toggle theme">
+        <span class="theme-icon">🌙</span>
+        <span class="theme-label" id="themeLabel">Dark Mode</span>
+      </button>
+    </div>
+  </nav>
+
+  <div class="shell">
+    <aside class="panel sidebar">
+      <div class="header">
+        <div class="brand-row">
+          <div class="brand">Indeed<span>Radar</span></div>
+        </div>
+        <div class="tagline">Indeed public job search — no login required.</div>
+      </div>
+
+      <div class="form-body">
+        <div class="block">
+          <label class="label" for="role">Job Role</label>
+          <input id="role" type="text" placeholder="DevOps Engineer, Data Analyst..." />
+        </div>
+
+        <div class="block">
+          <div class="label">Locations</div>
+          <div class="grid2">
+            {% for city in cities %}
+            <div class="chip">
+              <input type="checkbox" id="loc-{{ loop.index }}" value="{{ city }}" />
+              <label for="loc-{{ loop.index }}">{{ city }}</label>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <div class="block">
+          <div class="grid2" style="margin-bottom:8px;">
+            <div>
+              <label class="label" for="fromAge">Posted Within</label>
+              <select id="fromAge">
+                <option value="1" selected>1 Day</option>
+                <option value="3">3 Days</option>
+                <option value="7">7 Days</option>
+                <option value="10">10 Days</option>
+                <option value="15">15 Days</option>
+                <option value="14">14 Days</option>
+              </select>
+            </div>
+            <div>
+              <label class="label" for="limit">Results</label>
+              <select id="limit">
+                <option value="5">5 Jobs</option>
+                <option value="10" selected>10 Jobs</option>
+                <option value="20">20 Jobs</option>
+                <option value="30">30 Jobs</option>
+                <option value="50">50 Jobs</option>
+                <option value="100">100 Jobs</option>
+              </select>
+            </div>
+          </div>
+
+          <label class="label" for="experience">Experience Level</label>
+          <select id="experience" style="margin-bottom:12px;">
+            <option value="" selected>All Levels</option>
+            <option value="fresher">Fresher</option>
+            <option value="0-1">0-1 Years</option>
+            <option value="0-6m">0-6 Months</option>
+            <option value="internship">Internship</option>
+            <option value="1-2">1-2 Years</option>
+            <option value="1-3">1-3 Years</option>
+            <option value="3-5">3-5 Years</option>
+            <option value="5-7">5-7 Years</option>
+            <option value="7-10">7-10 Years</option>
+            <option value="10+">10+ Years</option>
+          </select>
+
+          <label class="label" for="applyMode">Apply Preference</label>
+          <select id="applyMode">
+            <option value="include_easy" selected>Both Easy Apply and External Jobs</option>
+            <option value="only_easy">Only Easy Apply jobs</option>
+            <option value="only_external">Only External jobs</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="foot">
+        <button id="searchBtn" class="search-btn" type="button" onclick="searchJobs()">Search Jobs</button>
+        <div id="statusMsg" class="status"></div>
+      </div>
+    </aside>
+
+    <main class="panel main">
+      <div class="topbar">
+        <div>
+          <div class="title" id="tbTitle">Indeed Job Finder</div>
+          <div class="subtitle" id="tbSub">Use the left panel to run your search.</div>
+        </div>
+        <div class="stats" id="statsWrap" style="display:none;">
+          <div class="stat" id="statCount">0 jobs</div>
+          <div class="stat" id="statLoc">0 locations</div>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="toolbar" id="toolbar">
+          <button class="quick-btn active" type="button" data-filter="all" onclick="setFilter('all', this)">All</button>
+          <button class="quick-btn" type="button" data-filter="easy" onclick="setFilter('easy', this)">Easy Apply</button>
+          <button class="quick-btn" type="button" data-filter="external" onclick="setFilter('external', this)">External</button>
+          <select id="sortSelect" onchange="setSort(this.value)" style="margin-left: auto; max-width: 190px;">
+            <option value="date-desc">Newest First</option>
+            <option value="date-asc">Oldest First</option>
+            <option value="title">Job Title (A-Z)</option>
+            <option value="company">Company (A-Z)</option>
+          </select>
+          <div class="dropdown">
+            <button id="dlBtn" class="download-btn" type="button" disabled>
+              Export Results <span class="arrow">▼</span>
+            </button>
+            <div class="dropdown-menu" id="dlMenu">
+              <button type="button" onclick="downloadFormat('csv')">Export as CSV</button>
+              <button type="button" onclick="downloadFormat('xlsx')">Export as Excel (.xlsx)</button>
+              <button type="button" onclick="downloadFormat('pdf')">Export as PDF Table</button>
+            </div>
+          </div>
+        </div>
+
+        <section id="stWelcome" class="state">
+          <h2>Find Better Indeed Leads</h2>
+          <p>Search by role, city, posted-age and apply preference.</p>
+        </section>
+
+        <section id="stLoading" class="state" style="display:none;">
+          <div class="loader-container">
+            <div class="loader-card">
+              <div class="loader">
+                <p class="loading-text">loading</p>
+                <div class="words">
+                  <span class="word w-1">Jobs</span>
+                  <span class="word w-2">Jobs</span>
+                  <span class="word w-3">Jobs</span>
+                  <span class="word w-4">Jobs</span>
+                  <span class="word w-5">Jobs</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <h2>Searching Indeed</h2>
+          <p>Launching browser automation and collecting recent openings. This can take a few seconds.</p>
+        </section>
+
+        <section id="stEmpty" class="state" style="display:none;">
+          <h2>No Matching Jobs</h2>
+          <p>Try a wider posted age, more cities, or a broader role keyword.</p>
+        </section>
+
+        <div class="jobs" id="jobs"></div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const AGE_LABELS = { "1": "1 day", "3": "3 days", "7": "7 days", "10": "10 days", "15": "15 days", "14": "14 days" };
+    const PORTAL = "indeed";
+
+    let allJobs = [];
+    let currentFilter = "all";
+    let currentSort = "date-desc";
+
+    function getLocs() {
+      return [...document.querySelectorAll('input[id^="loc-"]:checked')].map((c) => c.value);
+    }
+
+    function escapeHtml(value) {
+      return String(value || "").replace(/&/g, "&amp;").replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+    }
+
+    function setStatus(message, cls = "") {
+      const el = document.getElementById("statusMsg");
+      el.textContent = message;
+      el.className = `status ${cls}`;
+    }
+
+    function showOnly(id) {
+      ["stWelcome", "stLoading", "stEmpty"].forEach((s) => {
+        document.getElementById(s).style.display = s === id ? "block" : "none";
+      });
+    }
+
+    
+    
+
+    function normalizedApplyType(job) {
+      return (job["Apply Type"] || (job["Easy Apply"] ? "Easy Apply" : "External")).toLowerCase();
+    }
+
+    function setFilter(type, buttonEl) {
+      currentFilter = type;
+      document.querySelectorAll(".quick-btn[data-filter]").forEach((btn) => btn.classList.remove("active"));
+      buttonEl.classList.add("active");
+      renderJobs();
+    }
+
+    function setSort(value) { currentSort = value; renderJobs(); }
+
+    function badgeForApplyType(type) {
+      if (type.includes("easy")) return '<span class="badge easy">Easy Apply</span>';
+      return '<span class="badge external">External</span>';
+    }
+
+    function renderJobs() {
+      const jobsWrap = document.getElementById("jobs");
+      jobsWrap.innerHTML = "";
+      let filtered = [...allJobs];
+
+      if (currentFilter !== "all") {
+        filtered = filtered.filter((job) => {
+          const type = normalizedApplyType(job);
+          if (currentFilter === "easy") return type.includes("easy");
+          if (currentFilter === "external") return type.includes("external") || type.includes("company");
+          return true;
+        });
+      }
+
+      switch (currentSort) {
+        case "date-asc": filtered.sort((a, b) => (a.Posted || "").localeCompare(b.Posted || "")); break;
+        case "title": filtered.sort((a, b) => (a["Job Title"] || "").localeCompare(b["Job Title"] || "")); break;
+        case "company": filtered.sort((a, b) => (a.Company || "").localeCompare(b.Company || "")); break;
+        case "date-desc":
+        default: filtered.sort((a, b) => (b.Posted || "").localeCompare(a.Posted || "")); break;
+      }
+
+      if (!filtered.length) {
+        jobsWrap.innerHTML = "<section class='state'><h2>No Jobs For This View</h2><p>Try changing quick filters or run a broader search.</p></section>";
+        return;
+      }
+
+      filtered.forEach((job, index) => {
+        const posted = job.Posted || "N/A";
+        const applyType = normalizedApplyType(job);
+        const delay = Math.min(index * 22, 220);
+        const card = document.createElement("article");
+        card.className = "job";
+        card.style.animationDelay = `${delay}ms`;
+
+        // Extra details
+        const salaryHtml = job.Salary && job.Salary !== "Not disclosed"
+          ? `<span class="salary-pill">${escapeHtml(job.Salary)}</span>` : "";
+        const expHtml = job.Experience ? `<span class="badge">${escapeHtml(job.Experience)}</span>` : "";
+        const workplaceHtml = job.Workplace ? `<span class="badge">${escapeHtml(job.Workplace)}</span>` : "";
+        
+        const skills = (job.Skills || "").split(",").map(s => s.trim()).filter(Boolean).slice(0, 6);
+        const skillsHtml = skills.length
+          ? `<div class="skills-row">${skills.map(s => `<span class="skill-pill">${escapeHtml(s)}</span>`).join("")}</div>`
+          : "";
+          
+        const descHtml = job.Description
+          ? `<div class="desc-row">${escapeHtml(job.Description)}</div>`
+          : "";
+
+        card.innerHTML = `
+          <div>
+            <div class="job-title">${escapeHtml(job["Job Title"])}</div>
+            <div class="job-company">${escapeHtml(job.Company)}</div>
+            <div class="meta">
+              <span class="badge">${escapeHtml(job.Location || "Unknown")}</span>
+              ${expHtml}
+              ${workplaceHtml}
+              <span class="badge">Posted ${escapeHtml(posted)}</span>
+              ${salaryHtml}
+              ${badgeForApplyType(applyType)}
+            </div>
+            ${descHtml}
+            ${skillsHtml}
+          </div>
+          <a class="apply" href="${escapeHtml(job.Link)}" target="_blank" rel="noopener noreferrer">Open Job</a>
+        `;
+        jobsWrap.appendChild(card);
+      });
+    }
+
+    function searchJobs() {
+      const role = document.getElementById("role").value.trim();
+      const locs = getLocs();
+      const ageVal = document.getElementById("fromAge").value;
+      const limitVal = document.getElementById("limit").value;
+      const applyMode = document.getElementById("applyMode").value;
+      const experience = document.getElementById("experience").value;
+
+      if (!role) { setStatus("Enter a job role.", "err"); return; }
+      if (!locs.length) { setStatus("Select at least one location.", "err"); return; }
+
+      showOnly("stLoading");
+      document.getElementById("jobs").innerHTML = "";
+      document.getElementById("toolbar").style.display = "none";
+      document.getElementById("statsWrap").style.display = "none";
+      document.getElementById("searchBtn").disabled = true;
+      document.getElementById("dlBtn").disabled = true;
+      document.getElementById("tbTitle").textContent = "Searching...";
+      document.getElementById("tbSub").textContent = `${role} | last ${AGE_LABELS[ageVal] || ageVal}`;
+      setStatus("");
+
+      const params = new URLSearchParams({ role, fromage: ageVal, limit: limitVal, apply_mode: applyMode, experience });
+      locs.forEach((l) => params.append("locations", l));
+
+      fetch(`/search/${PORTAL}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: params.toString(),
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          document.getElementById("searchBtn").disabled = false;
+
+          if (data.error) {
+            showOnly("stWelcome");
+            document.getElementById("tbTitle").textContent = "Indeed Job Finder";
+            document.getElementById("tbSub").textContent = "Use the left panel to run your search.";
+            setStatus(data.error, "err");
+            return;
+          }
+
+          allJobs = data.jobs || [];
+          currentFilter = "all"; currentSort = "date-desc";
+
+          document.querySelectorAll(".quick-btn[data-filter]").forEach((btn) => {
+            btn.classList.toggle("active", btn.dataset.filter === "all");
+          });
+          document.getElementById("sortSelect").value = "date-desc";
+
+          document.getElementById("tbTitle").textContent = role;
+          document.getElementById("tbSub").textContent = `${allJobs.length} job(s) from ${locs.length} location(s) | ${AGE_LABELS[ageVal] || ageVal}`;
+          document.getElementById("statCount").textContent = `${allJobs.length} jobs`;
+          document.getElementById("statLoc").textContent = `${locs.length} locations`;
+          document.getElementById("statsWrap").style.display = "flex";
+
+          if (!allJobs.length) {
+            showOnly("stEmpty");
+            setStatus("No jobs found for this combination.", "warn");
+            return;
+          }
+
+          showOnly("");
+          document.getElementById("toolbar").style.display = "flex";
+          document.getElementById("dlBtn").disabled = false;
+          renderJobs();
+
+          const requested = Number(limitVal);
+          if (allJobs.length < requested) setStatus(`Found ${allJobs.length} of ${requested} requested jobs.`, "warn");
+          else setStatus(`Found ${allJobs.length} jobs.`, "ok");
+        })
+        .catch(() => {
+          document.getElementById("searchBtn").disabled = false;
+          showOnly("stWelcome");
+          document.getElementById("tbTitle").textContent = "Indeed Job Finder";
+          document.getElementById("tbSub").textContent = "Use the left panel to run your search.";
+          setStatus("Network error. Ensure Flask server is running.", "err");
+        });
+    }
+
+    function downloadFormat(fmt) {
+      window.location = `/export/${PORTAL}/${fmt}`;
+    }
+
+    // Toggle dropdown
+    const dlBtn = document.getElementById("dlBtn");
+    const dlMenu = document.getElementById("dlMenu");
+    dlBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      dlMenu.classList.toggle("show");
+    });
+    document.addEventListener("click", () => {
+      dlMenu.classList.remove("show");
+    });
+
+    document.getElementById("role").addEventListener("keydown", (e) => {
+      if (e.key === "Enter") searchJobs();
+    });
+  </script>
+<a href="https://mail.google.com/mail/?view=cm&fs=1&to=rajpaltanwar2608@gmail.com&su=JobRadar%20Query%20%2F%20Feature%20Request&body=Hi%20Rajpal%2C%0A%0AI%20have%20a%20query%2Frequest%20regarding%20JobRadar%3A%0A%0A" target="_blank" class="watermark-badge" style="text-decoration: none; color: var(--text);" title="Send email query to Rajpal Singh Tanwar">Developed by <span style="font-weight: 700; color: var(--primary);">Rajpal Singh Tanwar ✉️</span></a>
+</body>
+</html>

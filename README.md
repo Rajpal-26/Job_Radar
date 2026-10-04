@@ -1,6 +1,16 @@
-# Job Radar
+<!--
+  WATERMARK: Rajpal Singh Tanwar
+  Copyright (c) 2026 Rajpal Singh Tanwar. All rights reserved.
+-->
 
-A Flask + Playwright web app that scrapes recent job listings from eight job portals on demand. Pick a portal, fill in role + filters, get a sortable list of results in the browser, and download the run as an Excel file. No accounts, no API keys, no database.
+# Job Radar & Recruiter Radar
+
+> **Author & Developer**: Rajpal Singh Tanwar  
+> **Copyright**: &copy; 2026 Rajpal Singh Tanwar. All rights reserved.  
+> **Contact / Queries**: [rajpaltanwar2608@gmail.com](mailto:rajpaltanwar2608@gmail.com)
+
+A production-grade web application and multi-portal scraper suite built for high-speed job discovery, automated recruiter reach-out, AI resume parsing, and unified candidate tracking.
+
 
 ## Supported portals
 

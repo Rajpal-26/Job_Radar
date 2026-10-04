@@ -1,3 +1,11 @@
+<!-- 
+==============================================================================
+WATERMARK: Rajpal Singh Tanwar
+Copyright (c) 2026 Rajpal Singh Tanwar. All rights reserved.
+Job Radar & Recruiter Radar System
+==============================================================================
+-->
+
 # Job Scout — Project Blueprint
 
 A design document covering what Job Scout is, how it's built, why it's built that way, and how to extend it. Read [README.md](README.md) first if you're a user; read this if you're a contributor.

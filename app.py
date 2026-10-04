@@ -3,6 +3,14 @@
 # Copyright (c) 2026 Rajpal Singh Tanwar. All rights reserved.
 # ==============================================================================
 
+import os
+import sys
+
+# Ensure backend directory is in python search path
+backend_dir = os.path.join(os.path.dirname(__file__), "backend")
+if backend_dir not in sys.path:
+    sys.path.insert(0, backend_dir)
+
 from flask import Flask, render_template, request, jsonify, send_file, abort, Response
 from scrapers import (scrape_linkedin, scrape_glassdoor, scrape_indeed,
                       scrape_hirist, scrape_naukri, scrape_foundit,
@@ -16,12 +24,13 @@ from scrapers.foundit import FOUNDIT_CITIES
 from scrapers.apna import APNA_CITIES
 from scrapers.shine import SHINE_CITIES, SHINE_EXPERIENCE
 import pandas as pd
-import os
 from utils import search_engine, tracker_db, resume_parser, ai_copilot, watchdog as watchdog_module
 from services import ai_form_filler
 from models import db, migrate, SavedJob, Watchdog, CandidateProfile
 
-app = Flask(__name__)
+template_dir = os.path.join(os.path.dirname(__file__), "frontend", "templates") if os.path.exists(os.path.join(os.path.dirname(__file__), "frontend", "templates")) else "templates"
+static_dir = os.path.join(os.path.dirname(__file__), "frontend", "static") if os.path.exists(os.path.join(os.path.dirname(__file__), "frontend", "static")) else "static"
+app = Flask(__name__, template_folder=template_dir, static_folder=static_dir)
 
 # Configure Database URI (PostgreSQL with SQLite fallback)
 db_url = os.environ.get("DATABASE_URL") or "sqlite:///" + os.path.join(app.root_path, "tracker.db")
@@ -610,6 +619,7 @@ def unified_page():
 
 
 @app.route("/recruiters")
+@app.route("/recruiter-radar")
 def recruiters_page():
     return render_template("recruiters.html")
 
@@ -823,6 +833,8 @@ def search_recruiters_api():
         skills = data.get("skills", [])
         user_name = data.get("user_name", "Applicant")
 
+        limit = int(data.get("limit", 25))
+
         if not company:
             return jsonify({"error": "Please enter a company name"}), 400
 
@@ -831,7 +843,8 @@ def search_recruiters_api():
             target_keyword=target_keyword,
             location=location,
             user_skills=skills,
-            user_name=user_name
+            user_name=user_name,
+            limit=limit
         )
         return jsonify({"success": True, "data": result})
     except Exception as e:
