@@ -264,6 +264,8 @@ async def scrape_recruiters_async(company: str, keywords: list = None, location:
                             relevance = calculate_relevance_score(title, snippet_raw, comp_clean, user_kws)
 
                             seen_links.add(clean_url)
+                            xray_query = f'site:linkedin.com/in/ "{name}" "{comp_clean}"'
+                            encoded_xray = urllib.parse.quote(xray_query)
                             all_profiles.append({
                                 "name": name,
                                 "position": title,
@@ -277,8 +279,8 @@ async def scrape_recruiters_async(company: str, keywords: list = None, location:
                                 "profile_url": clean_url,
                                 "direct_profile_url": clean_url,
                                 "company_people_url": company_people_url,
-                                "google_xray_url": f"https://www.google.com/search?q={urllib.parse.quote(f'site:linkedin.com/in/ \"{name}\" \"{comp_clean}\"')}",
-                                "bing_xray_url": f"https://www.bing.com/search?q={urllib.parse.quote(f'site:linkedin.com/in/ \"{name}\" \"{comp_clean}\"')}",
+                                "google_xray_url": f"https://www.google.com/search?q={encoded_xray}",
+                                "bing_xray_url": f"https://www.bing.com/search?q={encoded_xray}",
                                 "snippet": snippet_raw[:280]
                             })
 
