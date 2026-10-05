@@ -1,0 +1,19 @@
+# ==============================================================================
+# WATERMARK: Rajpal Singh Tanwar
+# Copyright (c) 2026 Rajpal Singh Tanwar. All rights reserved.
+# ==============================================================================
+
+venv/
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.git/
+.gitignore
+.env
+.claude/
+_naukri_profile/
+_foundit_profile/
+_indeed_profile/
+*.log

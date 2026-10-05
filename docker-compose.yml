@@ -1,0 +1,30 @@
+# ==============================================================================
+# WATERMARK: Rajpal Singh Tanwar
+# Copyright (c) 2026 Rajpal Singh Tanwar. All rights reserved.
+# Job Radar & Recruiter Radar — Docker Compose Production Stack
+# ==============================================================================
+
+version: '3.8'
+
+services:
+  jobradar:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: jobradar_app
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      - PORT=5000
+      - FLASK_ENV=production
+      - ALERT_RECIPIENT_EMAIL=${ALERT_RECIPIENT_EMAIL:-rajpaltanwar2608@gmail.com}
+      - SMTP_HOST=${SMTP_HOST:-smtp.gmail.com}
+      - SMTP_PORT=${SMTP_PORT:-587}
+      - SMTP_USER=${SMTP_USER}
+      - SMTP_PASSWORD=${SMTP_PASSWORD}
+      - DAILY_DIGEST_TIME=${DAILY_DIGEST_TIME:-08:00}
+      - DAILY_DIGEST_JOB_LIMIT=${DAILY_DIGEST_JOB_LIMIT:-50}
+    volumes:
+      - ./data:/app/data
+      - ./tracker.db:/app/tracker.db

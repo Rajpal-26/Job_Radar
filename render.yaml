@@ -1,0 +1,38 @@
+# ==============================================================================
+# WATERMARK: Rajpal Singh Tanwar
+# Copyright (c) 2026 Rajpal Singh Tanwar. All rights reserved.
+# Job Radar & Recruiter Radar — Render Blueprint Configuration
+# ==============================================================================
+
+services:
+  - type: web
+    name: job-radar
+    runtime: docker
+    plan: starter
+    region: singapore
+    branch: main
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /
+    envVars:
+      - key: PORT
+        value: 5000
+      - key: FLASK_ENV
+        value: production
+      - key: ALERT_RECIPIENT_EMAIL
+        value: rajpaltanwar2608@gmail.com
+      - key: SMTP_HOST
+        value: smtp.gmail.com
+      - key: SMTP_PORT
+        value: 587
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASSWORD
+        sync: false
+      - key: DAILY_DIGEST_TIME
+        value: "08:00"
+      - key: DAILY_DIGEST_JOB_LIMIT
+        value: "50"
+    disk:
+      name: jobradar-data
+      mountPath: /app/data
+      sizeGB: 1
