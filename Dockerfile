@@ -41,5 +41,6 @@ EXPOSE 5000
 EXPOSE 10000
 
 # Run with high-concurrency Gunicorn WSGI server binding dynamically to Render's $PORT
-CMD ["sh", "-c", "gunicorn --bind 0.0.0.0:${PORT:-5000} --workers 2 --threads 4 --timeout 120 app:app"]
+CMD ["sh", "-c", "gunicorn --bind 0.0.0.0:${PORT:-10000} --workers 1 --threads 4 --timeout 180 --worker-class gthread app:app"]
+
 
