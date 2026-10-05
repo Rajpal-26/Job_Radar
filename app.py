@@ -96,6 +96,12 @@ def home():
     return render_template("landing.html")
 
 
+@app.route("/healthz")
+@app.route("/health")
+def health():
+    return jsonify({"status": "healthy", "service": "JobRadar", "version": "2.0.0"}), 200
+
+
 @app.route("/favicon.ico")
 def favicon():
     return send_file(
