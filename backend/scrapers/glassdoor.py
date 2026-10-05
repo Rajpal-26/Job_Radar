@@ -177,7 +177,7 @@ def scrape_glassdoor(role, from_age_days=1, limit=10, locations=None,
             "--no-default-browser-check",
             "--headless=new",
         ]
-        browser = p.chromium.launch(headless=False, args=args)
+        browser = p.chromium.launch(headless=True, args=args)
         context = browser.new_context(
             viewport={"width": 1366, "height": 768},
             locale="en-IN",

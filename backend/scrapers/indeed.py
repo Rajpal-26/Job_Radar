@@ -84,6 +84,10 @@ def _build_url(role, location, fromage_days, start=0, experience=None):
 from scrapers.stealth_driver import create_stealth_context, STEALTH_JS
 
 def _launch(p, headless):
+    # Enforce headless mode on Linux servers without X11 DISPLAY
+    if not headless and sys.platform.startswith("linux") and not os.environ.get("DISPLAY"):
+        headless = True
+
     args = [
         "--no-sandbox",
         "--disable-setuid-sandbox",

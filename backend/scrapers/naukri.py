@@ -169,7 +169,7 @@ def scrape_naukri(role, city="Bengaluru", job_age_days=7, limit=10, experience=N
         try:
             ctx = p.chromium.launch_persistent_context(
                 user_dir,
-                headless=False,                  # Playwright doesn't add HeadlessChrome
+                headless=True,
                 viewport={"width": 1366, "height": 900},
                 user_agent=(
                     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
