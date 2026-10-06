@@ -635,6 +635,12 @@ def tracker_page():
     return render_template("tracker.html")
 
 
+@app.route("/auto-apply")
+@app.route("/autoapply")
+def auto_apply_page():
+    return render_template("auto_apply.html")
+
+
 @app.route("/history")
 @app.route("/applied-history")
 def history_page():
