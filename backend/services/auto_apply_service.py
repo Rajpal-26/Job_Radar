@@ -4,7 +4,7 @@
 # ==============================================================================
 
 """
-JobRadar - Multi-Portal Intelligent Auto-Apply Engine
+JobRadar / ApplyCove - Multi-Portal Intelligent Auto-Apply & Automation Engine
 Author: Rajpal Singh Tanwar
 Copyright (c) 2026 Rajpal Singh Tanwar. All rights reserved.
 
@@ -16,18 +16,20 @@ Comprehensive automated application pipeline supporting:
 - Foundit / Monster (Quick Apply)
 - Apna (Direct One-Tap Apply)
 - Shine (FastTrack Apply)
-- Hirist (1-Click Tech Apply)
-- ATS Portals (Greenhouse, Lever, Workday, Taleo, Ashby)
+- Hirist (1-Click Tech Match)
+- Enterprise ATS Portals (Greenhouse, Lever, Workday, Ashby, iCIMS, Rippling)
 """
 
 import os
 import time
 import json
+import random
 import logging
 from datetime import datetime
 from models.database import db
 from models.saved_job import SavedJob
 from models.candidate_profile import CandidateProfile
+from models.auto_apply_schedule import AutoApplySchedule
 from services import ai_form_filler
 
 logging.basicConfig(level=logging.INFO)
@@ -40,92 +42,149 @@ PORTAL_AUTOMATION_PROFILES = {
         "mode": "Easy Apply Engine",
         "supports_direct_submit": True,
         "avg_duration_sec": 1.8,
-        "screening_support": True
+        "screening_support": True,
+        "ats_type": "native_easy_apply"
     },
     "indeed": {
         "name": "Indeed",
         "mode": "1-Click Apply",
         "supports_direct_submit": True,
         "avg_duration_sec": 1.5,
-        "screening_support": True
+        "screening_support": True,
+        "ats_type": "native_easy_apply"
     },
     "naukri": {
         "name": "Naukri",
         "mode": "FastTrack 1-Click",
         "supports_direct_submit": True,
         "avg_duration_sec": 1.2,
-        "screening_support": True
+        "screening_support": True,
+        "ats_type": "native_easy_apply"
     },
     "glassdoor": {
         "name": "Glassdoor",
         "mode": "Easy Apply & Redirect Bridge",
         "supports_direct_submit": True,
         "avg_duration_sec": 1.6,
-        "screening_support": True
+        "screening_support": True,
+        "ats_type": "native_easy_apply"
     },
     "foundit": {
         "name": "Foundit",
         "mode": "Quick Apply",
         "supports_direct_submit": True,
         "avg_duration_sec": 1.4,
-        "screening_support": True
+        "screening_support": True,
+        "ats_type": "native_easy_apply"
     },
     "apna": {
         "name": "Apna",
         "mode": "1-Tap Direct Apply",
         "supports_direct_submit": True,
         "avg_duration_sec": 1.1,
-        "screening_support": False
+        "screening_support": False,
+        "ats_type": "native_easy_apply"
     },
     "shine": {
         "name": "Shine",
         "mode": "FastForward Apply",
         "supports_direct_submit": True,
         "avg_duration_sec": 1.3,
-        "screening_support": True
+        "screening_support": True,
+        "ats_type": "native_easy_apply"
     },
     "hirist": {
         "name": "Hirist",
         "mode": "1-Click Tech Match",
         "supports_direct_submit": True,
         "avg_duration_sec": 1.2,
-        "screening_support": True
+        "screening_support": True,
+        "ats_type": "native_easy_apply"
+    },
+    "greenhouse": {
+        "name": "Greenhouse ATS",
+        "mode": "Direct API / DOM Ingestion",
+        "supports_direct_submit": True,
+        "avg_duration_sec": 1.9,
+        "screening_support": True,
+        "ats_type": "greenhouse"
+    },
+    "lever": {
+        "name": "Lever ATS",
+        "mode": "Direct API / DOM Ingestion",
+        "supports_direct_submit": True,
+        "avg_duration_sec": 1.7,
+        "screening_support": True,
+        "ats_type": "lever"
+    },
+    "workday": {
+        "name": "Workday CXS",
+        "mode": "Multi-Step Form Agent",
+        "supports_direct_submit": True,
+        "avg_duration_sec": 2.4,
+        "screening_support": True,
+        "ats_type": "workday"
+    },
+    "ashby": {
+        "name": "Ashby GraphQL",
+        "mode": "GraphQL Payload Agent",
+        "supports_direct_submit": True,
+        "avg_duration_sec": 1.6,
+        "screening_support": True,
+        "ats_type": "ashby"
+    },
+    "icims": {
+        "name": "iCIMS / Rippling",
+        "mode": "Career Portal Bridge",
+        "supports_direct_submit": True,
+        "avg_duration_sec": 2.2,
+        "screening_support": True,
+        "ats_type": "icims"
     },
     "ats": {
-        "name": "Direct ATS (Workday/Greenhouse/Lever)",
-        "mode": "Smart Form Autofill Bridge",
+        "name": "Enterprise ATS",
+        "mode": "Universal Form Autofill Bridge",
         "supports_direct_submit": True,
         "avg_duration_sec": 2.0,
-        "screening_support": True
+        "screening_support": True,
+        "ats_type": "custom"
     }
 }
 
 
 def detect_portal(url="", portal_hint=""):
-    """Identify portal key from URL or supplied hint string."""
+    """Identify portal key and ATS type from URL or supplied hint string."""
     hint = (portal_hint or "").lower().strip()
     if hint in PORTAL_AUTOMATION_PROFILES:
         return hint
     
     url_lower = (url or "").lower()
-    if "linkedin.com" in url_lower:
+    if "greenhouse.io" in url_lower or "greenhouse" in hint:
+        return "greenhouse"
+    elif "lever.co" in url_lower or "lever" in hint:
+        return "lever"
+    elif "myworkdayjobs.com" in url_lower or "workday" in url_lower or "workday" in hint:
+        return "workday"
+    elif "ashbyhq.com" in url_lower or "ashby" in hint:
+        return "ashby"
+    elif "icims.com" in url_lower or "rippling.com" in url_lower or "icims" in hint:
+        return "icims"
+    elif "linkedin.com" in url_lower or "linkedin" in hint:
         return "linkedin"
-    elif "indeed.com" in url_lower:
+    elif "indeed.com" in url_lower or "indeed" in hint:
         return "indeed"
-    elif "naukri.com" in url_lower:
+    elif "naukri.com" in url_lower or "naukri" in hint:
         return "naukri"
-    elif "glassdoor." in url_lower:
+    elif "glassdoor." in url_lower or "glassdoor" in hint:
         return "glassdoor"
-    elif "foundit.in" in url_lower or "monsterindia" in url_lower:
+    elif "foundit.in" in url_lower or "monsterindia" in url_lower or "foundit" in hint:
         return "foundit"
-    elif "apna.co" in url_lower:
+    elif "apna.co" in url_lower or "apna" in hint:
         return "apna"
-    elif "shine.com" in url_lower:
+    elif "shine.com" in url_lower or "shine" in hint:
         return "shine"
-    elif "hirist." in url_lower:
+    elif "hirist." in url_lower or "hirist" in hint:
         return "hirist"
-    elif any(ats in url_lower for ats in ["greenhouse.io", "lever.co", "myworkdayjobs.com", "taleo.net", "ashbyhq.com"]):
-        return "ats"
     
     return "ats"
 
@@ -171,21 +230,126 @@ def extract_jd_components(job_description, job_title="", company=""):
     }
 
 
+def tailor_resume_for_job(job_data, candidate_profile):
+    """
+    Generate dynamic tailored resume text and highlighted keywords for a specific JD.
+    """
+    title = job_data.get("Job Title") or job_data.get("job_title") or "Software Engineer"
+    company = job_data.get("Company") or job_data.get("company") or "Tech Company"
+    desc = job_data.get("Description") or job_data.get("description") or ""
+
+    profile_skills = candidate_profile.get("skills", ["Python", "SQL", "FastAPI", "Docker", "Git"])
+    ats_result = ai_form_filler.calculate_ats_match(title, desc, profile_skills)
+
+    missing_keywords = ats_result.get("missing_keywords", [])
+    matched_skills = ats_result.get("matched_skills", profile_skills)
+
+    tailored_summary = (
+        f"Results-driven {title} with proven expertise in {', '.join(matched_skills[:4])}. "
+        f"Dedicated to building scalable software solutions and high-performance backend architectures at {company}. "
+        f"Strong analytical mindset with background in microservices, database optimization, and CI/CD automation."
+    )
+
+    tailored_highlights = [
+        f"Architected scalable backend services matching core {title} requirements using {matched_skills[0] if matched_skills else 'Python'}.",
+        f"Designed and deployed secure REST APIs and PostgreSQL integrations achieving sub-100ms response times.",
+        f"Optimized containerized microservice workflows using Docker, Git, and automated testing pipelines."
+    ]
+
+    return {
+        "tailored_summary": tailored_summary,
+        "matched_skills": matched_skills,
+        "highlighted_keywords": missing_keywords[:5],
+        "tailored_highlights": tailored_highlights,
+        "target_company": company,
+        "target_role": title
+    }
+
+
+def resolve_form_fields(fields_detected, candidate_profile, job_data=None):
+    """
+    Resolve detected DOM form fields for Chrome Extension / Client-Side Agent.
+    Maps field names, labels, and types into profile attributes and synthesized answers.
+    """
+    resolved_values = {}
+    p = candidate_profile or {}
+    job = job_data or {}
+    
+    first_name = (p.get("full_name", "").split(" ")[0]) if p.get("full_name") else "Candidate"
+    last_name = (" ".join(p.get("full_name", "").split(" ")[1:])) if len(p.get("full_name", "").split(" ")) > 1 else "Applicant"
+
+    for field in fields_detected:
+        fid = field.get("id") or field.get("name") or field.get("selector") or ""
+        label = (field.get("label") or field.get("placeholder") or fid).lower()
+        ftype = (field.get("type") or "text").lower()
+
+        # Match name fields
+        if any(k in label for k in ["first name", "firstname", "fname"]):
+            resolved_values[fid] = first_name
+        elif any(k in label for k in ["last name", "lastname", "lname"]):
+            resolved_values[fid] = last_name
+        elif any(k in label for k in ["full name", "fullname", "name"]):
+            resolved_values[fid] = p.get("full_name", "Job Candidate")
+        # Email
+        elif any(k in label for k in ["email", "e-mail"]):
+            resolved_values[fid] = p.get("email", "candidate@jobradar.local")
+        # Phone
+        elif any(k in label for k in ["phone", "mobile", "contact", "cell"]):
+            resolved_values[fid] = p.get("phone", "+91 9876543210")
+        # Location / City
+        elif any(k in label for k in ["location", "city", "address"]):
+            resolved_values[fid] = p.get("location", "Bengaluru, India")
+        # URLs
+        elif "linkedin" in label:
+            resolved_values[fid] = p.get("linkedin_url", "https://linkedin.com/in/candidate")
+        elif "github" in label:
+            resolved_values[fid] = p.get("github_url", "https://github.com/candidate")
+        elif any(k in label for k in ["portfolio", "website", "url"]):
+            resolved_values[fid] = p.get("portfolio_url", p.get("github_url", "https://jobradar.io"))
+        # Experience
+        elif any(k in label for k in ["experience", "years of exp", "yoe"]):
+            resolved_values[fid] = "2" if "year" in label else p.get("experience_level", "1-3 Years")
+        # CTC / Salary
+        elif any(k in label for k in ["expected ctc", "salary expectation", "expected salary"]):
+            resolved_values[fid] = p.get("expected_ctc", "8-14 LPA")
+        elif any(k in label for k in ["current ctc", "current salary"]):
+            resolved_values[fid] = p.get("current_ctc", "6-10 LPA")
+        # Notice Period
+        elif any(k in label for k in ["notice period", "availability", "how soon"]):
+            resolved_values[fid] = p.get("notice_period", "Immediate / 15 Days")
+        # Work Authorization / Sponsorship
+        elif any(k in label for k in ["authorized to work", "legally authorized"]):
+            resolved_values[fid] = "Yes"
+        elif any(k in label for k in ["sponsorship", "require visa", "require sponsorship"]):
+            resolved_values[fid] = "No"
+        # Generic / Custom Question resolution via AI
+        elif ftype in ["textarea", "text"] and len(label) > 15:
+            ans = ai_form_filler.solve_screening_question(
+                question_text=field.get("label") or label,
+                candidate_profile=p,
+                job_title=job.get("job_title", "Software Engineer"),
+                company=job.get("company", "Company")
+            )
+            resolved_values[fid] = ans
+        else:
+            resolved_values[fid] = ""
+
+    return {
+        "success": True,
+        "resolved_fields": resolved_values,
+        "resume_filename": p.get("resume_filename", "Primary_Resume.pdf"),
+        "cover_letter": ai_form_filler.generate_tailored_cover_letter(
+            candidate_profile=p,
+            job_title=job.get("job_title", "Software Engineer"),
+            company_name=job.get("company", "Tech Company"),
+            job_description=job.get("description", "")
+        )
+    }
+
+
 def execute_auto_apply(job_data, custom_answers=None):
     """
     Execute end-to-end auto application for a scraped job listing.
-    
-    Steps performed:
-    1. Extract and normalize job parameters (title, company, link, location, portal).
-    2. Retrieve latest CandidateProfile or create baseline profile.
-    3. Calculate real-time ATS match score and extract skill overlap.
-    4. Auto-generate tailored cover letter for this specific role and company.
-    5. Resolve typical employer screening questions using AI solver.
-    6. Extract structured JD, roles, responsibilities, and benefits.
-    7. Execute portal submission simulation / payload dispatch.
-    8. Persist record into Applied History (SavedJob with status='Applied').
-    
-    Returns structured execution result dict with application confirmation details.
     """
     title = (job_data.get("Job Title") or job_data.get("job_title") or job_data.get("title") or "Software Engineer").strip()
     company = (job_data.get("Company") or job_data.get("company") or "Tech Organization").strip()
@@ -259,36 +423,36 @@ def execute_auto_apply(job_data, custom_answers=None):
             if qa["question"] in custom_answers:
                 qa["answer"] = custom_answers[qa["question"]]
 
-    # 6. Simulate portal application handshake
-    app_timestamp = datetime.utcnow()
-    application_id = f"JR-APP-{int(app_timestamp.timestamp())}-{abs(hash(title+company)) % 10000:04d}"
+    # 6. Simulate Realistic Jitter Automation Dispatch Delay
+    jitter_sec = round(random.uniform(0.15, 0.45), 2)
+    time.sleep(jitter_sec)
 
-    # 7. Save or Update in SavedJob DB with 'Applied' status
+    application_id = f"APP-{portal_key.upper()[:3]}-{int(time.time()*1000)%1000000:06d}"
+
+    # 7. Check if already exists in SavedJob to prevent duplicates
     existing_job = SavedJob.query.filter_by(link=link).first()
-    notes_payload = json.dumps({
+    
+    notes_payload = {
         "application_id": application_id,
-        "applied_via": portal_cfg["name"],
         "portal_mode": portal_cfg["mode"],
-        "applied_at": app_timestamp.strftime("%Y-%m-%d %H:%M:%S UTC"),
-        "resume_used": profile_dict.get("resume_filename", "Primary_Resume.pdf"),
-        "candidate_name": profile_dict.get("full_name", "Applicant"),
-        "candidate_email": profile_dict.get("email", ""),
-        "candidate_phone": profile_dict.get("phone", ""),
-        "matched_skills": ats_result.get("matched_skills", []),
-        "missing_skills": ats_result.get("missing_skills", []),
-        "full_jd": jd_components.get("full_jd", description),
-        "responsibilities": jd_components.get("responsibilities", []),
-        "requirements": jd_components.get("requirements", []),
-        "benefits": jd_components.get("benefits", []),
-        "screening_qa": screening_qa
-    })
+        "ats_type": portal_cfg["ats_type"],
+        "screening_qa": screening_qa,
+        "responsibilities": jd_components["responsibilities"],
+        "requirements": jd_components["requirements"],
+        "benefits": jd_components["benefits"],
+        "full_jd": jd_components["full_jd"] or description,
+        "matched_skills": ats_result.get("matched_skills", skills[:4]),
+        "missing_keywords": ats_result.get("missing_keywords", []),
+        "applied_timestamp": datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
+    }
 
     if existing_job:
         existing_job.status = "Applied"
         existing_job.match_score = match_score
-        existing_job.notes = notes_payload
         existing_job.cover_letter = cover_letter
-        job_record_id = existing_job.id
+        existing_job.notes = json.dumps(notes_payload)
+        db.session.commit()
+        db_job = existing_job
     else:
         new_job = SavedJob(
             job_title=title,
@@ -299,161 +463,82 @@ def execute_auto_apply(job_data, custom_answers=None):
             salary=salary,
             status="Applied",
             match_score=match_score,
-            notes=notes_payload,
             cover_letter=cover_letter,
-            created_at=app_timestamp
+            notes=json.dumps(notes_payload)
         )
         db.session.add(new_job)
-        db.session.flush()
-        job_record_id = new_job.id
-
-    db.session.commit()
-
-    logger.info(f"Successfully Auto-Applied to {title} at {company} ({portal_cfg['name']}) [App ID: {application_id}]")
+        db.session.commit()
+        db_job = new_job
 
     return {
         "success": True,
         "application_id": application_id,
-        "job_id": job_record_id,
+        "job_id": db_job.id,
         "job_title": title,
         "company": company,
-        "location": location,
         "platform": portal_cfg["name"],
-        "portal_mode": portal_cfg["mode"],
-        "link": link,
-        "status": "Applied",
+        "portal_key": portal_key,
+        "ats_type": portal_cfg["ats_type"],
         "match_score": match_score,
-        "matched_skills": ats_result.get("matched_skills", []),
-        "applied_at": app_timestamp.strftime("%Y-%m-%d %H:%M:%S"),
-        "resume_name": profile_dict.get("resume_filename", "Primary_Resume.pdf"),
-        "cover_letter_preview": cover_letter[:250] + "...",
-        "screening_questions_solved": len(screening_qa),
-        "message": f"Auto-applied successfully to {company} via {portal_cfg['name']}!"
+        "status": "Applied",
+        "duration_sec": jitter_sec,
+        "cover_letter": cover_letter,
+        "responsibilities": jd_components["responsibilities"],
+        "benefits": jd_components["benefits"],
+        "screening_qa": screening_qa,
+        "applied_at": datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
     }
 
 
-def execute_batch_auto_apply(job_list, delay_seconds=0.5):
+def run_scheduled_automation(schedule_id):
     """
-    Execute sequential auto-apply over an array of jobs with throttle delay to emulate human behavior.
+    Execute a scheduled auto-apply batch for a specific schedule rule.
     """
-    results = []
-    success_count = 0
-    fail_count = 0
+    schedule = AutoApplySchedule.query.get(schedule_id)
+    if not schedule or not schedule.is_active:
+        return {"success": False, "error": "Schedule not found or inactive"}
 
-    for idx, job in enumerate(job_list):
+    logger.info(f"Triggering scheduled automation: {schedule.name} (Role: {schedule.target_role})")
+    
+    # Run dynamic scrape
+    from scrapers import unified_scraper
+    scraped_jobs = unified_scraper.search_all_portals(
+        role=schedule.target_role,
+        locations=schedule.locations or ["Bengaluru", "Remote"],
+        min_salary=schedule.min_salary or "8 LPA"
+    )
+
+    applied_count = 0
+    errors = []
+
+    # Get already applied job links to avoid duplicate applies
+    applied_links = set(j.link for j in SavedJob.query.filter_by(status='Applied').all())
+
+    for j in scraped_jobs:
+        link = j.get("Link") or j.get("link")
+        if not link or link in applied_links:
+            continue
+
         try:
-            res = execute_auto_apply(job)
-            results.append(res)
+            res = execute_auto_apply(j)
             if res.get("success"):
-                success_count += 1
-            else:
-                fail_count += 1
-            
-            # Throttle between applications
-            if idx < len(job_list) - 1:
-                time.sleep(delay_seconds)
+                applied_count += 1
+                applied_links.add(link)
+                # Cap applications per scheduled run to respect rate limits
+                if applied_count >= 10:
+                    break
         except Exception as e:
-            logger.error(f"Error auto-applying to job {job.get('title', 'Unknown')}: {e}")
-            fail_count += 1
-            results.append({
-                "success": False,
-                "job_title": job.get("title") or job.get("Job Title") or "Unknown",
-                "company": job.get("company") or job.get("Company") or "Unknown",
-                "error": str(e)
-            })
+            errors.append(str(e))
+
+    schedule.last_run_at = datetime.utcnow()
+    schedule.last_applied_count = applied_count
+    schedule.last_run_status = f"Completed ({applied_count} applied)" if not errors else f"Completed with warnings ({applied_count} applied)"
+    db.session.commit()
 
     return {
-        "total": len(job_list),
-        "successful": success_count,
-        "failed": fail_count,
-        "results": results
-    }
-
-
-def get_applied_history(search_query="", portal_filter="", status_filter=""):
-    """
-    Retrieve all job applications with status 'Applied', 'Under Review', 'Interview Scheduled', 'Offer', 'Rejected'
-    or any saved job from database, formatted with full metadata for Applied History page.
-    """
-    query = SavedJob.query
-
-    if status_filter and status_filter.lower() != "all":
-        query = query.filter(SavedJob.status.ilike(f"%{status_filter}%"))
-    
-    if portal_filter and portal_filter.lower() != "all":
-        query = query.filter(SavedJob.platform.ilike(f"%{portal_filter}%"))
-
-    if search_query:
-        search = f"%{search_query}%"
-        query = query.filter(
-            (SavedJob.job_title.ilike(search)) |
-            (SavedJob.company.ilike(search)) |
-            (SavedJob.location.ilike(search))
-        )
-
-    jobs = query.order_by(SavedJob.created_at.desc()).all()
-    history = []
-
-    for j in jobs:
-        meta = {}
-        if j.notes:
-            try:
-                meta = json.loads(j.notes)
-            except Exception:
-                meta = {"raw_notes": j.notes}
-
-        history.append({
-            "id": j.id,
-            "job_title": j.job_title,
-            "company": j.company,
-            "location": j.location,
-            "link": j.link,
-            "platform": j.platform,
-            "salary": j.salary or "Not Disclosed",
-            "status": j.status,
-            "match_score": j.match_score,
-            "cover_letter": j.cover_letter,
-            "applied_at": meta.get("applied_at") or (j.created_at.strftime("%Y-%m-%d %H:%M:%S") if j.created_at else "Recently"),
-            "application_id": meta.get("application_id", f"JR-APP-{j.id}"),
-            "resume_used": meta.get("resume_used", "Primary_Resume.pdf"),
-            "candidate_name": meta.get("candidate_name", "Applicant"),
-            "candidate_email": meta.get("candidate_email", ""),
-            "candidate_phone": meta.get("candidate_phone", ""),
-            "matched_skills": meta.get("matched_skills", []),
-            "missing_skills": meta.get("missing_skills", []),
-            "full_jd": meta.get("full_jd", ""),
-            "responsibilities": meta.get("responsibilities", []),
-            "requirements": meta.get("requirements", []),
-            "benefits": meta.get("benefits", []),
-            "screening_qa": meta.get("screening_qa", [])
-        })
-
-    return history
-
-
-def get_application_analytics():
-    """Calculate summary metrics for applied history dashboard."""
-    total_jobs = SavedJob.query.count()
-    applied_count = SavedJob.query.filter(SavedJob.status.in_(["Applied", "Under Review", "Interview Scheduled", "Offer"])).count()
-    interview_count = SavedJob.query.filter_by(status="Interview Scheduled").count()
-    offer_count = SavedJob.query.filter_by(status="Offer").count()
-    
-    # Platform distribution
-    jobs = SavedJob.query.all()
-    portal_counts = {}
-    total_score = 0
-    for j in jobs:
-        p = j.platform or "Other"
-        portal_counts[p] = portal_counts.get(p, 0) + 1
-        total_score += (j.match_score or 75)
-
-    avg_score = round(total_score / total_jobs) if total_jobs > 0 else 82
-
-    return {
-        "total_saved": total_jobs,
-        "total_applied": applied_count,
-        "interview_scheduled": interview_count,
-        "offers_received": offer_count,
-        "average_match_score": avg_score,
-        "portal_breakdown": portal_counts
+        "success": True,
+        "schedule_id": schedule.id,
+        "schedule_name": schedule.name,
+        "applied_count": applied_count,
+        "status": schedule.last_run_status
     }

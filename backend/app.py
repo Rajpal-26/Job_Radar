@@ -1447,6 +1447,7 @@ def delete_applied_history_api(job_id):
 
 
 @app.route("/api/applied_history/export", methods=["GET"])
+@app.route("/api/applied_history/export", methods=["GET"])
 def export_applied_history_api():
     """Export complete application ledger to CSV for user download."""
     try:
@@ -1481,7 +1482,158 @@ def export_applied_history_api():
         return jsonify({"error": str(e), "success": False}), 500
 
 
+# ==============================================================================
+# RECURRING AUTOMATION SCHEDULER SUITE
+# ==============================================================================
 
+@app.route("/api/schedules", methods=["GET"])
+def get_schedules_api():
+    """Retrieve all recurring auto-apply schedules."""
+    try:
+        from models.auto_apply_schedule import AutoApplySchedule
+        schedules = AutoApplySchedule.query.order_by(AutoApplySchedule.created_at.desc()).all()
+        return jsonify({"success": True, "schedules": [s.to_dict() for s in schedules]})
+    except Exception as e:
+        return jsonify({"error": str(e), "success": False}), 500
+
+
+@app.route("/api/schedules/create", methods=["POST"])
+def create_schedule_api():
+    """Create a new recurring auto-apply automation schedule."""
+    try:
+        from models.auto_apply_schedule import AutoApplySchedule
+        data = request.json or {}
+        new_sched = AutoApplySchedule(
+            name=data.get("name") or "Daily Career Scan",
+            platform=data.get("platform") or "All",
+            target_role=data.get("target_role") or "Python Developer",
+            locations=data.get("locations") or ["Bengaluru", "Remote"],
+            min_match_score=int(data.get("min_match_score", 75)),
+            min_salary=data.get("min_salary") or "8 LPA",
+            days_of_week=data.get("days_of_week") or ["Mon", "Tue", "Wed", "Thu", "Fri"],
+            runtime_minutes=int(data.get("runtime_minutes", 30)),
+            is_active=True
+        )
+        db.session.add(new_sched)
+        db.session.commit()
+        return jsonify({"success": True, "schedule": new_sched.to_dict()})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e), "success": False}), 500
+
+
+@app.route("/api/schedules/<int:schedule_id>/toggle", methods=["POST"])
+def toggle_schedule_api(schedule_id):
+    """Toggle active/paused state of a schedule."""
+    try:
+        from models.auto_apply_schedule import AutoApplySchedule
+        sched = AutoApplySchedule.query.get(schedule_id)
+        if not sched:
+            return jsonify({"error": "Schedule not found", "success": False}), 404
+        sched.is_active = not sched.is_active
+        db.session.commit()
+        return jsonify({"success": True, "is_active": sched.is_active})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e), "success": False}), 500
+
+
+@app.route("/api/schedules/<int:schedule_id>", methods=["DELETE"])
+def delete_schedule_api(schedule_id):
+    """Delete an automation schedule."""
+    try:
+        from models.auto_apply_schedule import AutoApplySchedule
+        sched = AutoApplySchedule.query.get(schedule_id)
+        if not sched:
+            return jsonify({"error": "Schedule not found", "success": False}), 404
+        db.session.delete(sched)
+        db.session.commit()
+        return jsonify({"success": True})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e), "success": False}), 500
+
+
+@app.route("/api/schedules/<int:schedule_id>/run_now", methods=["POST"])
+def run_schedule_now_api(schedule_id):
+    """Trigger immediate execution of a scheduled routine."""
+    try:
+        res = auto_apply_service.run_scheduled_automation(schedule_id)
+        return jsonify(res)
+    except Exception as e:
+        return jsonify({"error": str(e), "success": False}), 500
+
+
+# ==============================================================================
+# CHROME EXTENSION & FORM RESOLVER API
+# ==============================================================================
+
+@app.route("/api/extension/resolve_form", methods=["POST"])
+def extension_resolve_form_api():
+    """Resolve webpage DOM inputs for Chrome Extension Client-Side Agent."""
+    try:
+        data = request.json or {}
+        fields = data.get("fields", [])
+        page_title = data.get("page_title", "")
+        page_url = data.get("page_url", "")
+        
+        profile = CandidateProfile.query.first()
+        profile_dict = profile.to_dict() if profile else {}
+
+        res = auto_apply_service.resolve_form_fields(
+            fields_detected=fields,
+            candidate_profile=profile_dict,
+            job_data={"job_title": page_title, "link": page_url}
+        )
+        return jsonify(res)
+    except Exception as e:
+        return jsonify({"error": str(e), "success": False}), 500
+
+
+@app.route("/api/extension/download", methods=["GET"])
+def download_extension_zip_api():
+    """Pack and serve the JobRadar Chrome Extension as a downloadable zip archive."""
+    try:
+        import io
+        import zipfile
+        
+        ext_dir = os.path.join(app.root_path, "frontend", "extension")
+        memory_file = io.BytesIO()
+        
+        with zipfile.ZipFile(memory_file, "w", zipfile.ZIP_DEFLATED) as zf:
+            for root, dirs, files in os.walk(ext_dir):
+                for file in files:
+                    file_path = os.path.join(root, file)
+                    arc_name = os.path.relpath(file_path, ext_dir)
+                    zf.write(file_path, arc_name)
+                    
+        memory_file.seek(0)
+        return send_file(
+            memory_file,
+            mimetype="application/zip",
+            as_attachment=True,
+            download_name="JobRadar_Chrome_Extension_Agent.zip"
+        )
+    except Exception as e:
+        return jsonify({"error": str(e), "success": False}), 500
+
+
+# ==============================================================================
+# AI RESUME TAILORING API
+# ==============================================================================
+
+@app.route("/api/resume/tailor", methods=["POST"])
+def tailor_resume_api():
+    """Dynamically tailor candidate summary and keywords for a specific JD."""
+    try:
+        data = request.json or {}
+        profile = CandidateProfile.query.first()
+        profile_dict = profile.to_dict() if profile else {}
+        
+        tailored = auto_apply_service.tailor_resume_for_job(data, profile_dict)
+        return jsonify({"success": True, **tailored})
+    except Exception as e:
+        return jsonify({"error": str(e), "success": False}), 500
 
 
 if __name__ == "__main__":
@@ -1489,5 +1641,6 @@ if __name__ == "__main__":
     print("  JobRadar Codebase Watermarked for Rajpal Singh Tanwar")
     print("="*60 + "\n")
     app.run(debug=True, use_reloader=False)
+
 
 
