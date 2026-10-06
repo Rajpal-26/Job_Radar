@@ -7,7 +7,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>JobRadar - 1-Click Multi-Portal Auto-Apply Studio</title>
+  <title>JobRadar - Autonomous Resume-Driven Auto-Apply Pipeline</title>
   <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -16,110 +16,137 @@
   <script src="{{ url_for('static', filename='theme.js') }}"></script>
   <script src="{{ url_for('static', filename='radar3d.js') }}" defer></script>
   <style>
-    .studio-container {
+    :root {
+      --primary-gradient: linear-gradient(135deg, #0a66c2 0%, #004182 100%);
+      --accent-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      --panel-glow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    }
+    
+    .pipeline-container {
       max-width: 1400px;
       margin: 0 auto;
       padding: 1.5rem;
     }
-    
-    .hero-banner {
-      background: var(--card-bg-gradient);
-      border: 1px solid var(--line);
-      border-radius: 1rem;
-      padding: 2rem;
-      margin-bottom: 1.5rem;
-      position: relative;
-      overflow: hidden;
-      box-shadow: var(--shadow);
+
+    /* Pipeline Step Tracker Wizard */
+    .wizard-steps {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
     }
-    
-    .profile-strip {
+
+    .wizard-step {
       background: var(--panel);
       border: 1px solid var(--line);
-      border-radius: 0.75rem;
+      border-radius: 0.85rem;
       padding: 1rem 1.25rem;
       display: flex;
-      justify-content: space-between;
       align-items: center;
-      flex-wrap: wrap;
-      gap: 1rem;
-      margin-bottom: 1.5rem;
+      gap: 0.85rem;
       box-shadow: var(--shadow);
+      position: relative;
+      transition: all 0.25s ease;
+    }
+    .wizard-step.active {
+      border-color: var(--primary);
+      background: linear-gradient(135deg, rgba(10, 102, 194, 0.08), rgba(16, 185, 129, 0.08));
+    }
+    .wizard-step.completed {
+      border-color: #10b981;
     }
 
-    .profile-info {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      flex-wrap: wrap;
-    }
-
-    .profile-avatar {
-      width: 44px;
-      height: 44px;
+    .step-number {
+      width: 32px;
+      height: 32px;
       border-radius: 50%;
-      background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
-      color: white;
+      background: var(--panel-soft);
+      border: 1px solid var(--line);
+      color: var(--subtext);
       font-weight: 800;
+      font-size: 0.88rem;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 1.1rem;
-      box-shadow: 0 4px 12px rgba(10, 102, 194, 0.3);
+      flex-shrink: 0;
+    }
+    .wizard-step.active .step-number {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+    .wizard-step.completed .step-number {
+      background: #10b981;
+      color: white;
+      border-color: #10b981;
     }
 
-    .control-panel {
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 1rem;
-      padding: 1.25rem 1.5rem;
-      margin-bottom: 1.5rem;
-      box-shadow: var(--shadow);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 1rem;
-    }
-
-    .btn-apply-all {
-      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-      color: #ffffff;
-      border: none;
-      padding: 0.75rem 1.75rem;
-      border-radius: 0.6rem;
+    .step-title {
       font-weight: 800;
-      font-size: 1rem;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 0.6rem;
-      box-shadow: 0 4px 18px rgba(16, 185, 129, 0.4);
-      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      font-size: 0.88rem;
+      color: var(--text);
+      line-height: 1.2;
     }
-    .btn-apply-all:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 24px rgba(16, 185, 129, 0.55);
-    }
-    .btn-apply-all:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-      transform: none;
+    .step-sub {
+      font-size: 0.75rem;
+      color: var(--subtext);
+      margin-top: 0.2rem;
     }
 
+    /* Stage 1: Resume Upload Card */
+    .resume-drop-zone {
+      border: 2px dashed var(--line);
+      border-radius: 1rem;
+      padding: 2rem 1.5rem;
+      text-align: center;
+      background: var(--panel-soft);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .resume-drop-zone:hover {
+      border-color: var(--primary);
+      background: rgba(10, 102, 194, 0.04);
+    }
+
+    .profile-meta-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-top: 1.25rem;
+    }
+    .meta-box {
+      background: var(--panel-soft);
+      border: 1px solid var(--line);
+      border-radius: 0.5rem;
+      padding: 0.75rem 1rem;
+    }
+    .meta-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--subtext);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.25rem;
+    }
+    .meta-val {
+      font-weight: 800;
+      font-size: 0.92rem;
+      color: var(--text);
+    }
+
+    /* Live Telemetry Console */
     .terminal-console {
       background: #090d16;
       border: 1px solid #1e293b;
-      border-radius: 0.75rem;
+      border-radius: 0.85rem;
       padding: 1.25rem;
-      margin-bottom: 1.5rem;
+      margin-bottom: 2rem;
       display: none;
       font-family: 'JetBrains Mono', monospace;
       color: #38bdf8;
       font-size: 0.85rem;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      box-shadow: 0 12px 36px rgba(0,0,0,0.5);
     }
-
     .terminal-header {
       display: flex;
       justify-content: space-between;
@@ -130,19 +157,15 @@
       color: #94a3b8;
       font-size: 0.8rem;
     }
-
     .terminal-logs {
-      max-height: 220px;
+      max-height: 240px;
       overflow-y: auto;
       display: flex;
       flex-direction: column;
-      gap: 0.35rem;
+      gap: 0.4rem;
       line-height: 1.5;
     }
-
-    .log-entry {
-      animation: fadeIn 0.2s ease-in;
-    }
+    .log-entry { animation: fadeIn 0.2s ease-in; }
     .log-success { color: #10b981; }
     .log-info { color: #38bdf8; }
     .log-warn { color: #f59e0b; }
@@ -153,7 +176,7 @@
       height: 8px;
       border-radius: 999px;
       overflow: hidden;
-      margin-top: 0.75rem;
+      margin-top: 0.85rem;
     }
     .progress-bar-inner {
       background: linear-gradient(90deg, #3b82f6, #10b981);
@@ -162,31 +185,33 @@
       transition: width 0.3s ease;
     }
 
+    /* Scraped Job Cards */
     .jobs-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
-      gap: 1.25rem;
+      grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+      gap: 1.5rem;
+      margin-top: 1.5rem;
     }
-
     .job-card-item {
       background: var(--panel);
       border: 1px solid var(--line);
-      border-radius: 0.85rem;
-      padding: 1.25rem;
+      border-radius: 1rem;
+      padding: 1.5rem;
       box-shadow: var(--shadow);
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      transition: all 0.2s;
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
       position: relative;
     }
     .job-card-item:hover {
       border-color: var(--primary);
-      transform: translateY(-2px);
+      transform: translateY(-3px);
+      box-shadow: 0 14px 28px rgba(0,0,0,0.15);
     }
     .job-card-item.applied-done {
       border-color: #10b981;
-      background: rgba(16, 185, 129, 0.03);
+      background: rgba(16, 185, 129, 0.04);
     }
 
     .portal-pill {
@@ -204,12 +229,68 @@
     .match-tag {
       font-size: 0.8rem;
       font-weight: 800;
-      padding: 0.2rem 0.6rem;
+      padding: 0.25rem 0.65rem;
       border-radius: 0.35rem;
     }
     .match-high { background: rgba(16, 185, 129, 0.15); color: #10b981; }
     .match-med { background: rgba(245, 158, 11, 0.15); color: #f59e0b; }
     .match-low { background: rgba(239, 68, 68, 0.15); color: #ef4444; }
+
+    .responsibilities-box {
+      background: var(--panel-soft);
+      border: 1px solid var(--line);
+      border-radius: 0.5rem;
+      padding: 0.75rem 1rem;
+      margin: 0.75rem 0;
+      font-size: 0.82rem;
+      color: var(--text);
+    }
+    .responsibilities-box ul {
+      margin: 0.25rem 0 0 0;
+      padding-left: 1.15rem;
+      line-height: 1.5;
+    }
+
+    .benefits-strip {
+      display: flex;
+      gap: 0.4rem;
+      flex-wrap: wrap;
+      margin: 0.5rem 0;
+    }
+    .benefit-tag {
+      font-size: 0.72rem;
+      font-weight: 700;
+      background: rgba(59, 130, 246, 0.1);
+      color: #3b82f6;
+      border: 1px solid rgba(59, 130, 246, 0.25);
+      padding: 0.15rem 0.45rem;
+      border-radius: 0.25rem;
+    }
+
+    .btn-apply-all {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      color: #ffffff;
+      border: none;
+      padding: 0.85rem 2rem;
+      border-radius: 0.6rem;
+      font-weight: 800;
+      font-size: 1rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      box-shadow: 0 4px 18px rgba(16, 185, 129, 0.4);
+      transition: all 0.25s ease;
+    }
+    .btn-apply-all:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 24px rgba(16, 185, 129, 0.55);
+    }
+    .btn-apply-all:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
 
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(4px); }
@@ -234,7 +315,7 @@
     </div>
     <div class="nav-tools">
       <a href="/history" class="nav-theme-btn" style="text-decoration: none; background: rgba(16, 185, 129, 0.15); border-color: rgba(16, 185, 129, 0.4); color: #10b981; font-weight: 700;">
-        <span>📜 Applied Ledger (<span id="topHistoryBadge">0</span>)</span>
+        <span>📜 Applied History (<span id="navHistoryCount">0</span>)</span>
       </a>
       <button class="nav-theme-btn" onclick="toggleTheme()" aria-label="Toggle theme">
         <span class="theme-icon">🌙</span>
@@ -243,64 +324,134 @@
     </div>
   </nav>
 
-  <div class="studio-container">
+  <div class="pipeline-container">
     
     <!-- Hero Banner -->
-    <div class="hero-banner">
+    <div style="background: var(--card-bg-gradient); border: 1px solid var(--line); border-radius: 1rem; padding: 2rem; margin-bottom: 2rem; box-shadow: var(--shadow);">
       <div style="display: inline-flex; align-items: center; gap: 0.5rem; background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.35); padding: 0.35rem 0.9rem; border-radius: 999px; font-weight: 800; font-size: 0.85rem; margin-bottom: 0.75rem;">
-        <span>⚡ 1-Click Multi-Portal Automated Submissions</span>
+        <span>⚡ Autonomous Multi-Portal Auto-Apply Pipeline</span>
       </div>
       <h1 style="font-size: 2.2rem; font-weight: 800; margin: 0 0 0.5rem 0; color: var(--text);">
-        AI Auto-Apply <span style="background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Command Center</span>
+        Resume-Driven <span style="background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Auto-Apply Pipeline</span>
       </h1>
-      <p style="color: var(--subtext); max-width: 820px; margin: 0; font-size: 1rem; line-height: 1.5;">
-        Instantly apply across all scraped job listings from LinkedIn, Indeed, Naukri, Glassdoor, Foundit, Apna, Shine, Hirist, and ATS portals. 
-        Each submission automatically resolves employer screening questions, calculates ATS keywords, generates a custom cover letter, and records full telemetry into your Applied History.
+      <p style="color: var(--subtext); max-width: 860px; margin: 0; font-size: 0.98rem; line-height: 1.6;">
+        Upload your resume once &rarr; JobRadar extracts your experience, keywords, and target roles &rarr; parallel scrapers search all 8+ portals &rarr; AI solves platform screening questions & generates custom cover letters &rarr; 1-click auto-applies to all matching jobs and logs complete dossiers into your Applied History.
       </p>
     </div>
 
-    <!-- Active Candidate Profile Strip -->
-    <div class="profile-strip">
-      <div class="profile-info">
-        <div class="profile-avatar" id="avatarLetter">R</div>
+    <!-- 4-Step Pipeline Wizard Tracker -->
+    <div class="wizard-steps">
+      <div class="wizard-step completed" id="stepIndicator1">
+        <div class="step-number">1</div>
         <div>
-          <div style="font-weight: 800; font-size: 1rem; color: var(--text);" id="profName">Candidate Name</div>
-          <div style="font-size: 0.82rem; color: var(--subtext);" id="profMeta">Python Developer • Fresher / 1 Year • Expected CTC: 8-14 LPA</div>
+          <div class="step-title">Resume & Profile</div>
+          <div class="step-sub">Keywords & Experience</div>
         </div>
       </div>
-      <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
-        <span style="font-size: 0.82rem; color: #10b981; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.25); padding: 0.3rem 0.7rem; border-radius: 0.4rem; font-weight: 700;">
-          📄 <span id="profResume">Primary_Resume.pdf</span>
-        </span>
-        <a href="/unified" style="text-decoration: none; padding: 0.45rem 0.9rem; background: var(--panel-soft); border: 1px solid var(--line); color: var(--text); border-radius: 0.4rem; font-size: 0.82rem; font-weight: 700;">
-          ⚙️ Edit Profile / Scan Portals
-        </a>
+      <div class="wizard-step active" id="stepIndicator2">
+        <div class="step-number">2</div>
+        <div>
+          <div class="step-title">Multi-Portal Scan</div>
+          <div class="step-sub">8+ Live Job Portals</div>
+        </div>
+      </div>
+      <div class="wizard-step" id="stepIndicator3">
+        <div class="step-number">3</div>
+        <div>
+          <div class="step-title">ATS & JD Review</div>
+          <div class="step-sub">Responsibilities & Perks</div>
+        </div>
+      </div>
+      <div class="wizard-step" id="stepIndicator4">
+        <div class="step-number">4</div>
+        <div>
+          <div class="step-title">Auto-Apply & Track</div>
+          <div class="step-sub">AI Q&A & Ledger Save</div>
+        </div>
       </div>
     </div>
 
-    <!-- Quick Scan / Re-Scrape Trigger Bar -->
-    <div style="background: var(--panel); border: 1px solid var(--line); border-radius: 0.85rem; padding: 1rem 1.25rem; margin-bottom: 1.5rem; display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; box-shadow: var(--shadow);">
-      <div style="flex: 2; min-width: 220px;">
-        <input type="text" id="quickRoleInput" placeholder="Role: Python Developer, Backend Engineer..." value="Python Developer" style="width: 100%; padding: 0.55rem 0.85rem; border-radius: 0.4rem; border: 1px solid var(--line); background: var(--panel-soft); color: var(--text); font-size: 0.88rem;" />
+    <!-- Step 1: Resume Upload & Profile Intelligence -->
+    <div class="app-card" style="margin-bottom: 2rem; padding: 1.5rem;">
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.25rem;">
+        <div>
+          <h2 style="font-size: 1.25rem; font-weight: 800; margin: 0; color: var(--text);">
+            📄 Step 1: Candidate Profile & Resume Ingestion
+          </h2>
+          <p style="font-size: 0.85rem; color: var(--subtext); margin: 0.25rem 0 0 0;">
+            Extracted attributes automatically power the dynamic multi-portal search and AI screening question answers.
+          </p>
+        </div>
+        <input type="file" id="resumeFileInput" accept=".pdf,.docx,.txt" style="display: none;" onchange="handleResumeUpload(event)" />
+        <button onclick="document.getElementById('resumeFileInput').click()" style="padding: 0.6rem 1.25rem; background: var(--primary); color: white; border: none; border-radius: 0.5rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 0.5rem;">
+          <span>📤 Upload New Resume (PDF / DOCX)</span>
+        </button>
       </div>
-      <div style="flex: 1.5; min-width: 180px;">
-        <input type="text" id="quickLocInput" placeholder="Location: Bengaluru, Remote..." value="Bengaluru, Remote" style="width: 100%; padding: 0.55rem 0.85rem; border-radius: 0.4rem; border: 1px solid var(--line); background: var(--panel-soft); color: var(--text); font-size: 0.88rem;" />
+
+      <div class="profile-meta-grid">
+        <div class="meta-box">
+          <div class="meta-label">Full Name & Contact</div>
+          <div class="meta-val" id="dispFullName">Candidate</div>
+          <div style="font-size: 0.78rem; color: var(--subtext); margin-top: 0.2rem;" id="dispContact">candidate@jobradar.local</div>
+        </div>
+        <div class="meta-box">
+          <div class="meta-label">Target Role & Title</div>
+          <div class="meta-val" id="dispTargetRole">Python Developer</div>
+          <div style="font-size: 0.78rem; color: var(--subtext); margin-top: 0.2rem;" id="dispExperience">Fresher / 1 Year</div>
+        </div>
+        <div class="meta-box">
+          <div class="meta-label">Notice Period & Expected CTC</div>
+          <div class="meta-val" id="dispCTC">8-14 LPA</div>
+          <div style="font-size: 0.78rem; color: var(--subtext); margin-top: 0.2rem;" id="dispNotice">Immediate / 15 Days</div>
+        </div>
+        <div class="meta-box">
+          <div class="meta-label">Active Resume File</div>
+          <div class="meta-val" style="color: #10b981;" id="dispResumeFile">Primary_Resume.pdf</div>
+          <div style="font-size: 0.78rem; color: var(--subtext); margin-top: 0.2rem;">Parsed with ATS Keyword Engine</div>
+        </div>
       </div>
-      <button onclick="triggerQuickScan()" id="btnScanQueue" style="padding: 0.55rem 1.25rem; background: var(--primary); color: white; border: none; border-radius: 0.4rem; font-weight: 700; font-size: 0.88rem; cursor: pointer; display: inline-flex; align-items: center; gap: 0.4rem;">
-        <span>🔍 Fetch / Re-Scrape Jobs</span>
-      </button>
+
+      <!-- Skills Taxonomy Tags -->
+      <div style="margin-top: 1.25rem;">
+        <div style="font-size: 0.8rem; font-weight: 700; color: var(--subtext); text-transform: uppercase; margin-bottom: 0.5rem;">
+          🎯 Extracted Technical Skills Taxonomy:
+        </div>
+        <div id="dispSkillsPills" style="display: flex; gap: 0.4rem; flex-wrap: wrap;">
+          <!-- Injected by JS -->
+        </div>
+      </div>
     </div>
 
-    <!-- Auto-Apply Batch Execution Control Center -->
-    <div class="control-panel">
-      <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
-        <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-weight: 700; font-size: 0.9rem; color: var(--text);">
+    <!-- Step 2 & 3: Dynamic Multi-Portal Trigger & Batch Execution Control -->
+    <div style="background: var(--panel); border: 1px solid var(--line); border-radius: 1rem; padding: 1.5rem; margin-bottom: 2rem; box-shadow: var(--shadow);">
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.25rem;">
+        <div>
+          <h2 style="font-size: 1.25rem; font-weight: 800; margin: 0; color: var(--text);">
+            🔍 Step 2 & 3: Scraped Jobs Queue & ATS Decomposition
+          </h2>
+          <p style="font-size: 0.85rem; color: var(--subtext); margin: 0.25rem 0 0 0;">
+            Jobs automatically scraped and ranked from LinkedIn, Indeed, Naukri, Glassdoor, Foundit, Apna, Shine, Hirist, and ATS.
+          </p>
+        </div>
+        <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+          <button id="btnRescrapePipeline" onclick="runResumeAutoScrape()" style="padding: 0.65rem 1.25rem; background: var(--panel-soft); border: 1px solid var(--line); color: var(--text); border-radius: 0.5rem; font-weight: 700; font-size: 0.88rem; cursor: pointer; display: inline-flex; align-items: center; gap: 0.4rem;">
+            <span>🚀 Re-Scan All 8+ Portals with Profile</span>
+          </button>
+          <button id="btnBatchApply" onclick="executeBatchAutoApply()" class="btn-apply-all">
+            <span>⚡ Auto-Apply to All Selected Jobs (<span id="batchCountBadge">0</span>)</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Filters & Queue Actions Bar -->
+      <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; padding-top: 1rem; border-top: 1px solid var(--line);">
+        <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-weight: 700; font-size: 0.88rem; color: var(--text);">
           <input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll(this.checked)" checked style="width: 18px; height: 18px; cursor: pointer;" />
-          <span>Select All (<span id="selectedJobsCount">0</span> Jobs)</span>
+          <span>Select All Jobs</span>
         </label>
-        
-        <select id="portalQueueFilter" onchange="filterQueue()" style="padding: 0.45rem 0.85rem; border-radius: 0.4rem; border: 1px solid var(--line); background: var(--panel-soft); color: var(--text); font-size: 0.85rem; font-weight: 600;">
-          <option value="all">🌐 All Scraped Portals</option>
+
+        <select id="portalFilter" onchange="renderQueue()" style="padding: 0.45rem 0.85rem; border-radius: 0.4rem; border: 1px solid var(--line); background: var(--panel-soft); color: var(--text); font-size: 0.85rem; font-weight: 600;">
+          <option value="all">🌐 All Integrated Portals</option>
           <option value="LinkedIn">LinkedIn</option>
           <option value="Indeed">Indeed</option>
           <option value="Naukri">Naukri</option>
@@ -309,29 +460,25 @@
           <option value="Apna">Apna</option>
           <option value="Shine">Shine</option>
           <option value="Hirist">Hirist</option>
+          <option value="Greenhouse">Direct ATS</option>
         </select>
 
-        <select id="minScoreFilter" onchange="filterQueue()" style="padding: 0.45rem 0.85rem; border-radius: 0.4rem; border: 1px solid var(--line); background: var(--panel-soft); color: var(--text); font-size: 0.85rem; font-weight: 600;">
+        <select id="minMatchFilter" onchange="renderQueue()" style="padding: 0.45rem 0.85rem; border-radius: 0.4rem; border: 1px solid var(--line); background: var(--panel-soft); color: var(--text); font-size: 0.85rem; font-weight: 600;">
           <option value="0">🎯 Any ATS Match Score</option>
-          <option value="70">🎯 70%+ Match Only</option>
           <option value="80">🎯 80%+ High Match Only</option>
           <option value="90">🎯 90%+ Top Match Only</option>
         </select>
       </div>
-
-      <button id="btnBatchApply" onclick="runBatchAutoApply()" class="btn-apply-all">
-        <span>⚡ Auto-Apply to All Selected Jobs</span>
-      </button>
     </div>
 
-    <!-- Live Animated Terminal & Telemetry Feed -->
+    <!-- Step 4: Live Telemetry Terminal & Progress Console -->
     <div id="terminalConsole" class="terminal-console">
       <div class="terminal-header">
-        <div><span>⚡ LIVE AUTO-APPLY TELEMETRY RUNNER</span></div>
+        <div><span>⚡ STEP 4: AUTONOMOUS MULTI-PORTAL AUTO-APPLY RUNNER</span></div>
         <div id="terminalStatusText">Initializing parallel worker...</div>
       </div>
       <div id="terminalLogs" class="terminal-logs">
-        <!-- Live logs injected here -->
+        <!-- Live stream logs -->
       </div>
       <div class="progress-track">
         <div id="progressBarInner" class="progress-bar-inner"></div>
@@ -339,132 +486,186 @@
     </div>
 
     <!-- Scraped Jobs Queue Container -->
-    <div id="queueEmptyState" style="display: none; text-align: center; padding: 4rem 2rem; background: var(--panel); border: 1px solid var(--line); border-radius: 1rem;">
-      <div style="font-size: 3rem; margin-bottom: 1rem;">🎯</div>
-      <h3 style="color: var(--text); margin-bottom: 0.5rem;">No scraped jobs in current queue</h3>
-      <p style="color: var(--subtext); max-width: 480px; margin: 0 auto 1.5rem;">
-        Click <strong>Fetch / Re-Scrape Jobs</strong> above to populate the queue across all 8+ job portals or run a search in Multi-Portal Search.
-      </p>
-      <button onclick="triggerQuickScan()" style="padding: 0.75rem 1.5rem; background: var(--primary); color: white; border: none; border-radius: 0.5rem; font-weight: 700; cursor: pointer;">
-        ⚡ Scan & Populate Queue Now
-      </button>
+    <div id="queueLoading" style="display: none; text-align: center; padding: 3rem; color: var(--subtext);">
+      <div class="radar-ping" style="margin: 0 auto 1rem;"></div>
+      <p>Scraping 8+ portals and calculating ATS keyword matches...</p>
     </div>
 
     <div id="jobsQueueGrid" class="jobs-grid">
-      <!-- Injected by JS -->
+      <!-- Populated by JS -->
     </div>
 
   </div>
 
   <script>
-    let queueJobs = [];
+    let currentProfile = {};
+    let scrapedQueue = [];
     let isApplying = false;
 
     document.addEventListener("DOMContentLoaded", async () => {
-      await loadProfileInfo();
-      await fetchScrapedJobs();
-      updateHistoryBadge();
+      await loadProfile();
+      await runResumeAutoScrape();
+      updateAppliedHistoryBadge();
     });
 
-    async function loadProfileInfo() {
+    async function loadProfile() {
       try {
         const res = await fetch("/api/resume/profile");
         const data = await res.json();
-        const p = data.profile || {};
+        currentProfile = data.profile || {};
+
+        document.getElementById("dispFullName").textContent = currentProfile.full_name || "Job Candidate";
+        document.getElementById("dispContact").textContent = `${currentProfile.email || 'candidate@jobradar.local'} • ${currentProfile.phone || '+91 9876543210'}`;
         
-        document.getElementById("profName").textContent = p.full_name || "Job Candidate";
-        document.getElementById("avatarLetter").textContent = (p.full_name || "C").charAt(0).toUpperCase();
-        document.getElementById("profMeta").textContent = `${p.current_role || 'Software Engineer'} • ${p.experience_level || '1-3 Years'} • Expected CTC: ${p.expected_ctc || '8-14 LPA'}`;
-        document.getElementById("profResume").textContent = p.resume_filename || "Primary_Resume.pdf";
+        const targetRoles = currentProfile.target_roles || ["Python Developer"];
+        document.getElementById("dispTargetRole").textContent = targetRoles[0] || currentProfile.current_role || "Python Developer";
+        document.getElementById("dispExperience").textContent = currentProfile.experience_level || "1-3 Years";
+        document.getElementById("dispCTC").textContent = currentProfile.expected_ctc || "8-14 LPA";
+        document.getElementById("dispNotice").textContent = currentProfile.notice_period || "Immediate / 15 Days";
+        document.getElementById("dispResumeFile").textContent = currentProfile.resume_filename || "Primary_Resume.pdf";
+
+        const skills = currentProfile.skills || ["Python", "FastAPI", "SQL", "Docker", "Git", "REST API"];
+        const skillsBox = document.getElementById("dispSkillsPills");
+        skillsBox.innerHTML = skills.map(s => `
+          <span style="background: rgba(10, 102, 194, 0.12); color: var(--primary); border: 1px solid rgba(10, 102, 194, 0.25); padding: 0.2rem 0.55rem; border-radius: 0.35rem; font-size: 0.78rem; font-weight: 700;">
+            ✓ ${escapeHtml(s)}
+          </span>
+        `).join('');
       } catch (e) {
         console.error("Error loading candidate profile:", e);
       }
     }
 
-    async function fetchScrapedJobs() {
+    async function handleResumeUpload(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const formData = new FormData();
+      formData.append("resume", file);
+
+      alert(`Uploading and parsing ${file.name}...`);
+
       try {
-        const res = await fetch("/api/applied_history");
-        const histData = await res.json();
+        const res = await fetch("/api/resume/upload", {
+          method: "POST",
+          body: formData
+        });
+        const data = await res.json();
+        if (data.success) {
+          alert(`✅ Successfully parsed ${file.name}!\nTriggering dynamic multi-portal search...`);
+          await loadProfile();
+          await runResumeAutoScrape();
+        } else {
+          alert(`Error uploading resume: ${data.error || 'Check format'}`);
+        }
+      } catch (err) {
+        alert("Upload failed: " + err);
+      }
+    }
+
+    async function runResumeAutoScrape() {
+      const loading = document.getElementById("queueLoading");
+      const grid = document.getElementById("jobsQueueGrid");
+      const btn = document.getElementById("btnRescrapePipeline");
+
+      loading.style.display = "block";
+      grid.style.display = "none";
+      if (btn) btn.disabled = true;
+
+      try {
+        const res = await fetch("/api/pipeline/resume_auto_scrape", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            role: currentProfile.target_roles ? currentProfile.target_roles[0] : "Python Developer",
+            experience: currentProfile.experience_level || "1-3 Years"
+          })
+        });
+        const data = await res.json();
+        
+        // Fetch applied history to mark already applied
+        const histRes = await fetch("/api/applied_history");
+        const histData = await histRes.json();
         const appliedLinks = new Set((histData.history || []).map(h => h.link));
 
-        // Generate or load rich mock/scraped jobs
-        const defaultRoles = [
-          { title: "Python Backend Engineer", company: "Zomato", platform: "LinkedIn", location: "Bengaluru (Hybrid)", salary: "18-28 LPA", match_score: 95, link: "https://linkedin.com/jobs/view/98127391" },
-          { title: "Full Stack Python / React Developer", company: "Swiggy", platform: "Indeed", location: "Bengaluru, India", salary: "16-24 LPA", match_score: 92, link: "https://indeed.com/viewjob?jk=78912344" },
-          { title: "Associate Software Engineer - Python", company: "Razorpay", platform: "Naukri", location: "Bengaluru", salary: "14-22 LPA", match_score: 89, link: "https://naukri.com/job-listings-981274" },
-          { title: "Backend API Engineer (FastAPI/Postgres)", company: "CRED", platform: "Hirist", location: "Bengaluru / Remote", salary: "20-32 LPA", match_score: 96, link: "https://hirist.tech/j/91283" },
-          { title: "Software Development Engineer I (Python)", company: "Flipkart", platform: "Glassdoor", location: "Bengaluru", salary: "22-30 LPA", match_score: 91, link: "https://glassdoor.com/job-listing/flp9123" },
-          { title: "Python / Django Developer", company: "PhonePe", platform: "Foundit", location: "Bengaluru / Pune", salary: "15-25 LPA", match_score: 88, link: "https://foundit.in/job/981273" },
-          { title: "Junior Python Engineer", company: "Groww", platform: "Apna", location: "Bengaluru", salary: "10-16 LPA", match_score: 86, link: "https://apna.co/job/98123" },
-          { title: "Cloud & Backend Engineer", company: "Juspay", platform: "Shine", location: "Bengaluru / Remote", salary: "18-26 LPA", match_score: 94, link: "https://shine.com/job/98127" },
-          { title: "Software Engineer - AI Platform", company: "Postman", platform: "Greenhouse", location: "Remote / Bengaluru", salary: "24-36 LPA", match_score: 98, link: "https://boards.greenhouse.io/postman/jobs/98123" }
-        ];
-
-        queueJobs = defaultRoles.map((j, i) => ({
+        scrapedQueue = (data.jobs || []).map(j => ({
           ...j,
-          id: i + 1,
           selected: true,
-          applied: appliedLinks.has(j.link)
+          applied: appliedLinks.has(j.Link)
         }));
 
         renderQueue();
       } catch (e) {
-        console.error("Error populating jobs queue:", e);
+        console.error("Error auto-scraping:", e);
+      } finally {
+        loading.style.display = "none";
+        grid.style.display = "grid";
+        if (btn) btn.disabled = false;
       }
     }
 
     function renderQueue() {
-      const portal = document.getElementById("portalQueueFilter").value;
-      const minScore = parseInt(document.getElementById("minScoreFilter").value || "0");
+      const portal = document.getElementById("portalFilter").value;
+      const minScore = parseInt(document.getElementById("minMatchFilter").value || "0");
 
-      const filtered = queueJobs.filter(j => {
-        const matchesPortal = portal === "all" || j.platform.toLowerCase().includes(portal.toLowerCase());
-        const matchesScore = j.match_score >= minScore;
+      const filtered = scrapedQueue.filter(j => {
+        const matchesPortal = portal === "all" || j.Platform.toLowerCase().includes(portal.toLowerCase());
+        const matchesScore = (j.Match_Score || 75) >= minScore;
         return matchesPortal && matchesScore;
       });
 
       const grid = document.getElementById("jobsQueueGrid");
-      const emptyState = document.getElementById("queueEmptyState");
+      
+      grid.innerHTML = filtered.map(j => {
+        const score = j.Match_Score || 85;
+        const matchClass = score >= 90 ? 'match-high' : (score >= 80 ? 'match-med' : 'match-low');
+        const appliedClass = j.applied ? 'applied-done' : '';
 
-      if (filtered.length === 0) {
-        grid.style.display = "none";
-        emptyState.style.display = "block";
-        document.getElementById("selectedJobsCount").textContent = "0";
-        return;
-      }
+        const responsibilitiesList = (j.Responsibilities && j.Responsibilities.length)
+          ? j.Responsibilities.slice(0, 3).map(r => `<li>${escapeHtml(r)}</li>`).join('')
+          : `<li>Design and develop backend APIs and services</li><li>Collaborate with cross-functional teams</li>`;
 
-      emptyState.style.display = "none";
-      grid.style.display = "grid";
-
-      grid.innerHTML = filtered.map((j, idx) => {
-        const matchClass = j.match_score >= 90 ? 'match-high' : (j.match_score >= 80 ? 'match-med' : 'match-low');
-        const appliedState = j.applied ? 'applied-done' : '';
+        const benefitsList = (j.Benefits && j.Benefits.length)
+          ? j.Benefits.slice(0, 3).map(b => `<span class="benefit-tag">🎁 ${escapeHtml(b)}</span>`).join('')
+          : `<span class="benefit-tag">🎁 Health Insurance</span><span class="benefit-tag">🎁 Flexible Remote</span>`;
 
         return `
-          <div class="job-card-item ${appliedState}" id="queueCard_${j.id}">
+          <div class="job-card-item ${appliedClass}" id="queueCard_${j.id}">
             <div>
               <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
                 <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
-                  <input type="checkbox" onchange="toggleJobSelect(${j.id}, this.checked)" ${j.selected ? 'checked' : ''} style="width: 16px; height: 16px; cursor: pointer;" />
-                  <span class="portal-pill">🌐 ${escapeHtml(j.platform)}</span>
+                  <input type="checkbox" onchange="toggleJobSelection(${j.id}, this.checked)" ${j.selected ? 'checked' : ''} style="width: 16px; height: 16px; cursor: pointer;" />
+                  <span class="portal-pill">🌐 ${escapeHtml(j.Platform)}</span>
                 </label>
-                <span class="match-tag ${matchClass}">🎯 ${j.match_score}% ATS Match</span>
+                <span class="match-tag ${matchClass}">🎯 ${score}% ATS Match</span>
               </div>
 
-              <h3 style="margin: 0 0 0.25rem 0; font-size: 1.05rem; font-weight: 800; color: var(--text);">${escapeHtml(j.title)}</h3>
-              <div style="font-weight: 700; color: var(--primary); font-size: 0.9rem;">${escapeHtml(j.company)}</div>
+              <h3 style="margin: 0 0 0.25rem 0; font-size: 1.1rem; font-weight: 800; color: var(--text);">${escapeHtml(j["Job Title"] || j.title)}</h3>
+              <div style="font-weight: 700; color: var(--primary); font-size: 0.92rem;">${escapeHtml(j.Company || j.company)}</div>
 
-              <div style="font-size: 0.8rem; color: var(--subtext); margin: 0.75rem 0; display: flex; flex-direction: column; gap: 0.25rem;">
-                <div>📍 ${escapeHtml(j.location)}</div>
-                <div>💰 ${escapeHtml(j.salary)}</div>
+              <div style="font-size: 0.8rem; color: var(--subtext); margin: 0.6rem 0; display: flex; flex-direction: column; gap: 0.25rem;">
+                <div>📍 ${escapeHtml(j.Location || 'Remote / Hybrid')}</div>
+                <div>💰 ${escapeHtml(j.Salary || '15-25 LPA')}</div>
+              </div>
+
+              <!-- Roles & Responsibilities Box -->
+              <div class="responsibilities-box">
+                <div style="font-weight: 700; font-size: 0.78rem; text-transform: uppercase; color: var(--subtext);">Key Responsibilities:</div>
+                <ul>${responsibilitiesList}</ul>
+              </div>
+
+              <!-- Benefits Strip -->
+              <div class="benefits-strip">
+                ${benefitsList}
               </div>
             </div>
 
+            <!-- Card Bottom Action Row -->
             <div style="margin-top: 1rem; padding-top: 0.75rem; border-top: 1px solid var(--line); display: flex; gap: 0.5rem;">
-              <button id="btnSingleApply_${j.id}" onclick="applySingleQueueJob(${j.id})" style="flex: 1; padding: 0.55rem; background: ${j.applied ? '#10b981' : 'linear-gradient(135deg, #0a66c2, #004182)'}; color: white; border: none; border-radius: 0.4rem; font-weight: 800; font-size: 0.85rem; cursor: pointer; box-shadow: 0 2px 8px rgba(10, 102, 194, 0.3);">
-                ${j.applied ? '✅ Applied' : '⚡ 1-Click Auto Apply'}
+              <button id="btnSingleApply_${j.id}" onclick="applySingleJob(${j.id})" style="flex: 1; padding: 0.6rem; background: ${j.applied ? '#10b981' : 'linear-gradient(135deg, #0a66c2, #004182)'}; color: white; border: none; border-radius: 0.4rem; font-weight: 800; font-size: 0.85rem; cursor: pointer; box-shadow: 0 2px 8px rgba(10, 102, 194, 0.3);">
+                ${j.applied ? '✅ Applied (Saved)' : '⚡ 1-Click Auto Apply'}
               </button>
-              <a href="${escapeHtml(j.link)}" target="_blank" style="padding: 0.55rem 0.75rem; background: var(--panel-soft); border: 1px solid var(--line); color: var(--text); border-radius: 0.4rem; text-decoration: none; font-size: 0.85rem; display: inline-flex; align-items: center;">
+              <a href="${escapeHtml(j.Link)}" target="_blank" style="padding: 0.6rem 0.85rem; background: var(--panel-soft); border: 1px solid var(--line); color: var(--text); border-radius: 0.4rem; text-decoration: none; font-size: 0.85rem; display: inline-flex; align-items: center;" title="View Live Link">
                 🔗
               </a>
             </div>
@@ -472,37 +673,33 @@
         `;
       }).join('');
 
-      updateSelectedCount();
+      updateBatchCount();
     }
 
-    function toggleJobSelect(id, checked) {
-      const job = queueJobs.find(j => j.id === id);
+    function toggleJobSelection(id, checked) {
+      const job = scrapedQueue.find(j => j.id === id);
       if (job) job.selected = checked;
-      updateSelectedCount();
+      updateBatchCount();
     }
 
     function toggleSelectAll(checked) {
-      queueJobs.forEach(j => j.selected = checked);
+      scrapedQueue.forEach(j => j.selected = checked);
       renderQueue();
     }
 
-    function updateSelectedCount() {
-      const selected = queueJobs.filter(j => j.selected);
-      document.getElementById("selectedJobsCount").textContent = selected.length;
+    function updateBatchCount() {
+      const selected = scrapedQueue.filter(j => j.selected && !j.applied);
+      document.getElementById("batchCountBadge").textContent = selected.length;
     }
 
-    function filterQueue() {
-      renderQueue();
-    }
-
-    async function applySingleQueueJob(jobId) {
-      const job = queueJobs.find(j => j.id === jobId);
+    async function applySingleJob(jobId) {
+      const job = scrapedQueue.find(j => j.id === jobId);
       if (!job) return;
 
       const btn = document.getElementById(`btnSingleApply_${jobId}`);
       if (btn) {
         btn.disabled = true;
-        btn.innerHTML = `⚙️ Applying...`;
+        btn.innerHTML = `⚙️ Auto-Applying...`;
       }
 
       try {
@@ -511,12 +708,13 @@
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             job: {
-              "Job Title": job.title,
-              "Company": job.company,
-              "Location": job.location,
-              "Salary": job.salary,
-              "Link": job.link,
-              "Platform": job.platform
+              "Job Title": job["Job Title"] || job.title,
+              "Company": job.Company || job.company,
+              "Location": job.Location || job.location,
+              "Salary": job.Salary || job.salary,
+              "Link": job.Link || job.link,
+              "Platform": job.Platform || job.platform,
+              "Description": job.Description || ""
             }
           })
         });
@@ -524,34 +722,34 @@
         if (data.success) {
           job.applied = true;
           if (btn) {
-            btn.innerHTML = `✅ Applied!`;
+            btn.innerHTML = `✅ Applied (Saved)`;
             btn.style.background = "#10b981";
           }
           document.getElementById(`queueCard_${jobId}`)?.classList.add("applied-done");
-          updateHistoryBadge();
-          alert(`⚡ Successfully Auto-Applied to ${job.company} (${job.platform})!\nApplication ID: ${data.application_id}\nSaved to Applied History.`);
+          updateAppliedHistoryBadge();
+          alert(`⚡ Successfully Auto-Applied to ${job.Company} (${job.Platform})!\nApplication ID: ${data.application_id}\nFull JD, Responsibilities, and AI Q&A saved to Applied History.`);
         }
-      } catch (e) {
+      } catch (err) {
         if (btn) {
           btn.disabled = false;
           btn.innerHTML = `⚠️ Retry`;
         }
-        alert("Error applying: " + e);
+        alert("Apply failed: " + err);
       }
     }
 
-    async function runBatchAutoApply() {
+    async function executeBatchAutoApply() {
       if (isApplying) return;
-      const selected = queueJobs.filter(j => j.selected && !j.applied);
+      const selected = scrapedQueue.filter(j => j.selected && !j.applied);
       if (selected.length === 0) {
         alert("Please select at least one unapplied job from the queue.");
         return;
       }
 
       isApplying = true;
-      const btnApply = document.getElementById("btnBatchApply");
-      btnApply.disabled = true;
-      btnApply.innerHTML = `⚙️ Executing Multi-Portal Auto-Apply (${selected.length} Jobs)...`;
+      const btnBatch = document.getElementById("btnBatchApply");
+      btnBatch.disabled = true;
+      btnBatch.innerHTML = `⚙️ Executing Batch Auto-Apply (${selected.length} Jobs)...`;
 
       const consoleBox = document.getElementById("terminalConsole");
       const logsBox = document.getElementById("terminalLogs");
@@ -562,23 +760,26 @@
       logsBox.innerHTML = "";
       progressBar.style.width = "0%";
 
-      addLog(`[SYSTEM] Starting Autonomous Multi-Portal Auto-Apply Pipeline...`, 'log-info');
-      addLog(`[TARGETS] ${selected.length} high-match positions queued across integrated portals.`, 'log-info');
+      addLog(`[PIPELINE] Initializing Autonomous Multi-Portal Auto-Apply Engine...`, 'log-info');
+      addLog(`[TARGETS] ${selected.length} high-match positions queued across 8+ job portals.`, 'log-info');
 
-      let completed = 0;
+      let completedCount = 0;
 
       for (let i = 0; i < selected.length; i++) {
         const job = selected[i];
         const step = i + 1;
+        const jTitle = job["Job Title"] || job.title;
+        const jComp = job.Company || job.company;
+        const jPlat = job.Platform || job.platform;
 
-        statusText.textContent = `Processing [${step}/${selected.length}]: ${job.company} (${job.platform})`;
-        addLog(`[${step}/${selected.length}] Analyzing ${job.title} at ${job.company} [${job.platform}]...`, 'log-info');
+        statusText.textContent = `Applying [${step}/${selected.length}]: ${jComp} (${jPlat})`;
+        addLog(`[${step}/${selected.length}] Analyzing ${jTitle} at ${jComp} [${jPlat}]...`, 'log-info');
         
         await sleep(350);
-        addLog(`[${step}/${selected.length}] ATS Match: ${job.match_score}% | Resolving screening questionnaire with AI...`, 'log-info');
+        addLog(`[${step}/${selected.length}] Matching ATS Keywords (${job.Match_Score}%) | Solving screening questionnaire...`, 'log-info');
         
         await sleep(300);
-        addLog(`[${step}/${selected.length}] Generating company-specific tailored cover letter...`, 'log-info');
+        addLog(`[${step}/${selected.length}] Auto-generating company-tailored cover letter...`, 'log-info');
 
         try {
           const res = await fetch("/api/auto_apply/job", {
@@ -586,12 +787,13 @@
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               job: {
-                "Job Title": job.title,
-                "Company": job.company,
-                "Location": job.location,
-                "Salary": job.salary,
-                "Link": job.link,
-                "Platform": job.platform
+                "Job Title": jTitle,
+                "Company": jComp,
+                "Location": job.Location || job.location,
+                "Salary": job.Salary || job.salary,
+                "Link": job.Link || job.link,
+                "Platform": jPlat,
+                "Description": job.Description || ""
               }
             })
           });
@@ -599,20 +801,20 @@
 
           if (data.success) {
             job.applied = true;
-            completed++;
-            addLog(`✓ [${step}/${selected.length}] Dispatched application successfully! ID: ${data.application_id} (Recorded in Applied History)`, 'log-success');
-            
+            completedCount++;
+            addLog(`✓ [${step}/${selected.length}] Dispatched application successfully! ID: ${data.application_id} (Full JD & Perks Saved to History)`, 'log-success');
+
             const btn = document.getElementById(`btnSingleApply_${job.id}`);
             if (btn) {
-              btn.innerHTML = `✅ Applied`;
+              btn.innerHTML = `✅ Applied (Saved)`;
               btn.style.background = "#10b981";
             }
             document.getElementById(`queueCard_${job.id}`)?.classList.add("applied-done");
           } else {
-            addLog(`⚠️ [${step}/${selected.length}] Warning: ${data.error || 'Check portal parameters'}`, 'log-warn');
+            addLog(`⚠️ [${step}/${selected.length}] Submission warning: ${data.error || 'Review portal parameters'}`, 'log-warn');
           }
         } catch (err) {
-          addLog(`✗ [${step}/${selected.length}] Error applying to ${job.company}: ${err}`, 'log-err');
+          addLog(`✗ [${step}/${selected.length}] Error applying to ${jComp}: ${err}`, 'log-err');
         }
 
         const pct = Math.round((step / selected.length) * 100);
@@ -620,13 +822,13 @@
         await sleep(400);
       }
 
-      addLog(`[COMPLETE] 🎉 Auto-Applied successfully to ${completed}/${selected.length} jobs! All records persisted in Applied History.`, 'log-success');
-      statusText.textContent = `Batch Completed: ${completed} Applied`;
+      addLog(`[COMPLETE] 🎉 Auto-Applied successfully to ${completedCount}/${selected.length} jobs! All records with full JD, roles, and benefits persisted in Applied History.`, 'log-success');
+      statusText.textContent = `Batch Completed: ${completedCount} Applied`;
       
-      btnApply.disabled = false;
-      btnApply.innerHTML = `⚡ Auto-Apply Completed (${completed} Applied)`;
+      btnBatch.disabled = false;
+      btnBatch.innerHTML = `⚡ Batch Complete (${completedCount} Applied)`;
       isApplying = false;
-      updateHistoryBadge();
+      updateAppliedHistoryBadge();
     }
 
     function addLog(msg, cssClass = 'log-info') {
@@ -638,23 +840,12 @@
       logsBox.scrollTop = logsBox.scrollHeight;
     }
 
-    async function triggerQuickScan() {
-      const btn = document.getElementById("btnScanQueue");
-      btn.disabled = true;
-      btn.innerHTML = `⚙️ Scanning Portals...`;
-      await sleep(600);
-      await fetchScrapedJobs();
-      btn.disabled = false;
-      btn.innerHTML = `<span>🔍 Fetch / Re-Scrape Jobs</span>`;
-      alert("✅ Scraped jobs queue refreshed with latest high-match openings!");
-    }
-
-    async function updateHistoryBadge() {
+    async function updateAppliedHistoryBadge() {
       try {
         const res = await fetch("/api/applied_history");
         const data = await res.json();
         const count = (data.history || []).length;
-        document.getElementById("topHistoryBadge").textContent = count;
+        document.getElementById("navHistoryCount").textContent = count;
       } catch (e) {}
     }
 
