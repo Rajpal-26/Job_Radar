@@ -238,7 +238,10 @@
     </a>
     <div class="nav-tabs">
       <a href="/unified" class="nav-tab active">⚡ Multi-Portal Search</a>
+      <a href="/history" class="nav-tab">📜 Applied History</a>
+      <a href="/tracker" class="nav-tab">📋 Kanban Tracker</a>
       <a href="/recruiters" class="nav-tab">🎯 Recruiter Radar</a>
+      <a href="/analytics" class="nav-tab">📊 Analytics</a>
       <a href="/" class="nav-tab">🌐 Single Scrapers</a>
     </div>
     <div class="nav-tools">
@@ -1027,8 +1030,11 @@
             ${(j.Description || j.description) ? `<p style="margin-top: 0.75rem; font-size: 0.85rem; color: var(--subtext); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${escapeHtml(j.Description || j.description)}</p>` : ""}
 
             <div class="actions-row" style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.85rem;">
+              <button id="autoApplyBtn_${idx}" onclick="directAutoApply(${idx}, event)" class="action-btn-sm" style="background: linear-gradient(135deg, #0a66c2, #004182); color: #ffffff; border: none; font-weight: 800; box-shadow: 0 2px 8px rgba(10, 102, 194, 0.35); padding: 0.4rem 0.85rem; border-radius: 6px; display: inline-flex; align-items: center; gap: 0.3rem;">
+                ⚡ Auto Apply
+              </button>
               <button onclick="openSmartApplyModal(${idx})" class="action-btn-sm" style="background: linear-gradient(135deg, #10b981, #059669); color: #ffffff; border: none; font-weight: 800; box-shadow: 0 2px 8px rgba(16, 185, 129, 0.35); padding: 0.4rem 0.85rem; border-radius: 6px; display: inline-flex; align-items: center; gap: 0.3rem;">
-                ⚡ Smart Apply (AI)
+                🤖 AI Form Filler
               </button>
               <a href="${j.Link || j.link || '#'}" target="_blank" class="action-btn-sm" style="text-decoration: none; color: var(--primary); border-color: var(--line); background: var(--panel-soft);">🔗 Apply Direct</a>
               <button onclick="openDecisionMakerModal(${idx})" class="action-btn-sm" style="color: #10b981; font-weight: 700; border-color: rgba(16, 185, 129, 0.4); background: rgba(16, 185, 129, 0.08);">🎯 Decision Makers</button>
@@ -1432,6 +1438,80 @@
       a.href = url;
       a.download = `Cover_Letter_${company.replace(/\s+/g, '_')}.txt`;
       a.click();
+    }
+
+    async function directAutoApply(index, event) {
+      if (event) event.stopPropagation();
+      const job = currentJobsList[index];
+      if (!job) return;
+
+      const btn = document.getElementById(`autoApplyBtn_${index}`);
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = `<span style="display: inline-block; animation: spin 1s infinite linear;">⚙️</span> Applying...`;
+      }
+
+      try {
+        const res = await fetch("/api/auto_apply/job", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ job: job })
+        });
+        const data = await res.json();
+        
+        if (btn) {
+          btn.disabled = false;
+          if (data.success) {
+            btn.innerHTML = `✅ Applied!`;
+            btn.style.background = "#10b981";
+            btn.style.boxShadow = "0 0 10px rgba(16, 185, 129, 0.5)";
+            
+            // Show notification banner
+            showAutoApplyToast(job, data);
+          } else {
+            btn.innerHTML = `⚠️ Retry Apply`;
+            btn.style.background = "#ef4444";
+            alert("Auto-Apply warning: " + (data.error || "Submission error"));
+          }
+        }
+      } catch (err) {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = `⚠️ Retry Apply`;
+          btn.style.background = "#ef4444";
+        }
+        alert("Error executing auto-apply: " + err);
+      }
+    }
+
+    function showAutoApplyToast(job, appData) {
+      let toast = document.getElementById("autoApplyToast");
+      if (!toast) {
+        toast = document.createElement("div");
+        toast.id = "autoApplyToast";
+        toast.style.cssText = "position: fixed; bottom: 2rem; right: 2rem; z-index: 9999; background: var(--panel); border: 1px solid var(--line); border-left: 4px solid #10b981; border-radius: 0.75rem; padding: 1rem 1.25rem; box-shadow: 0 12px 32px rgba(0,0,0,0.35); max-width: 420px; color: var(--text); animation: slideIn 0.3s ease;";
+        document.body.appendChild(toast);
+      }
+      
+      toast.innerHTML = `
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 0.75rem;">
+          <div>
+            <div style="font-size: 0.8rem; font-weight: 800; color: #10b981; text-transform: uppercase;">⚡ Auto-Applied Successfully</div>
+            <div style="font-weight: 800; font-size: 0.95rem; margin-top: 0.2rem;">${escapeHtml(job["Job Title"] || job.title)}</div>
+            <div style="font-size: 0.85rem; color: var(--primary); font-weight: 600;">${escapeHtml(job.Company || job.company)} • ${appData.platform || 'Portal'}</div>
+          </div>
+          <button onclick="document.getElementById('autoApplyToast').style.display='none'" style="background: transparent; border: none; font-size: 1.25rem; color: var(--subtext); cursor: pointer;">&times;</button>
+        </div>
+        <div style="margin-top: 0.75rem; display: flex; gap: 0.5rem;">
+          <a href="/history" style="text-decoration: none; padding: 0.35rem 0.75rem; background: var(--primary); color: white; border-radius: 0.35rem; font-size: 0.8rem; font-weight: 700;">
+            📜 View in Applied History
+          </a>
+        </div>
+      `;
+      toast.style.display = "block";
+      setTimeout(() => {
+        if (toast) toast.style.display = "none";
+      }, 7000);
     }
 
     async function markAsAppliedFromModal() {

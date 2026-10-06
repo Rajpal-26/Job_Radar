@@ -25,7 +25,7 @@ from scrapers.apna import APNA_CITIES
 from scrapers.shine import SHINE_CITIES, SHINE_EXPERIENCE
 import pandas as pd
 from utils import search_engine, tracker_db, resume_parser, ai_copilot, watchdog as watchdog_module
-from services import ai_form_filler
+from services import ai_form_filler, auto_apply_service
 from models import db, migrate, SavedJob, Watchdog, CandidateProfile
 
 template_dir = os.path.join(os.path.dirname(__file__), "frontend", "templates") if os.path.exists(os.path.join(os.path.dirname(__file__), "frontend", "templates")) else "templates"
@@ -635,6 +635,13 @@ def tracker_page():
     return render_template("tracker.html")
 
 
+@app.route("/history")
+@app.route("/applied-history")
+def history_page():
+    return render_template("history.html")
+
+
+
 @app.route("/search/all", methods=["POST"])
 def search_all():
     try:
@@ -1165,6 +1172,126 @@ def match_jobs_api():
         return jsonify({"success": True, "jobs": annotated})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
+# ==============================================================================
+# MULTI-PORTAL AUTO-APPLY & APPLIED HISTORY ENDPOINTS
+# ==============================================================================
+
+@app.route("/api/auto_apply/job", methods=["POST"])
+def auto_apply_job_api():
+    """Execute 1-click auto application for a single scraped job listing."""
+    try:
+        data = request.json or {}
+        job_data = data.get("job") or data
+        custom_answers = data.get("custom_answers")
+        result = auto_apply_service.execute_auto_apply(job_data, custom_answers=custom_answers)
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({"error": str(e), "success": False}), 500
+
+
+@app.route("/api/auto_apply/batch", methods=["POST"])
+def auto_apply_batch_api():
+    """Execute batch auto-apply over multiple selected scraped jobs."""
+    try:
+        data = request.json or {}
+        jobs = data.get("jobs", [])
+        if not jobs:
+            return jsonify({"error": "No jobs provided for batch auto-apply", "success": False}), 400
+        delay = float(data.get("delay", 0.5))
+        result = auto_apply_service.execute_batch_auto_apply(jobs, delay_seconds=delay)
+        return jsonify({"success": True, **result})
+    except Exception as e:
+        return jsonify({"error": str(e), "success": False}), 500
+
+
+@app.route("/api/applied_history", methods=["GET"])
+def applied_history_api():
+    """Retrieve full history of applied jobs with filtering and stats."""
+    try:
+        search = request.args.get("search", "").strip()
+        portal = request.args.get("portal", "").strip()
+        status = request.args.get("status", "").strip()
+        history = auto_apply_service.get_applied_history(search_query=search, portal_filter=portal, status_filter=status)
+        analytics = auto_apply_service.get_application_analytics()
+        return jsonify({"success": True, "history": history, "analytics": analytics})
+    except Exception as e:
+        return jsonify({"error": str(e), "success": False}), 500
+
+
+@app.route("/api/applied_history/stats", methods=["GET"])
+def applied_history_stats_api():
+    """Retrieve summary telemetry for application pipeline."""
+    try:
+        analytics = auto_apply_service.get_application_analytics()
+        return jsonify({"success": True, "analytics": analytics})
+    except Exception as e:
+        return jsonify({"error": str(e), "success": False}), 500
+
+
+@app.route("/api/applied_history/update_status", methods=["POST"])
+def update_applied_status_api():
+    """Update status, notes, or cover letter for an application history record."""
+    try:
+        data = request.json or {}
+        job_id = data.get("id") or data.get("job_id")
+        status = data.get("status")
+        notes = data.get("notes")
+        cover_letter = data.get("cover_letter")
+        if not job_id:
+            return jsonify({"error": "Job ID required", "success": False}), 400
+        
+        ok = tracker_db.update_job_status(int(job_id), status=status, notes=notes, cover_letter=cover_letter)
+        return jsonify({"success": ok})
+    except Exception as e:
+        return jsonify({"error": str(e), "success": False}), 500
+
+
+@app.route("/api/applied_history/<int:job_id>", methods=["DELETE"])
+def delete_applied_history_api(job_id):
+    """Remove a job application entry from history."""
+    try:
+        ok = tracker_db.delete_saved_job(job_id)
+        return jsonify({"success": ok})
+    except Exception as e:
+        return jsonify({"error": str(e), "success": False}), 500
+
+
+@app.route("/api/applied_history/export", methods=["GET"])
+def export_applied_history_api():
+    """Export complete application ledger to CSV for user download."""
+    try:
+        history = auto_apply_service.get_applied_history()
+        export_data = []
+        for h in history:
+            export_data.append({
+                "Application ID": h.get("application_id", ""),
+                "Job Title": h.get("job_title", ""),
+                "Company": h.get("company", ""),
+                "Platform / Portal": h.get("platform", ""),
+                "Location": h.get("location", ""),
+                "Salary": h.get("salary", ""),
+                "ATS Match Score (%)": h.get("match_score", ""),
+                "Application Status": h.get("status", ""),
+                "Submission Date": h.get("applied_at", ""),
+                "Job Link": h.get("link", ""),
+                "Resume Used": h.get("resume_used", "")
+            })
+        df = pd.DataFrame(export_data)
+        import io
+        csv_buffer = io.StringIO()
+        df.to_csv(csv_buffer, index=False)
+        csv_output = io.BytesIO(csv_buffer.getvalue().encode("utf-8"))
+        return send_file(
+            csv_output,
+            mimetype="text/csv",
+            as_attachment=True,
+            download_name="JobRadar_Applied_Applications_History.csv"
+        )
+    except Exception as e:
+        return jsonify({"error": str(e), "success": False}), 500
+
 
 
 

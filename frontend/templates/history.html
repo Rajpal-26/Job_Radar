@@ -1,0 +1,909 @@
+<!--
+  WATERMARK: Rajpal Singh Tanwar
+  Copyright (c) 2026 Rajpal Singh Tanwar. All rights reserved.
+-->
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>JobRadar - Applied Applications History & Auto-Apply Log</title>
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+  <script src="{{ url_for('static', filename='theme.js') }}"></script>
+  <script src="{{ url_for('static', filename='radar3d.js') }}" defer></script>
+  <style>
+    :root {
+      --primary-gradient: linear-gradient(135deg, #0a66c2 0%, #004182 100%);
+      --accent-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      --panel-glow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    }
+    
+    .history-header {
+      margin-bottom: 2rem;
+    }
+    
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1.25rem;
+      margin-bottom: 2rem;
+    }
+    
+    .stat-card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 1rem;
+      padding: 1.25rem 1.5rem;
+      position: relative;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease;
+    }
+    .stat-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 24px rgba(0,0,0,0.15);
+      border-color: var(--primary);
+    }
+    
+    .stat-label {
+      font-size: 0.82rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--subtext);
+      margin-bottom: 0.4rem;
+    }
+    
+    .stat-val {
+      font-size: 2rem;
+      font-weight: 800;
+      color: var(--text);
+      line-height: 1.1;
+      display: flex;
+      align-items: baseline;
+      gap: 0.5rem;
+    }
+    
+    .stat-sub {
+      font-size: 0.78rem;
+      color: var(--subtext);
+      margin-top: 0.35rem;
+    }
+    
+    .filter-toolbar {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 1rem;
+      padding: 1rem 1.25rem;
+      margin-bottom: 1.75rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: var(--shadow);
+    }
+    
+    .filter-group {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    
+    .search-input-wrap {
+      position: relative;
+      min-width: 280px;
+    }
+    
+    .search-input-wrap input {
+      width: 100%;
+      padding: 0.6rem 1rem 0.6rem 2.25rem;
+      border-radius: 0.5rem;
+      border: 1px solid var(--line);
+      background: var(--panel-soft);
+      color: var(--text);
+      font-size: 0.88rem;
+    }
+    .search-input-wrap input:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+    .search-icon {
+      position: absolute;
+      left: 0.75rem;
+      top: 50%;
+      transform: translateY(-50%);
+      opacity: 0.5;
+      font-size: 0.9rem;
+    }
+    
+    .filter-select {
+      padding: 0.6rem 1rem;
+      border-radius: 0.5rem;
+      border: 1px solid var(--line);
+      background: var(--panel-soft);
+      color: var(--text);
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    
+    .view-toggle-btn {
+      padding: 0.55rem 0.9rem;
+      border-radius: 0.5rem;
+      border: 1px solid var(--line);
+      background: var(--panel-soft);
+      color: var(--text);
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      transition: all 0.2s;
+    }
+    .view-toggle-btn.active {
+      background: var(--primary);
+      color: #ffffff;
+      border-color: var(--primary);
+    }
+    
+    /* Table View Styling */
+    .history-table-container {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 1rem;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+    
+    .history-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+      text-align: left;
+    }
+    
+    .history-table th {
+      background: var(--panel-soft);
+      color: var(--subtext);
+      font-weight: 700;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid var(--line);
+    }
+    
+    .history-table td {
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid var(--line);
+      color: var(--text);
+      vertical-align: middle;
+    }
+    
+    .history-table tr:hover {
+      background: rgba(59, 130, 246, 0.04);
+    }
+    
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.25rem 0.65rem;
+      border-radius: 999px;
+      font-size: 0.76rem;
+      font-weight: 700;
+      text-transform: capitalize;
+    }
+    .status-applied { background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); }
+    .status-interview { background: rgba(59, 130, 246, 0.15); color: #3b82f6; border: 1px solid rgba(59, 130, 246, 0.3); }
+    .status-under-review { background: rgba(245, 158, 11, 0.15); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3); }
+    .status-offer { background: rgba(139, 92, 246, 0.15); color: #8b5cf6; border: 1px solid rgba(139, 92, 246, 0.3); }
+    .status-rejected { background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); }
+    .status-bookmarked { background: rgba(100, 116, 139, 0.15); color: #94a3b8; border: 1px solid rgba(100, 116, 139, 0.3); }
+
+    .portal-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      padding: 0.2rem 0.55rem;
+      border-radius: 0.375rem;
+      font-size: 0.75rem;
+      font-weight: 700;
+      background: var(--panel-soft);
+      border: 1px solid var(--line);
+    }
+    
+    .match-pill {
+      font-weight: 800;
+      font-size: 0.8rem;
+      padding: 0.2rem 0.5rem;
+      border-radius: 0.35rem;
+    }
+    .match-high { background: rgba(16, 185, 129, 0.15); color: #10b981; }
+    .match-med { background: rgba(245, 158, 11, 0.15); color: #f59e0b; }
+    .match-low { background: rgba(239, 68, 68, 0.15); color: #ef4444; }
+
+    /* Cards View */
+    .history-cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+      gap: 1.25rem;
+    }
+    
+    .history-card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 1rem;
+      padding: 1.25rem;
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: transform 0.2s, border-color 0.2s;
+    }
+    .history-card:hover {
+      transform: translateY(-3px);
+      border-color: var(--primary);
+    }
+    
+    .history-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 0.75rem;
+    }
+    
+    .history-card-title {
+      font-size: 1.05rem;
+      font-weight: 800;
+      color: var(--text);
+      line-height: 1.3;
+      margin-bottom: 0.25rem;
+    }
+    
+    .history-card-company {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--primary);
+    }
+    
+    .history-card-meta {
+      font-size: 0.8rem;
+      color: var(--subtext);
+      margin: 0.75rem 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+    
+    .history-card-actions {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 1rem;
+      padding-top: 0.75rem;
+      border-top: 1px solid var(--line);
+    }
+
+    /* Modal Dossier */
+    .modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(4px);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+    }
+    .modal-content {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 1rem;
+      max-width: 720px;
+      width: 100%;
+      padding: 2rem;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: var(--shadow);
+      color: var(--text);
+    }
+    
+    .dossier-section {
+      margin-top: 1.25rem;
+      padding-top: 1.25rem;
+      border-top: 1px solid var(--line);
+    }
+    .dossier-section-title {
+      font-size: 0.85rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--subtext);
+      margin-bottom: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .qa-box {
+      background: var(--panel-soft);
+      border: 1px solid var(--line);
+      border-radius: 0.5rem;
+      padding: 0.85rem 1rem;
+      margin-bottom: 0.75rem;
+    }
+    .qa-question {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 0.35rem;
+    }
+    .qa-answer {
+      font-size: 0.85rem;
+      color: var(--subtext);
+      line-height: 1.4;
+    }
+    
+    .cover-letter-preview-box {
+      background: var(--panel-soft);
+      border: 1px solid var(--line);
+      border-radius: 0.5rem;
+      padding: 1rem;
+      font-family: monospace;
+      font-size: 0.82rem;
+      white-space: pre-wrap;
+      line-height: 1.5;
+      max-height: 220px;
+      overflow-y: auto;
+      color: var(--text);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navigation Bar -->
+  <nav class="app-navbar">
+    <a href="/" class="nav-brand">
+      <div class="radar-dot"></div>
+      Job<span>Radar</span>
+    </a>
+    <div class="nav-tabs">
+      <a href="/unified" class="nav-tab">⚡ Multi-Portal Search</a>
+      <a href="/history" class="nav-tab active">📜 Applied History</a>
+      <a href="/tracker" class="nav-tab">📋 Kanban Tracker</a>
+      <a href="/recruiters" class="nav-tab">🎯 Recruiter Radar</a>
+      <a href="/analytics" class="nav-tab">📊 Market Analytics</a>
+      <a href="/" class="nav-tab">🌐 Single Scrapers</a>
+    </div>
+    <div class="nav-tools">
+      <button class="nav-theme-btn" onclick="exportHistoryCSV()" style="background: rgba(16, 185, 129, 0.15); border-color: rgba(16, 185, 129, 0.4); color: #10b981; font-weight: 700;">
+        <span>📥 Export CSV</span>
+      </button>
+      <button class="nav-theme-btn" onclick="toggleTheme()" aria-label="Toggle theme">
+        <span class="theme-icon">🌙</span>
+        <span class="theme-label" id="themeLabel">Dark Mode</span>
+      </button>
+    </div>
+  </nav>
+
+  <div class="container" style="max-width: 1400px; padding: 2rem 1.5rem;">
+    
+    <!-- Header Section -->
+    <div class="history-header">
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+        <div>
+          <h1 style="font-size: 2rem; font-weight: 800; margin: 0; display: flex; align-items: center; gap: 0.75rem;">
+            <span>📜 Applied Job History & Telemetry</span>
+          </h1>
+          <p style="color: var(--subtext); margin: 0.35rem 0 0 0; font-size: 0.95rem;">
+            Real-time ledger of all automated and manual job applications, tailored submissions, and recruiter responses.
+          </p>
+        </div>
+        <div style="display: flex; gap: 0.75rem;">
+          <a href="/unified" class="action-btn" style="text-decoration: none; padding: 0.65rem 1.25rem; background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%); color: white; border-radius: 0.5rem; font-weight: 700; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 0.5rem;">
+            <span>⚡ Find & Auto-Apply More Jobs</span>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Live Telemetry Stats Bar -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">Total Applied Applications</div>
+        <div class="stat-val" id="statTotalApplied">0</div>
+        <div class="stat-sub">Across 8+ integrated job portals</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Average ATS Match Score</div>
+        <div class="stat-val" id="statAvgScore">--%</div>
+        <div class="stat-sub">AI keyword & skill alignment</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Interview Pipeline</div>
+        <div class="stat-val" id="statInterviews" style="color: #3b82f6;">0</div>
+        <div class="stat-sub">Callbacks & scheduled screens</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Active Portals Utilized</div>
+        <div class="stat-val" id="statPortalsCount" style="color: #10b981;">0</div>
+        <div class="stat-sub">LinkedIn, Indeed, Naukri, Glassdoor...</div>
+      </div>
+    </div>
+
+    <!-- Search, Filters, and View Controls Toolbar -->
+    <div class="filter-toolbar">
+      <div class="filter-group">
+        <div class="search-input-wrap">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="historySearchInput" placeholder="Search by role, company, or city..." onkeyup="handleFilterChange()" />
+        </div>
+
+        <select id="portalFilterSelect" class="filter-select" onchange="handleFilterChange()">
+          <option value="all">🌐 All Portals</option>
+          <option value="LinkedIn">LinkedIn</option>
+          <option value="Indeed">Indeed</option>
+          <option value="Naukri">Naukri</option>
+          <option value="Glassdoor">Glassdoor</option>
+          <option value="Foundit">Foundit</option>
+          <option value="Apna">Apna</option>
+          <option value="Shine">Shine</option>
+          <option value="Hirist">Hirist</option>
+          <option value="ATS">Direct ATS</option>
+        </select>
+
+        <select id="statusFilterSelect" class="filter-select" onchange="handleFilterChange()">
+          <option value="all">📌 All Application Statuses</option>
+          <option value="Applied">Applied</option>
+          <option value="Under Review">Under Review</option>
+          <option value="Interview Scheduled">Interview Scheduled</option>
+          <option value="Offer">Offer</option>
+          <option value="Rejected">Rejected</option>
+          <option value="Bookmarked">Bookmarked</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <button type="button" class="view-toggle-btn active" id="btnTableView" onclick="setViewMode('table')">
+          <span>📋 Table View</span>
+        </button>
+        <button type="button" class="view-toggle-btn" id="btnCardView" onclick="setViewMode('cards')">
+          <span>🎴 Card View</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Main Content Area -->
+    <div id="historyLoading" style="text-align: center; padding: 3rem; color: var(--subtext);">
+      <div class="radar-ping" style="margin: 0 auto 1rem;"></div>
+      <p>Loading application history and telemetry...</p>
+    </div>
+
+    <div id="historyEmptyState" style="display: none; text-align: center; padding: 4rem 2rem; background: var(--panel); border: 1px solid var(--line); border-radius: 1rem;">
+      <div style="font-size: 3rem; margin-bottom: 1rem;">📭</div>
+      <h3 style="margin-bottom: 0.5rem; color: var(--text);">No applications found</h3>
+      <p style="color: var(--subtext); max-width: 480px; margin: 0 auto 1.5rem;">
+        You haven't auto-applied to any jobs yet or no applications match the active filters.
+      </p>
+      <a href="/unified" style="text-decoration: none; padding: 0.75rem 1.5rem; background: var(--primary); color: white; border-radius: 0.5rem; font-weight: 700; display: inline-block;">
+        ⚡ Search & Auto-Apply Now
+      </a>
+    </div>
+
+    <!-- Table Container -->
+    <div class="history-table-container" id="tableContainer" style="display: none;">
+      <table class="history-table">
+        <thead>
+          <tr>
+            <th>Role & Company</th>
+            <th>Portal</th>
+            <th>Location & Salary</th>
+            <th>ATS Match</th>
+            <th>Status</th>
+            <th>Submission Date</th>
+            <th style="text-align: right;">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="historyTableBody">
+          <!-- Populated by JS -->
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Cards Container -->
+    <div class="history-cards-grid" id="cardsContainer" style="display: none;">
+      <!-- Populated by JS -->
+    </div>
+
+  </div>
+
+  <!-- Detailed Application Dossier Modal -->
+  <div id="dossierModal" class="modal" onclick="if(event.target===this) closeDossierModal()">
+    <div class="modal-content">
+      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.25rem;">
+        <div>
+          <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
+            <span id="dossierPortal" class="portal-pill">LinkedIn</span>
+            <span id="dossierAppId" style="font-family: monospace; font-size: 0.78rem; color: var(--subtext);">APP-ID</span>
+          </div>
+          <h2 id="dossierTitle" style="font-size: 1.35rem; font-weight: 800; margin: 0; color: var(--text);">Software Engineer</h2>
+          <div id="dossierCompany" style="font-size: 1rem; font-weight: 700; color: var(--primary); margin-top: 0.25rem;">Company Name</div>
+        </div>
+        <button onclick="closeDossierModal()" style="background: transparent; border: none; font-size: 1.5rem; color: var(--subtext); cursor: pointer;">&times;</button>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0.75rem; background: var(--panel-soft); padding: 0.85rem; border-radius: 0.5rem; border: 1px solid var(--line);">
+        <div>
+          <div style="font-size: 0.75rem; color: var(--subtext);">Location</div>
+          <div id="dossierLocation" style="font-weight: 700; font-size: 0.88rem;">India</div>
+        </div>
+        <div>
+          <div style="font-size: 0.75rem; color: var(--subtext);">Salary</div>
+          <div id="dossierSalary" style="font-weight: 700; font-size: 0.88rem;">12-18 LPA</div>
+        </div>
+        <div>
+          <div style="font-size: 0.75rem; color: var(--subtext);">ATS Score</div>
+          <div id="dossierMatchScore" style="font-weight: 800; font-size: 0.88rem; color: #10b981;">94% Match</div>
+        </div>
+        <div>
+          <div style="font-size: 0.75rem; color: var(--subtext);">Applied At</div>
+          <div id="dossierAppliedAt" style="font-weight: 700; font-size: 0.85rem;">2026-10-06</div>
+        </div>
+      </div>
+
+      <!-- Update Status Select -->
+      <div class="dossier-section">
+        <div class="dossier-section-title"><span>📌 Manage Status</span></div>
+        <div style="display: flex; gap: 0.75rem; align-items: center;">
+          <select id="dossierStatusSelect" class="filter-select" style="flex: 1;">
+            <option value="Applied">Applied</option>
+            <option value="Under Review">Under Review</option>
+            <option value="Interview Scheduled">Interview Scheduled</option>
+            <option value="Offer">Offer</option>
+            <option value="Rejected">Rejected</option>
+            <option value="Bookmarked">Bookmarked</option>
+          </select>
+          <button onclick="saveDossierStatus()" style="padding: 0.6rem 1.25rem; background: var(--primary); color: white; border: none; border-radius: 0.5rem; font-weight: 700; cursor: pointer;">
+            Update Status
+          </button>
+        </div>
+      </div>
+
+      <!-- Matched Skills -->
+      <div class="dossier-section">
+        <div class="dossier-section-title"><span>🎯 ATS Skill Verification</span></div>
+        <div id="dossierSkillsList" style="display: flex; gap: 0.4rem; flex-wrap: wrap;"></div>
+      </div>
+
+      <!-- Screening Questions & Answers Log -->
+      <div class="dossier-section">
+        <div class="dossier-section-title"><span>🤖 Screening Questions & Answers (AI Auto-Filled)</span></div>
+        <div id="dossierQAList"></div>
+      </div>
+
+      <!-- Tailored Cover Letter -->
+      <div class="dossier-section">
+        <div class="dossier-section-title">
+          <span>📄 Tailored Cover Letter Submitted</span>
+          <button onclick="copyCoverLetter()" style="margin-left: auto; padding: 0.25rem 0.6rem; font-size: 0.75rem; background: var(--panel-soft); border: 1px solid var(--line); border-radius: 0.35rem; color: var(--text); cursor: pointer;">📋 Copy</button>
+        </div>
+        <div id="dossierCoverLetter" class="cover-letter-preview-box"></div>
+      </div>
+
+      <!-- Bottom Action Buttons -->
+      <div style="display: flex; justify-content: space-between; gap: 1rem; margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--line);">
+        <button id="dossierDeleteBtn" onclick="deleteDossierJob()" style="padding: 0.6rem 1rem; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); color: #ef4444; border-radius: 0.5rem; font-weight: 700; cursor: pointer;">
+          🗑️ Delete Record
+        </button>
+        <div style="display: flex; gap: 0.75rem;">
+          <a id="dossierJobLink" href="#" target="_blank" style="text-decoration: none; padding: 0.6rem 1.25rem; background: var(--panel-soft); border: 1px solid var(--line); color: var(--text); border-radius: 0.5rem; font-weight: 700; display: inline-flex; align-items: center; gap: 0.4rem;">
+            <span>🌐 View Live Posting</span>
+          </a>
+          <button onclick="closeDossierModal()" style="padding: 0.6rem 1.25rem; background: var(--panel-soft); border: 1px solid var(--line); color: var(--text); border-radius: 0.5rem; font-weight: 700; cursor: pointer;">
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let allHistory = [];
+    let currentViewMode = 'table';
+    let currentDossierJob = null;
+
+    document.addEventListener('DOMContentLoaded', () => {
+      loadHistory();
+    });
+
+    async function loadHistory() {
+      const loading = document.getElementById('historyLoading');
+      const emptyState = document.getElementById('historyEmptyState');
+      const tableContainer = document.getElementById('tableContainer');
+      const cardsContainer = document.getElementById('cardsContainer');
+
+      loading.style.display = 'block';
+      emptyState.style.display = 'none';
+      tableContainer.style.display = 'none';
+      cardsContainer.style.display = 'none';
+
+      try {
+        const res = await fetch('/api/applied_history');
+        const data = await res.json();
+        
+        allHistory = data.history || [];
+        updateStats(data.analytics || {});
+        renderHistory();
+      } catch (err) {
+        console.error('Error fetching applied history:', err);
+        loading.style.display = 'none';
+        emptyState.style.display = 'block';
+      }
+    }
+
+    function updateStats(stats) {
+      document.getElementById('statTotalApplied').innerText = stats.total_applied || allHistory.length || 0;
+      document.getElementById('statAvgScore').innerText = (stats.average_match_score || 85) + '%';
+      document.getElementById('statInterviews').innerText = stats.interview_scheduled || 0;
+      
+      const portals = new Set(allHistory.map(j => j.platform));
+      document.getElementById('statPortalsCount').innerText = portals.size || (stats.portal_breakdown ? Object.keys(stats.portal_breakdown).length : 0);
+    }
+
+    function handleFilterChange() {
+      renderHistory();
+    }
+
+    function getFilteredJobs() {
+      const search = document.getElementById('historySearchInput').value.toLowerCase().trim();
+      const portal = document.getElementById('portalFilterSelect').value;
+      const status = document.getElementById('statusFilterSelect').value;
+
+      return allHistory.filter(job => {
+        const matchesSearch = !search || 
+          (job.job_title && job.job_title.toLowerCase().includes(search)) ||
+          (job.company && job.company.toLowerCase().includes(search)) ||
+          (job.location && job.location.toLowerCase().includes(search));
+
+        const matchesPortal = portal === 'all' || 
+          (job.platform && job.platform.toLowerCase().includes(portal.toLowerCase()));
+
+        const matchesStatus = status === 'all' || 
+          (job.status && job.status.toLowerCase() === status.toLowerCase());
+
+        return matchesSearch && matchesPortal && matchesStatus;
+      });
+    }
+
+    function renderHistory() {
+      const filtered = getFilteredJobs();
+      const loading = document.getElementById('historyLoading');
+      const emptyState = document.getElementById('historyEmptyState');
+      const tableContainer = document.getElementById('tableContainer');
+      const cardsContainer = document.getElementById('cardsContainer');
+
+      loading.style.display = 'none';
+
+      if (filtered.length === 0) {
+        emptyState.style.display = 'block';
+        tableContainer.style.display = 'none';
+        cardsContainer.style.display = 'none';
+        return;
+      }
+
+      emptyState.style.display = 'none';
+
+      if (currentViewMode === 'table') {
+        renderTable(filtered);
+        tableContainer.style.display = 'block';
+        cardsContainer.style.display = 'none';
+      } else {
+        renderCards(filtered);
+        cardsContainer.style.display = 'grid';
+        tableContainer.style.display = 'none';
+      }
+    }
+
+    function getStatusClass(status) {
+      const s = (status || '').toLowerCase();
+      if (s.includes('interview')) return 'status-interview';
+      if (s.includes('offer')) return 'status-offer';
+      if (s.includes('review')) return 'status-under-review';
+      if (s.includes('reject')) return 'status-rejected';
+      if (s.includes('apply') || s.includes('applied')) return 'status-applied';
+      return 'status-bookmarked';
+    }
+
+    function getMatchClass(score) {
+      if (score >= 80) return 'match-high';
+      if (score >= 60) return 'match-med';
+      return 'match-low';
+    }
+
+    function renderTable(jobs) {
+      const tbody = document.getElementById('historyTableBody');
+      tbody.innerHTML = jobs.map(j => `
+        <tr>
+          <td>
+            <div style="font-weight: 800; font-size: 0.95rem;">${escapeHtml(j.job_title)}</div>
+            <div style="font-weight: 700; color: var(--primary); font-size: 0.85rem;">${escapeHtml(j.company)}</div>
+          </td>
+          <td>
+            <span class="portal-pill">${escapeHtml(j.platform)}</span>
+          </td>
+          <td>
+            <div>${escapeHtml(j.location || 'Remote / Hybrid')}</div>
+            <div style="font-size: 0.78rem; color: var(--subtext);">${escapeHtml(j.salary || 'Not Disclosed')}</div>
+          </td>
+          <td>
+            <span class="match-pill ${getMatchClass(j.match_score)}">${j.match_score}% Match</span>
+          </td>
+          <td>
+            <span class="status-badge ${getStatusClass(j.status)}">● ${escapeHtml(j.status)}</span>
+          </td>
+          <td style="font-size: 0.82rem; color: var(--subtext);">
+            ${escapeHtml(j.applied_at || 'Recently')}
+          </td>
+          <td style="text-align: right;">
+            <button onclick="openDossierModal(${j.id})" style="padding: 0.4rem 0.85rem; border-radius: 0.4rem; background: var(--panel-soft); border: 1px solid var(--line); color: var(--text); font-weight: 700; font-size: 0.82rem; cursor: pointer;">
+              📄 View Dossier
+            </button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function renderCards(jobs) {
+      const container = document.getElementById('cardsContainer');
+      container.innerHTML = jobs.map(j => `
+        <div class="history-card">
+          <div>
+            <div class="history-card-header">
+              <span class="portal-pill">${escapeHtml(j.platform)}</span>
+              <span class="status-badge ${getStatusClass(j.status)}">● ${escapeHtml(j.status)}</span>
+            </div>
+            <div class="history-card-title">${escapeHtml(j.job_title)}</div>
+            <div class="history-card-company">${escapeHtml(j.company)}</div>
+            
+            <div class="history-card-meta">
+              <div>📍 ${escapeHtml(j.location || 'Remote / Hybrid')}</div>
+              <div>💰 ${escapeHtml(j.salary || 'Not Disclosed')}</div>
+              <div>🎯 ATS Match: <span class="match-pill ${getMatchClass(j.match_score)}">${j.match_score}%</span></div>
+              <div>⏱️ Submitted: ${escapeHtml(j.applied_at || 'Recently')}</div>
+            </div>
+          </div>
+
+          <div class="history-card-actions">
+            <button onclick="openDossierModal(${j.id})" style="flex: 1; padding: 0.5rem; background: var(--primary); color: white; border: none; border-radius: 0.4rem; font-weight: 700; font-size: 0.82rem; cursor: pointer;">
+              📄 View Dossier
+            </button>
+            <a href="${escapeHtml(j.link)}" target="_blank" style="padding: 0.5rem 0.75rem; background: var(--panel-soft); border: 1px solid var(--line); color: var(--text); border-radius: 0.4rem; text-decoration: none; font-size: 0.82rem; display: inline-flex; align-items: center;">
+              🌐
+            </a>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function setViewMode(mode) {
+      currentViewMode = mode;
+      document.getElementById('btnTableView').classList.toggle('active', mode === 'table');
+      document.getElementById('btnCardView').classList.toggle('active', mode === 'cards');
+      renderHistory();
+    }
+
+    function openDossierModal(jobId) {
+      const job = allHistory.find(j => j.id === jobId);
+      if (!job) return;
+
+      currentDossierJob = job;
+      document.getElementById('dossierTitle').innerText = job.job_title;
+      document.getElementById('dossierCompany').innerText = job.company;
+      document.getElementById('dossierLocation').innerText = job.location || 'India';
+      document.getElementById('dossierSalary').innerText = job.salary || 'Not Disclosed';
+      document.getElementById('dossierMatchScore').innerText = `${job.match_score}% Match`;
+      document.getElementById('dossierAppliedAt').innerText = job.applied_at || 'Recently';
+      document.getElementById('dossierPortal').innerText = job.platform;
+      document.getElementById('dossierAppId').innerText = job.application_id || `APP-${job.id}`;
+      document.getElementById('dossierStatusSelect').value = job.status || 'Applied';
+      document.getElementById('dossierJobLink').href = job.link;
+
+      // Matched Skills
+      const skillsContainer = document.getElementById('dossierSkillsList');
+      const matched = job.matched_skills || ['Python', 'SQL', 'FastAPI'];
+      skillsContainer.innerHTML = matched.map(s => `
+        <span style="background: rgba(16, 185, 129, 0.15); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); padding: 0.2rem 0.5rem; border-radius: 0.35rem; font-size: 0.78rem; font-weight: 700;">✓ ${escapeHtml(s)}</span>
+      `).join('');
+
+      // Screening Questions
+      const qaContainer = document.getElementById('dossierQAList');
+      const qas = job.screening_qa || [];
+      if (qas.length > 0) {
+        qaContainer.innerHTML = qas.map(qa => `
+          <div class="qa-box">
+            <div class="qa-question">❓ ${escapeHtml(qa.question)}</div>
+            <div class="qa-answer">💡 ${escapeHtml(qa.answer)}</div>
+          </div>
+        `).join('');
+      } else {
+        qaContainer.innerHTML = `<div style="font-size: 0.85rem; color: var(--subtext);">Standard candidate profile parameters dispatched with submission.</div>`;
+      }
+
+      // Cover letter
+      document.getElementById('dossierCoverLetter').innerText = job.cover_letter || 'No custom cover letter generated.';
+
+      document.getElementById('dossierModal').style.display = 'flex';
+    }
+
+    function closeDossierModal() {
+      document.getElementById('dossierModal').style.display = 'none';
+      currentDossierJob = null;
+    }
+
+    async function saveDossierStatus() {
+      if (!currentDossierJob) return;
+      const newStatus = document.getElementById('dossierStatusSelect').value;
+      
+      try {
+        const res = await fetch('/api/applied_history/update_status', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: currentDossierJob.id, status: newStatus })
+        });
+        const data = await res.json();
+        if (data.success) {
+          currentDossierJob.status = newStatus;
+          renderHistory();
+          alert(`Status updated to "${newStatus}"!`);
+        }
+      } catch (err) {
+        console.error('Error updating status:', err);
+      }
+    }
+
+    async function deleteDossierJob() {
+      if (!currentDossierJob) return;
+      if (!confirm(`Are you sure you want to delete the record for ${currentDossierJob.company}?`)) return;
+
+      try {
+        const res = await fetch(`/api/applied_history/${currentDossierJob.id}`, { method: 'DELETE' });
+        const data = await res.json();
+        if (data.success) {
+          allHistory = allHistory.filter(j => j.id !== currentDossierJob.id);
+          closeDossierModal();
+          renderHistory();
+        }
+      } catch (err) {
+        console.error('Error deleting job:', err);
+      }
+    }
+
+    function copyCoverLetter() {
+      const text = document.getElementById('dossierCoverLetter').innerText;
+      navigator.clipboard.writeText(text);
+      alert('Cover letter copied to clipboard!');
+    }
+
+    function exportHistoryCSV() {
+      window.location.href = '/api/applied_history/export';
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+  </script>
+</body>
+</html>
