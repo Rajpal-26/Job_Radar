@@ -1492,6 +1492,109 @@ textarea.text-field:focus {
   }
 }
 
+/* ==============================================================================
+ * UNIFIED THEMED BUTTON SYSTEM (Light & Dark Mode Adaptive)
+ * ============================================================================== */
+
+.btn,
+.cove-btn-primary,
+.cove-btn-accent,
+.cove-btn-soft,
+.cove-btn-danger,
+.btn-primary,
+.btn-accent,
+.btn-soft,
+.btn-gradient-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.68rem 1.4rem;
+  border-radius: 0.65rem;
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 0.92rem;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  text-decoration: none;
+  white-space: nowrap;
+  box-sizing: border-box;
+  line-height: 1.3;
+}
+
+/* Primary Vibrant Blue Gradient Button */
+.cove-btn-primary,
+.btn-primary,
+.btn-gradient-primary {
+  background: linear-gradient(135deg, var(--primary) 0%, #0052a3 100%) !important;
+  color: #ffffff !important;
+  border: 1px solid transparent !important;
+  box-shadow: 0 4px 14px rgba(10, 102, 194, 0.35);
+}
+
+.cove-btn-primary:hover,
+.btn-primary:hover,
+.btn-gradient-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 22px rgba(10, 102, 194, 0.45);
+  filter: brightness(1.08);
+}
+
+/* Accent Emerald / Teal Gradient Button */
+.cove-btn-accent,
+.btn-accent {
+  background: linear-gradient(135deg, var(--accent) 0%, #059669 100%) !important;
+  color: #ffffff !important;
+  border: 1px solid transparent !important;
+  box-shadow: 0 4px 14px rgba(47, 178, 130, 0.35);
+}
+
+.cove-btn-accent:hover,
+.btn-accent:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 22px rgba(47, 178, 130, 0.45);
+  filter: brightness(1.08);
+}
+
+/* Theme-Adaptive Soft Neutral Button */
+.cove-btn-soft,
+.btn-soft {
+  background: var(--panel) !important;
+  border: 1px solid var(--line) !important;
+  color: var(--text) !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+}
+
+html[data-theme="dark"] .cove-btn-soft,
+html[data-theme="dark"] .btn-soft {
+  background: var(--panel-soft) !important;
+  border-color: var(--line) !important;
+  color: var(--text) !important;
+}
+
+.cove-btn-soft:hover,
+.btn-soft:hover {
+  border-color: var(--primary) !important;
+  color: var(--primary) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(10, 102, 194, 0.15);
+}
+
+/* Danger / Destructive Button */
+.cove-btn-danger,
+.btn-danger {
+  background: rgba(239, 68, 68, 0.12) !important;
+  border: 1px solid rgba(239, 68, 68, 0.3) !important;
+  color: var(--error) !important;
+}
+
+.cove-btn-danger:hover,
+.btn-danger:hover {
+  background: var(--error) !important;
+  color: #ffffff !important;
+  transform: translateY(-1px);
+}
+
 .portal-chip {
   display: inline-flex;
   align-items: center;
