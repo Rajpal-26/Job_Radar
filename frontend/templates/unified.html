@@ -273,16 +273,19 @@
       <form id="unifiedForm" onsubmit="event.preventDefault(); runUnifiedSearch();">
         
         <!-- Primary Search Inputs Row -->
-        <div class="search-grid-primary" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.25rem; margin-bottom: 1.5rem;">
-          <div class="span-2-col" style="grid-column: span 2;">
-            <label style="font-weight: 700; font-size: 0.95rem; color: var(--text); display: block; margin-bottom: 0.45rem;">Job Role / Title</label>
-            <input type="text" id="role" name="role" class="input-field" placeholder="e.g. Associate Software Engineer" value="Associate Software Engineer" required />
+        <div class="search-grid-primary" style="display: grid; grid-template-columns: repeat(12, 1fr); gap: 1.25rem; margin-bottom: 1.5rem; align-items: start;">
+          <div class="form-group span-2-col" style="grid-column: span 6;">
+            <label for="role">
+              <span>Job Role / Target Title <span style="color: var(--error);">*</span></span>
+            </label>
+            <input type="text" id="role" name="role" class="input-field" placeholder="e.g. Associate Software Engineer, Full Stack Developer" value="Associate Software Engineer" required />
           </div>
+
           <!-- Multi-Select Location Dropdown -->
-          <div class="span-2-col" style="grid-column: span 2; position: relative;">
-            <label style="font-weight: 700; font-size: 0.95rem; color: var(--text); display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.45rem;">
+          <div class="form-group span-2-col" style="grid-column: span 6; position: relative;">
+            <label style="display: flex; justify-content: space-between; align-items: center;">
               <span>Select Target Locations</span>
-              <span id="selectedLocCount" style="font-size: 0.85rem; color: var(--primary); font-weight: 800;">3 Selected</span>
+              <span id="selectedLocCount" style="font-size: 0.82rem; color: var(--primary); font-weight: 800;">3 Selected</span>
             </label>
             
             <!-- Trigger Box -->
@@ -327,8 +330,9 @@
             <!-- Hidden field holding comma-separated value for scraper backend -->
             <input type="hidden" id="locations" name="locations" value="Bengaluru, Pune, Noida" />
           </div>
-          <div>
-            <label style="font-weight: 700; font-size: 0.95rem; color: var(--text); display: block; margin-bottom: 0.45rem;">Experience Level</label>
+
+          <div class="form-group" style="grid-column: span 4;">
+            <label for="experience">Experience Level</label>
             <select id="experience" name="experience" class="input-field">
               <option value="" selected>All Experience Levels</option>
               <option value="fresher">Fresher (0 Years)</option>
@@ -343,8 +347,9 @@
               <option value="10+">10+ Years (Executive / Director)</option>
             </select>
           </div>
-          <div>
-            <label style="font-weight: 700; font-size: 0.95rem; color: var(--text); display: block; margin-bottom: 0.45rem;">Posted Within</label>
+
+          <div class="form-group" style="grid-column: span 4;">
+            <label for="fromage">Posted Within</label>
             <select id="fromage" name="fromage" class="input-field">
               <option value="1">1 Day (Today)</option>
               <option value="3">3 Days</option>
@@ -353,8 +358,9 @@
               <option value="30">30 Days</option>
             </select>
           </div>
-          <div>
-            <label style="font-weight: 700; font-size: 0.95rem; color: var(--text); display: block; margin-bottom: 0.45rem;">Max Jobs per Portal</label>
+
+          <div class="form-group" style="grid-column: span 4;">
+            <label for="limit">Max Jobs per Portal</label>
             <input type="number" id="limit" name="limit" class="input-field" value="20" min="5" max="100" />
           </div>
         </div>
@@ -382,13 +388,13 @@
         </div>
 
         <!-- Dedicated AI Resume Matcher & Skill Extractor Section -->
-        <div style="background: var(--panel-soft); border: 1px solid var(--line); border-radius: 0.75rem; padding: 1.25rem; margin-bottom: 1.25rem;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+        <div style="background: var(--panel-soft); border: 1px solid var(--line); border-radius: 0.85rem; padding: 1.25rem; margin-bottom: 1.25rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 0.6rem;">
             <div>
-              <h4 style="margin: 0; color: var(--text); font-size: 0.95rem;">📄 AI Resume Matcher & Skill Extractor</h4>
-              <span style="font-size: 0.8rem; color: var(--subtext);">Upload your resume to auto-populate skills & compute match scores.</span>
+              <h4 style="margin: 0; color: var(--text); font-size: 0.95rem; font-weight: 800;">📄 AI Resume Matcher &amp; Skill Extractor</h4>
+              <span style="font-size: 0.82rem; color: var(--subtext);">Upload your resume to auto-populate skills &amp; compute deep match scores.</span>
             </div>
-            <label for="resumeUploadInput" style="font-size: 0.8rem; font-weight: 700; color: var(--primary); cursor: pointer; display: inline-flex; align-items: center; gap: 0.4rem; background: var(--panel); padding: 0.4rem 0.8rem; border-radius: 999px; border: 1px solid var(--line); box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+            <label for="resumeUploadInput" class="cove-btn-soft" style="font-size: 0.82rem; padding: 0.45rem 0.95rem; cursor: pointer; border-radius: 999px;">
               📁 Upload PDF / DOCX Resume
             </label>
             <input type="file" id="resumeUploadInput" accept=".pdf,.docx,.txt" style="display: none;" onchange="handleResumeUpload(this)" />
@@ -399,35 +405,48 @@
         </div>
 
         <!-- Advanced Filters Drawer -->
-        <div class="filter-drawer">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.85rem;">
-            <h4 style="margin: 0; color: var(--text); font-size: 0.95rem;">🎛️ Advanced Filters (Keywords, Salary & Work Mode)</h4>
+        <div class="filter-drawer" style="background: var(--panel-soft); border: 1px solid var(--line); border-radius: 0.85rem; padding: 1.25rem; margin-bottom: 1.5rem;">
+          <div style="margin-bottom: 1rem;">
+            <h4 style="margin: 0; color: var(--text); font-size: 0.95rem; font-weight: 800;">🎛️ Advanced Filters (Keywords, Salary &amp; Work Mode)</h4>
           </div>
 
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
-            <div>
-              <label style="font-size: 0.8rem; font-weight: 600; color: var(--text); display: block; margin-bottom: 0.35rem;">Include Keywords (Must contain)</label>
+          <div class="form-grid-3">
+            <div class="form-group">
+              <label for="include_keywords">
+                <span>Include Keywords</span>
+                <span class="label-hint">(Must contain)</span>
+              </label>
               <input type="text" id="include_keywords" class="input-field" placeholder="e.g. Python, FastAPI" />
             </div>
-            <div>
-              <label style="font-size: 0.8rem; font-weight: 600; color: var(--text); display: block; margin-bottom: 0.35rem;">Exclude Keywords (Must NOT contain)</label>
+            <div class="form-group">
+              <label for="exclude_keywords">
+                <span>Exclude Keywords</span>
+                <span class="label-hint">(Must NOT contain)</span>
+              </label>
               <input type="text" id="exclude_keywords" class="input-field" placeholder="e.g. Senior, Lead, Manager" />
             </div>
-            <div>
-              <label style="font-size: 0.8rem; font-weight: 600; color: var(--text); display: block; margin-bottom: 0.35rem;">Min Salary (LPA)</label>
+            <div class="form-group">
+              <label for="min_salary">
+                <span>Min Salary</span>
+                <span class="label-hint">(in LPA)</span>
+              </label>
               <input type="number" id="min_salary" class="input-field" placeholder="e.g. 5" step="0.5" />
             </div>
-            <div>
-              <label style="font-size: 0.8rem; font-weight: 600; color: var(--text); display: block; margin-bottom: 0.35rem;">Workplace Mode</label>
+            <div class="form-group">
+              <label for="workplace_mode">
+                <span>Workplace Mode</span>
+              </label>
               <select id="workplace_mode" class="input-field">
-                <option value="all">All Modes</option>
+                <option value="all" selected>All Modes</option>
                 <option value="remote">Remote Only</option>
                 <option value="hybrid">Hybrid Only</option>
                 <option value="on-site">On-site Only</option>
               </select>
             </div>
-            <div>
-              <label style="font-size: 0.8rem; font-weight: 600; color: var(--text); display: block; margin-bottom: 0.35rem;">Job Commitment Type</label>
+            <div class="form-group">
+              <label for="job_type">
+                <span>Job Commitment Type</span>
+              </label>
               <select id="job_type" class="input-field">
                 <option value="all" selected>All Types (Full-Time / Contract)</option>
                 <option value="full-time">Full-Time Only</option>
@@ -436,8 +455,10 @@
                 <option value="part-time">Part-Time Only</option>
               </select>
             </div>
-            <div>
-              <label style="font-size: 0.8rem; font-weight: 600; color: var(--text); display: block; margin-bottom: 0.35rem;">Application Type</label>
+            <div class="form-group">
+              <label for="apply_mode">
+                <span>Application Type</span>
+              </label>
               <select id="apply_mode" class="input-field">
                 <option value="include_easy" selected>All Postings</option>
                 <option value="easy_only">Direct / Easy Apply Only</option>
@@ -447,12 +468,12 @@
         </div>
 
         <!-- Action Button Row -->
-        <div style="margin-top: 1.5rem; display: flex; gap: 1rem; align-items: center;">
-          <button type="submit" id="searchBtn" style="padding: 0.75rem 2rem; background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%); color: white; border: none; border-radius: 0.5rem; font-weight: 800; font-size: 1rem; cursor: pointer; display: inline-flex; align-items: center; gap: 0.5rem; box-shadow: 0 4px 14px rgba(10, 102, 194, 0.3);">
+        <div style="margin-top: 1.5rem; display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+          <button type="submit" id="searchBtn" class="cove-btn-accent" style="padding: 0.8rem 2.25rem; font-size: 1rem;">
             <span>🚀 Launch Aggregated Search</span>
           </button>
-          <button type="button" onclick="exportResultsCSV()" style="padding: 0.75rem 1.25rem; background: var(--panel-soft); color: var(--text); border: 1px solid var(--line); border-radius: 0.5rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 0.4rem;">
-            📥 Export Results (CSV)
+          <button type="button" onclick="exportResultsCSV()" class="cove-btn-soft" style="padding: 0.8rem 1.5rem; font-size: 0.95rem;">
+            <span>📥 Export Results (CSV)</span>
           </button>
         </div>
       </form>

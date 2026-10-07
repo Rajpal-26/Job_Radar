@@ -1354,26 +1354,142 @@ html[data-theme="dark"] .app-navbar .nav-tabs {
   margin-top: 1rem;
 }
 
+/* ==============================================================================
+ * PRODUCTION-GRADE FORM CONTROLS & ALIGNMENT SYSTEM
+ * ============================================================================== */
+
 .input-field,
-.app-input {
+.app-input,
+.text-field,
+select.input-field,
+select.text-field {
   width: 100%;
-  min-height: 48px;
+  height: 46px;
+  min-height: 46px;
+  max-height: 46px;
+  box-sizing: border-box !important;
   background: var(--panel);
   color: var(--text);
   border: 1px solid var(--line);
   border-radius: 0.65rem;
-  padding: 0.75rem 1.1rem;
+  padding: 0.65rem 1rem;
   font-family: inherit;
-  font-size: 0.98rem;
+  font-size: 0.92rem;
   font-weight: 600;
+  line-height: 1.5;
+  transition: border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.2s;
+  display: block;
+}
+
+textarea.input-field,
+textarea.text-field {
+  width: 100%;
+  height: auto;
+  min-height: 72px;
+  max-height: none;
+  box-sizing: border-box !important;
+  background: var(--panel);
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: 0.65rem;
+  padding: 0.75rem 1rem;
+  font-family: inherit;
+  font-size: 0.92rem;
+  font-weight: 500;
+  line-height: 1.5;
+  resize: vertical;
   transition: border-color 0.2s, box-shadow 0.2s;
+  display: block;
 }
 
 .input-field:focus,
-.app-input:focus {
+.app-input:focus,
+.text-field:focus,
+textarea.input-field:focus,
+textarea.text-field:focus {
   outline: none;
   border-color: var(--primary);
   box-shadow: 0 0 0 3px var(--primary-soft);
+  background: var(--panel);
+}
+
+.input-field::placeholder,
+.app-input::placeholder,
+.text-field::placeholder {
+  color: var(--subtext);
+  opacity: 0.75;
+  font-weight: 400;
+}
+
+/* Strict Label-Input Form Group Alignment */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.form-group label,
+.field-label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.4rem;
+  margin-bottom: 0.45rem;
+  height: 20px;
+  line-height: 20px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  box-sizing: border-box;
+}
+
+.label-hint {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--subtext);
+}
+
+/* Balanced Responsive Grids */
+.form-grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.25rem;
+  align-items: start;
+}
+
+.form-grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.25rem;
+  align-items: start;
+}
+
+.form-grid-4 {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1.25rem;
+  align-items: start;
+}
+
+@media (max-width: 960px) {
+  .form-grid-3,
+  .form-grid-4 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .form-grid-3,
+  .form-grid-2,
+  .form-grid-4 {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
 }
 
 .portal-chip {
@@ -1733,14 +1849,20 @@ select::placeholder {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  min-height: 42px;
+  width: 100%;
+  height: 46px;
+  min-height: 46px;
+  max-height: 46px;
+  box-sizing: border-box !important;
   cursor: pointer;
-  padding: 0.35rem 0.75rem;
+  padding: 0.4rem 0.85rem;
   background: var(--panel);
+  color: var(--text);
   border: 1px solid var(--line);
-  border-radius: 0.5rem;
+  border-radius: 0.65rem;
   user-select: none;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition: border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
 }
 
 .location-dropdown-trigger:hover {

@@ -230,35 +230,33 @@
       <form id="recruiterSearchForm" onsubmit="event.preventDefault(); runMemberSearch();">
         
         <!-- Primary Search Inputs -->
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.25rem; margin-bottom: 1.5rem;">
-          <div>
-            <label style="font-weight: 700; font-size: 0.95rem; color: var(--text); display: block; margin-bottom: 0.45rem;">
-              Target Company Name <span style="color: var(--error);">*</span>
+        <div class="form-grid-4" style="margin-bottom: 1.5rem;">
+          <div class="form-group">
+            <label for="companyInput">
+              <span>Target Company Name <span style="color: var(--error);">*</span></span>
             </label>
-            <input type="text" id="companyInput" class="input-field" placeholder="e.g. GammaStack, Thoughtwin, Infosys, Swiggy" value="GammaStack" required style="width: 100%;" />
+            <input type="text" id="companyInput" class="input-field" placeholder="e.g. GammaStack, Infosys, Swiggy" value="GammaStack" required />
           </div>
           
-          <div>
-            <label style="font-weight: 700; font-size: 0.95rem; color: var(--text); display: block; margin-bottom: 0.45rem;">
-              Keywords & Roles (Comma separated or use chips) <span style="color: var(--error);">*</span>
+          <div class="form-group">
+            <label for="keywordInput">
+              <span>Keywords &amp; Roles <span style="color: var(--error);">*</span></span>
             </label>
-            <div style="display: flex; gap: 0.5rem; align-items: center;">
-              <input type="text" id="keywordInput" class="input-field" placeholder="e.g. Talent Acquisition, HR Manager" value="Talent Acquisition, HR" style="flex: 1;" />
-            </div>
+            <input type="text" id="keywordInput" class="input-field" placeholder="e.g. Talent Acquisition, HR Manager" value="Talent Acquisition, HR" required />
           </div>
 
-          <div>
-            <label style="font-weight: 700; font-size: 0.95rem; color: var(--text); display: block; margin-bottom: 0.45rem;">
-              Location (Optional)
+          <div class="form-group">
+            <label for="locationInput">
+              <span>Location <span class="label-hint">(Optional)</span></span>
             </label>
-            <input type="text" id="locationInput" class="input-field" placeholder="e.g. India, Indore, Bengaluru, Remote" value="India" style="width: 100%;" />
+            <input type="text" id="locationInput" class="input-field" placeholder="e.g. India, Indore, Bengaluru, Remote" value="India" />
           </div>
 
-          <div>
-            <label style="font-weight: 700; font-size: 0.95rem; color: var(--text); display: block; margin-bottom: 0.45rem;">
-              Results Limit
+          <div class="form-group">
+            <label for="limitInput">
+              <span>Results Limit</span>
             </label>
-            <select id="limitInput" class="input-field" style="width: 100%;">
+            <select id="limitInput" class="input-field">
               <option value="15" selected>15 Verified Decision Makers</option>
               <option value="25">25 Verified Decision Makers</option>
               <option value="50">50 Verified Decision Makers</option>

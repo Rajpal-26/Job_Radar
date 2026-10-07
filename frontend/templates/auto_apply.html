@@ -712,42 +712,42 @@
       </div>
 
       <form id="profileEditForm" onsubmit="event.preventDefault(); saveProfileSettings();">
-        <div class="input-group" style="margin-bottom: 1rem;">
-          <label style="font-size: 0.85rem; font-weight: 700; color: var(--text); display: block; margin-bottom: 0.4rem;">Full Name</label>
+        <div class="form-group" style="margin-bottom: 1rem;">
+          <label for="editFullName">Full Name</label>
           <input type="text" id="editFullName" class="text-field" required />
         </div>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
-          <div>
-            <label style="font-size: 0.85rem; font-weight: 700; color: var(--text); display: block; margin-bottom: 0.4rem;">Email</label>
+        <div class="form-grid-2" style="margin-bottom: 1rem;">
+          <div class="form-group">
+            <label for="editEmail">Email Address</label>
             <input type="email" id="editEmail" class="text-field" required />
           </div>
-          <div>
-            <label style="font-size: 0.85rem; font-weight: 700; color: var(--text); display: block; margin-bottom: 0.4rem;">Phone</label>
+          <div class="form-group">
+            <label for="editPhone">Phone Number</label>
             <input type="text" id="editPhone" class="text-field" required />
           </div>
         </div>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
-          <div>
-            <label style="font-size: 0.85rem; font-weight: 700; color: var(--text); display: block; margin-bottom: 0.4rem;">Target Role</label>
+        <div class="form-grid-2" style="margin-bottom: 1rem;">
+          <div class="form-group">
+            <label for="editTargetRole">Target Role</label>
             <input type="text" id="editTargetRole" class="text-field" required />
           </div>
-          <div>
-            <label style="font-size: 0.85rem; font-weight: 700; color: var(--text); display: block; margin-bottom: 0.4rem;">Experience</label>
+          <div class="form-group">
+            <label for="editExperience">Experience</label>
             <input type="text" id="editExperience" class="text-field" placeholder="e.g. 1-3 Years" required />
           </div>
         </div>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
-          <div>
-            <label style="font-size: 0.85rem; font-weight: 700; color: var(--text); display: block; margin-bottom: 0.4rem;">Expected CTC</label>
+        <div class="form-grid-2" style="margin-bottom: 1rem;">
+          <div class="form-group">
+            <label for="editCTC">Expected CTC</label>
             <input type="text" id="editCTC" class="text-field" placeholder="e.g. 8-14 LPA" required />
           </div>
-          <div>
-            <label style="font-size: 0.85rem; font-weight: 700; color: var(--text); display: block; margin-bottom: 0.4rem;">Notice Period</label>
+          <div class="form-group">
+            <label for="editNotice">Notice Period</label>
             <input type="text" id="editNotice" class="text-field" placeholder="e.g. Immediate / 15 Days" required />
           </div>
         </div>
-        <div style="margin-bottom: 1.5rem;">
-          <label style="font-size: 0.85rem; font-weight: 700; color: var(--text); display: block; margin-bottom: 0.4rem;">Technical Skills (Comma separated)</label>
+        <div class="form-group" style="margin-bottom: 1.5rem;">
+          <label for="editSkills">Technical Skills (Comma separated)</label>
           <input type="text" id="editSkills" class="text-field" placeholder="Python, FastAPI, SQL, Docker, Git" required />
         </div>
 
@@ -768,17 +768,17 @@
       </div>
 
       <form id="createScheduleForm" onsubmit="event.preventDefault(); saveSchedule();">
-        <div style="margin-bottom: 1rem;">
-          <label style="font-size: 0.85rem; font-weight: 700; color: var(--text); display: block; margin-bottom: 0.4rem;">Session Name</label>
+        <div class="form-group" style="margin-bottom: 1rem;">
+          <label for="schedName">Session Name</label>
           <input type="text" id="schedName" class="text-field" value="Morning Naukri & LinkedIn Batch" required />
         </div>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
-          <div>
-            <label style="font-size: 0.85rem; font-weight: 700; color: var(--text); display: block; margin-bottom: 0.4rem;">Target Role</label>
+        <div class="form-grid-2" style="margin-bottom: 1rem;">
+          <div class="form-group">
+            <label for="schedRole">Target Role</label>
             <input type="text" id="schedRole" class="text-field" value="Python Developer" required />
           </div>
-          <div>
-            <label style="font-size: 0.85rem; font-weight: 700; color: var(--text); display: block; margin-bottom: 0.4rem;">Platform Target</label>
+          <div class="form-group">
+            <label for="schedPlatform">Platform Target</label>
             <select id="schedPlatform" class="text-field">
               <option value="All">🌐 Naukri + LinkedIn + ATS</option>
               <option value="LinkedIn">LinkedIn Easy Apply</option>
@@ -787,13 +787,13 @@
             </select>
           </div>
         </div>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
-          <div>
-            <label style="font-size: 0.85rem; font-weight: 700; color: var(--text); display: block; margin-bottom: 0.4rem;">Target Locations</label>
+        <div class="form-grid-2" style="margin-bottom: 1.5rem;">
+          <div class="form-group">
+            <label for="schedLocations">Target Locations</label>
             <input type="text" id="schedLocations" class="text-field" value="Bengaluru, Remote" required />
           </div>
-          <div>
-            <label style="font-size: 0.85rem; font-weight: 700; color: var(--text); display: block; margin-bottom: 0.4rem;">Min Salary</label>
+          <div class="form-group">
+            <label for="schedSalary">Min Salary</label>
             <input type="text" id="schedSalary" class="text-field" value="8 LPA" required />
           </div>
         </div>
