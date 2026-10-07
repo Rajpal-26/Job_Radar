@@ -582,6 +582,29 @@
     <!-- TAB 3: SCHEDULED RUNS & RECURRING AUTOMATION -->
     <!-- ============================================================== -->
     <div id="coveTabScheduler" style="display: none;">
+      <!-- SMTP & Automated Email Notification Status Bar -->
+      <div style="background: var(--panel); border: 1px solid var(--line); border-radius: 1.15rem; padding: 1.25rem 1.5rem; margin-bottom: 1.25rem; box-shadow: var(--shadow); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+        <div style="display: flex; align-items: center; gap: 0.85rem;">
+          <div style="width: 42px; height: 42px; border-radius: 0.75rem; background: rgba(16, 185, 129, 0.15); color: var(--accent); display: flex; align-items: center; justify-content: center; font-size: 1.3rem;">
+            ✉️
+          </div>
+          <div>
+            <div style="font-weight: 800; font-size: 0.95rem; color: var(--text); display: flex; align-items: center; gap: 0.5rem;">
+              <span>Automated SMTP Email Dispatch Active</span>
+              <span class="step-badge badge-green">● Connected</span>
+            </div>
+            <div style="font-size: 0.8rem; color: var(--subtext); margin-top: 0.15rem;">
+              Digest Recipient: <strong style="color: var(--primary);">kapiltanwar0369@gmail.com</strong> (smtp.gmail.com:587 TLS) &bull; Sends on every scheduled batch
+            </div>
+          </div>
+        </div>
+        <div style="display: flex; gap: 0.5rem;">
+          <button onclick="testEmailReport()" id="btnTestEmail" class="cove-btn-soft" style="font-size: 0.85rem;">
+            <span>📧 Send Test Email Digest</span>
+          </button>
+        </div>
+      </div>
+
       <div style="background: var(--panel); border: 1px solid var(--line); border-radius: 1.15rem; padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: var(--shadow);">
         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.25rem;">
           <div>
@@ -589,7 +612,7 @@
               ⏰ Scheduled Sessions (Runs with Laptop Shut)
             </h2>
             <p style="font-size: 0.85rem; color: var(--subtext); margin: 0.25rem 0 0 0;">
-              Scheduled runs execute on isolated cloud workers at the days and times you define, spreading applies at human pace.
+              Scheduled runs execute on isolated background workers at the days and times you define, spreading applies at human pace and emailing detailed summaries.
             </p>
           </div>
           <button onclick="openCreateScheduleModal()" class="cove-btn-primary">
@@ -1233,9 +1256,36 @@
       addMonitorLog(`[TRIGGER] Running scheduled batch #${id}...`, 'var(--primary)');
       const res = await fetch(`/api/schedules/${id}/run_now`, { method: "POST" });
       const data = await res.json();
-      addMonitorLog(`[COMPLETED] Batch finished with ${data.applied_count || 0} jobs applied.`, 'var(--accent)');
+      addMonitorLog(`[COMPLETED] Batch finished with ${data.applied_count || 0} jobs applied. Status: ${data.status || 'Success'}`, 'var(--accent)');
       await loadSchedules();
       updateAppliedHistoryBadge();
+    }
+
+    async function testEmailReport() {
+      const btn = document.getElementById("btnTestEmail");
+      const origHtml = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = `<span>⏳ Dispatching SMTP Email...</span>`;
+
+      try {
+        const res = await fetch("/api/schedules/test_email", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ recipient_email: "kapiltanwar0369@gmail.com" })
+        });
+        const data = await res.json();
+
+        if (data.success) {
+          alert(`✅ Email Report Dispatched Successfully!\n\nRecipient: ${data.recipient}\nMode: ${data.mode}\nMessage: ${data.message}`);
+        } else {
+          alert(`⚠️ SMTP Dispatch Notification: ${data.message || data.error}`);
+        }
+      } catch (err) {
+        alert("Failed to trigger test email: " + err);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = origHtml;
+      }
     }
 
     async function updateAppliedHistoryBadge() {

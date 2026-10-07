@@ -13,17 +13,23 @@ from datetime import datetime
 import json
 
 def load_env_vars():
-    """Reads .env file dynamically."""
-    env_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), ".env")
+    """Reads .env file dynamically from project root or backend directory."""
+    base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    candidate_paths = [
+        os.path.join(base_dir, ".env"),
+        os.path.join(os.getcwd(), ".env"),
+        os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), ".env"),
+    ]
     env_vars = {}
-    if os.path.exists(env_path):
-        with open(env_path, "r", encoding="utf-8") as f:
-            for line in f:
-                line = line.strip()
-                if line and not line.startswith("#") and "=" in line:
-                    k, v = line.split("=", 1)
-                    env_vars[k.strip()] = v.strip()
-                    os.environ[k.strip()] = v.strip()
+    for env_path in candidate_paths:
+        if os.path.exists(env_path):
+            with open(env_path, "r", encoding="utf-8") as f:
+                for line in f:
+                    line = line.strip()
+                    if line and not line.startswith("#") and "=" in line:
+                        k, v = line.split("=", 1)
+                        env_vars[k.strip()] = v.strip()
+                        os.environ[k.strip()] = v.strip()
     return env_vars
 
 load_env_vars()
@@ -297,3 +303,287 @@ def send_job_digest_email(jobs, target_roles, target_exp, target_locations, reci
             "jobs_count": len(jobs),
             "recipient": recipient
         }
+
+
+def generate_auto_apply_email_html(schedule_data, applied_jobs, candidate_profile, recipient_email=DEFAULT_RECIPIENT):
+    """Generates an HTML email report listing applied jobs with JD, answers, and profile info."""
+    today_str = datetime.now().strftime("%B %d, %Y - %I:%M %p")
+    total_applied = len(applied_jobs)
+    
+    sched_name = (schedule_data or {}).get("name") or "Automated Career Scan"
+    sched_role = (schedule_data or {}).get("target_role") or "Python Developer"
+    sched_platform = (schedule_data or {}).get("platform") or "All Portals"
+    
+    c_name = candidate_profile.get("full_name", "Job Candidate")
+    c_email = candidate_profile.get("email", "candidate@jobradar.local")
+    c_phone = candidate_profile.get("phone", "+91 9876543210")
+    c_exp = candidate_profile.get("experience_level", "1-3 Years")
+    c_ctc = candidate_profile.get("expected_ctc", "8-14 LPA")
+    c_notice = candidate_profile.get("notice_period", "Immediate / 15 Days")
+    c_resume = candidate_profile.get("resume_filename", "Primary_Resume.pdf")
+    
+    # Render Job Cards
+    cards_html = ""
+    for idx, j in enumerate(applied_jobs, 1):
+        title = j.get("job_title") or j.get("Job Title") or "Software Engineer"
+        company = j.get("company") or j.get("Company") or "Tech Organization"
+        platform = j.get("platform") or j.get("Platform") or "JobRadar"
+        location = j.get("location") or j.get("Location") or "Bengaluru / Remote"
+        salary = j.get("salary") or j.get("Salary") or "Not Disclosed"
+        match_score = j.get("match_score") or j.get("Match_Score") or 85
+        app_id = j.get("application_id") or f"APP-{idx:04d}"
+        link = j.get("link") or j.get("Link") or "#"
+        
+        responsibilities = j.get("responsibilities") or j.get("Responsibilities") or [
+            "Architect and implement scalable backend APIs and microservices",
+            "Collaborate with engineering leads and maintain 99.9% uptime"
+        ]
+        resp_html = "".join([f"<li style='margin-bottom: 4px;'>{r}</li>" for r in responsibilities[:3]])
+        
+        benefits = j.get("benefits") or j.get("Benefits") or ["Health Insurance", "Flexible Remote", "Annual Bonus"]
+        benefits_html = "".join([f"<span style='background: #e0f2fe; color: #0369a1; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 4px; display: inline-block; margin-right: 4px; margin-bottom: 4px;'>🎁 {b}</span>" for b in benefits[:3]])
+        
+        # Screening QA
+        screening_qa = j.get("screening_qa") or j.get("Screening_QA") or []
+        qa_html = ""
+        for qa in screening_qa[:3]:
+            q_text = qa.get("question", "")
+            a_text = qa.get("answer", "")
+            qa_html += f"""
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 8px 12px; margin-top: 6px; font-size: 12px;">
+                <div style="font-weight: 700; color: #334155; margin-bottom: 2px;">❓ {q_text}</div>
+                <div style="color: #059669; font-weight: 600;">💡 {a_text}</div>
+            </div>
+            """
+            
+        cards_html += f"""
+        <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 6px rgba(0,0,0,0.04);">
+            <table width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-bottom: 10px;">
+                <tr>
+                    <td>
+                        <span style="background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; font-size: 11px; font-weight: 800; padding: 2px 8px; border-radius: 4px; text-transform: uppercase;">🌐 {platform}</span>
+                        <span style="font-family: monospace; font-size: 11px; color: #64748b; margin-left: 6px;">{app_id}</span>
+                    </td>
+                    <td align="right">
+                        <span style="background: #ecfdf5; color: #059669; font-size: 12px; font-weight: 800; padding: 3px 8px; border-radius: 4px;">🎯 {match_score}% ATS MATCH</span>
+                    </td>
+                </tr>
+            </table>
+
+            <div style="font-size: 17px; font-weight: 800; color: #0f172a; margin-bottom: 3px;">
+                {title}
+            </div>
+            <div style="font-size: 14px; font-weight: 700; color: #0284c7; margin-bottom: 8px;">
+                🏢 {company}
+            </div>
+
+            <div style="font-size: 12px; color: #475569; margin-bottom: 12px; display: flex; gap: 8px;">
+                <span style="background: #f1f5f9; padding: 2px 8px; border-radius: 4px;">📍 {location}</span>
+                <span style="background: #fef3c7; color: #b45309; padding: 2px 8px; border-radius: 4px; font-weight: 700;">💰 {salary}</span>
+            </div>
+
+            <!-- Responsibilities -->
+            <div style="background: #f8fafc; border-left: 3px solid #0284c7; padding: 10px 14px; border-radius: 4px; margin-bottom: 10px;">
+                <div style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #64748b; margin-bottom: 4px;">Key Responsibilities Extracted from JD:</div>
+                <ul style="margin: 0; padding-left: 18px; font-size: 12px; color: #334155; line-height: 1.5;">
+                    {resp_html}
+                </ul>
+            </div>
+
+            <!-- Perks -->
+            <div style="margin-bottom: 10px;">
+                {benefits_html}
+            </div>
+
+            <!-- AI Screening Q&A -->
+            {f'<div style="margin-top: 10px;"><div style="font-size: 11px; font-weight: 800; text-transform: uppercase; color: #64748b; margin-bottom: 4px;">Screening Answers Auto-Filled by AI:</div>{qa_html}</div>' if qa_html else ''}
+
+            <!-- Bottom CTA Link -->
+            <div style="margin-top: 14px; padding-top: 10px; border-top: 1px solid #f1f5f9; text-align: right;">
+                <a href="{link}" target="_blank" style="background: #f1f5f9; border: 1px solid #cbd5e1; color: #0f172a; text-decoration: none; font-weight: 700; font-size: 12px; padding: 6px 14px; border-radius: 6px; display: inline-block;">
+                    🌐 View Job on Portal &rarr;
+                </a>
+            </div>
+        </div>
+        """
+
+    html = f"""<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ApplyCove / JobRadar - Auto-Apply Execution Digest</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #1e293b;">
+    <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #f8fafc; padding: 24px 12px;">
+        <tr>
+            <td align="center">
+                <table width="100%" border="0" cellspacing="0" cellpadding="0" style="max-width: 700px; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.06); border: 1px solid #e2e8f0;">
+                    
+                    <!-- Header -->
+                    <tr>
+                        <td style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); padding: 30px 28px; text-align: left; border-bottom: 3px solid #10b981;">
+                            <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                                <tr>
+                                    <td>
+                                        <div style="font-size: 24px; font-weight: 900; letter-spacing: -0.5px; color: #ffffff; margin-bottom: 4px;">
+                                            Apply<span style="color: #38bdf8;">Cove</span> <span style="font-size: 12px; font-weight: 800; background: rgba(16, 185, 129, 0.2); color: #10b981; padding: 3px 8px; border-radius: 4px; border: 1px solid rgba(16, 185, 129, 0.4); vertical-align: middle; margin-left: 6px;">AUTO-APPLY REPORT</span>
+                                        </div>
+                                        <div style="font-size: 13px; color: #94a3b8; font-weight: 500;">
+                                            Scheduled Session Batch &bull; {today_str}
+                                        </div>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                    <!-- Execution Stats Strip -->
+                    <tr>
+                        <td style="background-color: #f1f5f9; padding: 14px 28px; border-bottom: 1px solid #e2e8f0;">
+                            <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                                <tr>
+                                    <td style="font-size: 13px; color: #0f172a; font-weight: 700;">
+                                        ⚡ <strong>{total_applied} Applications Dispatched</strong> for <em>{sched_name}</em>
+                                    </td>
+                                    <td align="right" style="font-size: 12px; color: #059669; font-weight: 800;">
+                                        ✓ Saved in Applied History
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                    <!-- Candidate Profile Information Snapshot -->
+                    <tr>
+                        <td style="padding: 20px 28px 10px 28px;">
+                            <div style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 14px 18px; font-size: 12px; color: #475569; line-height: 1.6;">
+                                <div style="font-weight: 800; color: #0f172a; text-transform: uppercase; font-size: 11px; margin-bottom: 6px;">
+                                    📋 Candidate Profile Snapshot Dispatched With Applications:
+                                </div>
+                                <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                                    <tr>
+                                        <td width="50%" style="vertical-align: top;">
+                                            <strong>👤 Candidate:</strong> {c_name}<br>
+                                            <strong>📧 Email:</strong> {c_email}<br>
+                                            <strong>📱 Phone:</strong> {c_phone}<br>
+                                            <strong>📄 Resume File:</strong> <span style="color: #059669; font-weight: 700;">{c_resume}</span>
+                                        </td>
+                                        <td width="50%" style="vertical-align: top;">
+                                            <strong>⏳ Experience:</strong> {c_exp}<br>
+                                            <strong>💰 Expected CTC:</strong> {c_ctc}<br>
+                                            <strong>⏱️ Notice Period:</strong> {c_notice}<br>
+                                            <strong>🎯 Target Role:</strong> {sched_role}
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </td>
+                    </tr>
+
+                    <!-- Applied Jobs List -->
+                    <tr>
+                        <td style="padding: 10px 28px 24px 28px;">
+                            <div style="font-size: 13px; font-weight: 800; text-transform: uppercase; color: #64748b; margin: 12px 0 16px 0;">
+                                📜 Applications &amp; AI Form Data Details:
+                            </div>
+                            {cards_html if cards_html else '<div style="text-align: center; padding: 30px; color: #64748b;">No new applications were submitted in this scheduled run.</div>'}
+                        </td>
+                    </tr>
+
+                    <!-- Footer -->
+                    <tr>
+                        <td style="background-color: #0f172a; padding: 24px 28px; text-align: center; color: #64748b; font-size: 12px; border-top: 1px solid #1e293b;">
+                            <div style="color: #94a3b8; font-size: 13px; font-weight: 600; margin-bottom: 6px;">
+                                ApplyCove / JobRadar Automated Engine by <a href="https://mail.google.com/mail/?view=cm&fs=1&to=rajpaltanwar2608@gmail.com" style="color: #38bdf8; text-decoration: none;">Rajpal Singh Tanwar</a>
+                            </div>
+                            <div>
+                                Full JD markdown, screening Q&A, and tailored cover letters are persisted in your local <a href="http://127.0.0.1:5000/history" style="color: #10b981; text-decoration: none; font-weight: 700;">Applied History Ledger</a>.
+                            </div>
+                        </td>
+                    </tr>
+
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>
+"""
+    return html
+
+
+def send_auto_apply_run_email(schedule_data, applied_jobs, candidate_profile, recipient_email=None, smtp_config=None):
+    """
+    Sends the HTML report of an automated or scheduled auto-apply run via SMTP.
+    """
+    cfg = get_smtp_config()
+    recipient = recipient_email or cfg["recipient"]
+    smtp_host = (smtp_config or {}).get("host") or cfg["host"]
+    smtp_port = int((smtp_config or {}).get("port") or cfg["port"])
+    smtp_user = (smtp_config or {}).get("user") or cfg["user"]
+    smtp_pass = (smtp_config or {}).get("password") or cfg["password"]
+    
+    html_content = generate_auto_apply_email_html(
+        schedule_data=schedule_data,
+        applied_jobs=applied_jobs,
+        candidate_profile=candidate_profile,
+        recipient_email=recipient
+    )
+    
+    os.makedirs("data", exist_ok=True)
+    preview_path = os.path.join("data", "latest_auto_apply_email_report.html")
+    with open(preview_path, "w", encoding="utf-8") as f:
+        f.write(html_content)
+        
+    if not smtp_user or not smtp_pass:
+        print(f"[Auto-Apply Email] SMTP credentials not set. Report saved to: {preview_path}")
+        return {
+            "success": True,
+            "mode": "preview_saved",
+            "message": f"Report generated with {len(applied_jobs)} jobs. Saved to {preview_path}",
+            "preview_path": preview_path,
+            "applied_count": len(applied_jobs),
+            "recipient": recipient
+        }
+        
+    try:
+        today_formatted = datetime.now().strftime("%A, %d %b %Y - %I:%M %p")
+        sched_name = (schedule_data or {}).get("name") or "Scheduled Automation"
+        subject = f"⚡ ApplyCove Auto-Apply Report: {len(applied_jobs)} Jobs Applied ({sched_name}) - {today_formatted}"
+        
+        msg = MIMEMultipart("alternative")
+        msg["Subject"] = subject
+        msg["From"] = f"ApplyCove Auto-Apply <{smtp_user}>"
+        msg["To"] = recipient
+        msg.attach(MIMEText(html_content, "html", "utf-8"))
+        
+        print(f"[Auto-Apply Email] Sending report to {recipient} via {smtp_host}:{smtp_port}...")
+        with smtplib.SMTP(smtp_host, smtp_port, timeout=20) as server:
+            server.ehlo()
+            server.starttls()
+            server.ehlo()
+            server.login(smtp_user, smtp_pass)
+            server.sendmail(smtp_user, [recipient], msg.as_string())
+            
+        print(f"[Auto-Apply Email] Successfully sent report for {len(applied_jobs)} applications to {recipient}!")
+        return {
+            "success": True,
+            "mode": "sent",
+            "message": f"Successfully sent auto-apply report for {len(applied_jobs)} jobs to {recipient}",
+            "recipient": recipient,
+            "applied_count": len(applied_jobs),
+            "preview_path": preview_path
+        }
+    except Exception as e:
+        print(f"[Auto-Apply Email ERROR] Failed to dispatch: {e}")
+        return {
+            "success": False,
+            "mode": "error",
+            "error": str(e),
+            "message": f"Failed to send email via SMTP ({e}). Local preview saved to {preview_path}",
+            "preview_path": preview_path,
+            "applied_count": len(applied_jobs),
+            "recipient": recipient
+        }
+

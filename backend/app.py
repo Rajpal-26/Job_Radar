@@ -1564,6 +1564,70 @@ def run_schedule_now_api(schedule_id):
         return jsonify({"error": str(e), "success": False}), 500
 
 
+@app.route("/api/schedules/test_email", methods=["POST"])
+def test_email_api():
+    """Send an immediate test auto-apply digest email via SMTP."""
+    try:
+        from services.email_alert_service import send_auto_apply_run_email, get_smtp_config
+        data = request.get_json(silent=True) or {}
+        recipient = data.get("recipient_email") or get_smtp_config()["recipient"]
+        
+        # Pull candidate profile
+        profile = CandidateProfile.query.first()
+        profile_dict = profile.to_dict() if profile else {
+            "full_name": "Rajpal Singh Tanwar",
+            "email": "kapiltanwar0369@gmail.com",
+            "phone": "+91 9876543210",
+            "experience_level": "1-3 Years",
+            "expected_ctc": "8-14 LPA",
+            "notice_period": "Immediate / 15 Days",
+            "resume_filename": "Resume_Rajpal_Tanwar.pdf",
+            "skills": ["Python", "FastAPI", "SQL", "Docker", "Git"]
+        }
+
+        # Pull recent applied jobs or sample
+        recent_applied = auto_apply_service.get_applied_history()
+        if not recent_applied:
+            recent_applied = [
+                {
+                    "job_title": "Python Developer",
+                    "company": "Tech Innovations Ltd",
+                    "platform": "LinkedIn Easy Apply",
+                    "location": "Bengaluru / Remote",
+                    "salary": "10-16 LPA",
+                    "match_score": 94,
+                    "application_id": "APP-LIN-984210",
+                    "link": "https://www.linkedin.com/jobs",
+                    "responsibilities": [
+                        "Architect scalable microservices and FastAPI endpoints",
+                        "Optimize high-throughput SQL database queries and Redis caching",
+                        "Integrate CI/CD pipelines and unit test suites"
+                    ],
+                    "benefits": ["Comprehensive Medical Insurance", "Flexible Remote Work", "Annual ESOP Grants"],
+                    "screening_qa": [
+                        {"question": "How many years of Python experience do you have?", "answer": "3+ years of professional backend development"},
+                        {"question": "What is your official notice period?", "answer": "Immediate / 15 days"}
+                    ]
+                }
+            ]
+
+        sample_schedule = {
+            "name": "Live SMTP Verification Digest",
+            "target_role": "Python Developer",
+            "platform": "All Portals"
+        }
+
+        res = send_auto_apply_run_email(
+            schedule_data=sample_schedule,
+            applied_jobs=recent_applied[:3],
+            candidate_profile=profile_dict,
+            recipient_email=recipient
+        )
+        return jsonify(res)
+    except Exception as e:
+        return jsonify({"error": str(e), "success": False}), 500
+
+
 # ==============================================================================
 # CHROME EXTENSION & FORM RESOLVER API
 # ==============================================================================
