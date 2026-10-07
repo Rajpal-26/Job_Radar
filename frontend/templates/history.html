@@ -421,9 +421,6 @@
       <a href="/" class="nav-tab">🌐 Single Scrapers</a>
     </div>
     <div class="nav-tools">
-      <button class="nav-theme-btn" onclick="exportHistoryCSV()" style="background: var(--accent-soft); border-color: var(--accent); color: var(--accent); font-weight: 700;">
-        <span>📥 Export CSV</span>
-      </button>
       <button class="nav-theme-btn" onclick="toggleTheme()" aria-label="Toggle theme">
         <span class="theme-icon">🌙</span>
         <span class="theme-label" id="themeLabel">Dark Mode</span>
@@ -447,7 +444,10 @@
             Complete audit ledger of all automated and direct job applications. Review full job descriptions, extracted responsibilities, verified perks, and AI screening questionnaire answers.
           </p>
         </div>
-        <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+        <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
+          <button type="button" class="btn-soft" onclick="exportHistoryCSV()" style="background: var(--accent-soft); border-color: var(--accent); color: var(--accent); font-weight: 700;">
+            <span>📥 Export CSV</span>
+          </button>
           <a href="/auto-apply" class="btn-gradient-primary">
             <span>🚀 Open Auto-Apply Studio</span>
           </a>

@@ -190,9 +190,6 @@
       <a href="/" class="nav-tab">🌐 Single Scrapers</a>
     </div>
     <div class="nav-tools">
-      <button type="button" class="nav-theme-btn" onclick="toggleSavedDrawer()" style="background: rgba(47, 178, 130, 0.15); border-color: rgba(47, 178, 130, 0.4); color: var(--accent); font-weight: 700;">
-        <span>⭐ Saved Recruiters (<span id="savedCountBadge">0</span>)</span>
-      </button>
       <button class="nav-theme-btn" onclick="toggleTheme()" aria-label="Toggle theme">
         <span class="theme-icon">🌙</span>
         <span class="theme-label" id="themeLabel">Dark Mode</span>
@@ -204,8 +201,13 @@
     
     <!-- Hero Header -->
     <div class="app-card" style="margin-bottom: 1.5rem; text-align: center; padding: clamp(1.75rem, 3vw, 2.75rem) 1.5rem; background: var(--card-bg-gradient);">
-      <div style="display: inline-flex; align-items: center; gap: 0.5rem; background: var(--primary-soft); color: var(--primary); padding: 0.45rem 1.15rem; border-radius: 999px; font-weight: 800; font-size: 0.9rem; margin-bottom: 1rem; border: 1px solid rgba(78, 163, 255, 0.25);">
-        <span>🎯 Direct Hiring Manager & Recruiter Finder</span> &bull; <span>Bypass the ATS</span>
+      <div style="display: flex; justify-content: center; align-items: center; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 1rem;">
+        <div style="display: inline-flex; align-items: center; gap: 0.5rem; background: var(--primary-soft); color: var(--primary); padding: 0.45rem 1.15rem; border-radius: 999px; font-weight: 800; font-size: 0.9rem; border: 1px solid rgba(78, 163, 255, 0.25);">
+          <span>🎯 Direct Hiring Manager & Recruiter Finder</span> &bull; <span>Bypass the ATS</span>
+        </div>
+        <button type="button" class="btn-soft" onclick="toggleSavedDrawer()" style="background: rgba(47, 178, 130, 0.15); border: 1px solid rgba(47, 178, 130, 0.4); color: var(--accent); font-weight: 800; padding: 0.45rem 1.15rem; border-radius: 999px; display: inline-flex; align-items: center; gap: 0.45rem; cursor: pointer; font-size: 0.88rem; transition: all 0.2s ease;">
+          <span>⭐ Saved Recruiters (<span id="savedCountBadge">0</span>)</span>
+        </button>
       </div>
       <h1 style="font-size: clamp(2rem, 3.8vw, 3rem); font-weight: 800; color: var(--text); margin: 0 0 0.75rem 0; letter-spacing: -0.03em;">
         Recruiter & Decision-Maker <span style="background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Radar</span>

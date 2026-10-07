@@ -1153,27 +1153,27 @@ html[data-theme="dark"] .watermark-badge {
   width: 100%;
   max-width: 1440px;
   margin: 0 auto 1.5rem auto;
-  padding: 0.55rem 1.25rem;
-  background: rgba(255, 255, 255, 0.7);
+  padding: 0.65rem 1.5rem;
+  background: rgba(255, 255, 255, 0.85);
   backdrop-filter: blur(20px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.5);
-  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  border-radius: 1.15rem;
   position: sticky;
   top: 0.75rem;
   z-index: 1000;
   box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.08);
   box-sizing: border-box;
   flex-wrap: nowrap;
-  gap: 1rem;
+  gap: 1.25rem;
   transition: all 0.3s ease;
 }
 
 html[data-theme="dark"] .app-navbar {
-  background: rgba(16, 26, 42, 0.75);
+  background: rgba(16, 26, 42, 0.82);
   backdrop-filter: blur(20px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.09);
   box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
 }
 
@@ -1255,18 +1255,18 @@ html[data-theme="dark"] .app-navbar {
 .app-navbar .nav-tabs {
   display: flex;
   align-items: center;
-  gap: 0.3rem;
-  background: rgba(255, 255, 255, 0.25);
-  padding: 0.25rem 0.35rem;
+  gap: 0.35rem;
+  background: rgba(255, 255, 255, 0.3);
+  padding: 0.3rem 0.4rem;
   border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.45);
   backdrop-filter: blur(12px);
   flex-shrink: 0;
   white-space: nowrap;
 }
 
 html[data-theme="dark"] .app-navbar .nav-tabs {
-  background: rgba(0, 0, 0, 0.3);
+  background: rgba(0, 0, 0, 0.35);
   border-color: rgba(255, 255, 255, 0.08);
 }
 
@@ -1309,8 +1309,8 @@ html[data-theme="dark"] .app-navbar .nav-tabs {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.45rem;
-  padding: 0.45rem 0.95rem;
+  gap: 0.5rem;
+  padding: 0.48rem 1.05rem;
   border-radius: 999px;
   font-weight: 700;
   font-size: 0.85rem;
@@ -1318,8 +1318,8 @@ html[data-theme="dark"] .app-navbar .nav-tabs {
   background: var(--panel);
   color: var(--text);
   cursor: pointer;
-  transition: all 0.2s;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
   white-space: nowrap;
   flex-shrink: 0;
   line-height: 1.2;
@@ -1329,6 +1329,7 @@ html[data-theme="dark"] .app-navbar .nav-tabs {
   border-color: var(--primary);
   color: var(--primary);
   transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(10, 102, 194, 0.15);
 }
 
 /* ==============================================================================
