@@ -7,7 +7,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ApplyCove / JobRadar - Autonomous Job Application Assistant for India</title>
+  <title>JobRadar AutoPilot AI - Autonomous Multi-Portal Auto-Apply Assistant</title>
   <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -20,7 +20,7 @@
       font-family: "DM Sans", "Plus Jakarta Sans", sans-serif;
     }
 
-    /* ApplyCove SaaS Styling */
+    /* JobRadar AutoPilot SaaS Styling */
     .cove-hero-banner {
       background: var(--panel);
       background-image: var(--card-bg-gradient);
@@ -140,7 +140,7 @@
       box-shadow: 0 4px 14px rgba(10, 102, 194, 0.25);
     }
 
-    /* ApplyCove Live Monitor Frame */
+    /* JobRadar AutoPilot Live Monitor Frame */
     .live-monitor-frame {
       background: var(--panel);
       border: 1px solid var(--line);
@@ -382,7 +382,7 @@
 
   <div class="container" style="max-width: 1440px; margin: 0 auto; padding: 1.5rem;">
     
-    <!-- ApplyCove Hero Banner -->
+    <!-- AutoPilot Hero Banner -->
     <div class="cove-hero-banner">
       <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1.5rem;">
         <div>
@@ -398,7 +398,7 @@
           </p>
         </div>
         <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
-          <button onclick="startApplyCoveSession()" class="cove-btn-accent" id="heroStartSessionBtn">
+          <button onclick="startAutoPilotSession()" class="cove-btn-accent" id="heroStartSessionBtn">
             <span>⚡ Start Auto-Apply Session</span>
           </button>
           <button onclick="openProfileModal()" class="cove-btn-soft">
@@ -408,7 +408,7 @@
       </div>
     </div>
 
-    <!-- Quick Stats Metrics Strip (ApplyCove Dashboard Metrics) -->
+    <!-- Quick Stats Metrics Strip (AutoPilot Dashboard Metrics) -->
     <div class="cove-metrics-strip">
       <div class="cove-stat-card">
         <div class="cove-stat-label">Applications Submitted</div>
@@ -452,7 +452,7 @@
     </div>
 
     <!-- ============================================================== -->
-    <!-- TAB 1: LIVE SESSION MONITOR (APPLYCOVE CORE DASHBOARD) -->
+    <!-- TAB 1: LIVE SESSION MONITOR (AUTOPILOT CORE DASHBOARD) -->
     <!-- ============================================================== -->
     <div id="coveTabMonitor">
       <div class="live-monitor-frame">
@@ -460,7 +460,7 @@
           <div style="display: flex; align-items: center; gap: 0.75rem;">
             <span class="pulse-green"></span>
             <span style="font-weight: 800; font-size: 0.95rem; color: var(--text);">Session Controller: <span id="sessionStatusHeader" style="color: var(--accent);">Ready</span></span>
-            <span style="font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; color: var(--subtext);">[ID: #COVE-9481]</span>
+            <span style="font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; color: var(--subtext);">[ID: #AUTOPILOT-9481]</span>
           </div>
           <div style="display: flex; gap: 0.6rem;">
             <button onclick="pauseSession()" class="cove-btn-soft" id="btnPause" style="padding: 0.4rem 0.85rem; font-size: 0.8rem;">⏸️ Pause</button>
@@ -506,8 +506,8 @@
 
           <!-- Right: Real-Time Telemetry Terminal -->
           <div class="monitor-right-panel" id="monitorLogs">
-            <div style="color: var(--subtext); margin-bottom: 0.5rem;">// ApplyCove Live Automation Engine Output</div>
-            <div style="color: var(--accent);">> [ENGINE] Initialized ApplyCove Supervised Automation Assistant.</div>
+            <div style="color: var(--subtext); margin-bottom: 0.5rem;">// JobRadar AutoPilot AI Live Telemetry Engine</div>
+            <div style="color: var(--accent);">> [ENGINE] Initialized JobRadar AutoPilot Autonomous Assistant.</div>
             <div style="color: var(--primary);">> [TARGET] Target Role: Python Developer | Locations: Bengaluru, Remote</div>
             <div style="color: var(--primary);">> [SAFETY] Anti-bot jitter enabled (1.5s - 3.5s delay per step).</div>
             <div style="color: var(--subtext);">> Standing by. Click 'Start Auto-Apply Session' to execute queue.</div>
@@ -634,7 +634,7 @@
         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem;">
           <div>
             <h2 style="font-size: 1.25rem; font-weight: 800; margin: 0; color: var(--text);">
-              🧩 ApplyCove Chrome Extension &amp; ATS Assistant
+              🧩 JobRadar AutoPilot Chrome Extension &amp; ATS Assistant
             </h2>
             <p style="font-size: 0.85rem; color: var(--subtext); margin: 0.25rem 0 0 0;">
               Connect your Naukri / LinkedIn session cookies securely and 1-click auto-fill company ATS portals (Greenhouse, Lever, Workday).
@@ -815,7 +815,7 @@
   </div>
 
   <footer class="app-footer" style="margin-top: 4rem; text-align: center; padding: 2rem 1rem; border-top: 1px solid var(--line); color: var(--subtext); font-size: 0.85rem;">
-    <div>ApplyCove / JobRadar Autonomous Job Application Assistant &bull; Watermark: <strong>Rajpal Singh Tanwar</strong></div>
+    <div>JobRadar AutoPilot AI Autonomous Job Application Assistant &bull; Watermark: <strong>Rajpal Singh Tanwar</strong></div>
     <div style="margin-top: 0.25rem;">&copy; 2026 Rajpal Singh Tanwar. All rights reserved.</div>
   </footer>
 
@@ -1057,7 +1057,7 @@
       }
     }
 
-    async function startApplyCoveSession() {
+    async function startAutoPilotSession() {
       switchCoveTab('monitor');
       await executeBatchAutoApply();
     }
@@ -1077,7 +1077,7 @@
 
       const logsBox = document.getElementById("monitorLogs");
       logsBox.innerHTML = "";
-      addMonitorLog(`[SESSION START] ApplyCove Autonomous Session initiated for ${selected.length} positions.`, 'var(--accent)');
+      addMonitorLog(`[SESSION START] JobRadar AutoPilot Autonomous Session initiated for ${selected.length} positions.`, 'var(--accent)');
 
       let completed = 0;
 

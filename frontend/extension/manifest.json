@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "JobRadar / ApplyCove - AI Auto-Apply Assistant",
+  "name": "JobRadar AutoPilot AI - Auto-Apply Extension Agent",
   "version": "1.0.0",
   "description": "Autonomous AI Auto-Apply Agent for Greenhouse, Lever, Workday, Ashby, LinkedIn, and Enterprise Career Portals.",
   "permissions": [

@@ -1,5 +1,5 @@
 /**
- * JobRadar / ApplyCove - Chrome Extension Content Script
+ * JobRadar AutoPilot AI - Chrome Extension Content Script
  * Auto-detects ATS forms (Greenhouse, Lever, Workday, Ashby, iCIMS),
  * queries the local JobRadar backend API to resolve candidate fields & answers,
  * and auto-fills input fields on company career pages.

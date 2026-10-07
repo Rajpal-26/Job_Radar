@@ -3,11 +3,11 @@
   Copyright (c) 2026 Rajpal Singh Tanwar. All rights reserved.
 -->
 
-# 🚀 Autonomous Multi-Platform Auto-Apply & Job Scraping Engine (ApplyCove / JobRadar)
+# 🚀 Autonomous Multi-Platform Auto-Apply & Job Scraping Engine (JobRadar AutoPilot AI)
 ## Enterprise-Grade Production Implementation Plan & Technical Architecture Specification
 
 **Author:** Rajpal Singh Tanwar  
-**System Name:** JobRadar / ApplyCove Enterprise Autonomous Pipeline  
+**System Name:** JobRadar AutoPilot AI Enterprise Autonomous Pipeline  
 **Version:** 3.0.0 (Production Blueprint & Specification)  
 **Copyright:** © 2026 Rajpal Singh Tanwar. All rights reserved.  
 
@@ -36,7 +36,7 @@
 
 ## 1. Executive Summary & Vision
 
-The **JobRadar / ApplyCove Enterprise Autonomous Auto-Apply Pipeline** is a closed-loop, production-grade automated application ecosystem. It bridges the gap between passive job searching and high-volume, targeted job applications by orchestrating:
+The **JobRadar AutoPilot AI Enterprise Autonomous Auto-Apply Pipeline** is a closed-loop, production-grade automated application ecosystem. It bridges the gap between passive job searching and high-volume, targeted job applications by orchestrating:
 1. **Multi-Source Job Aggregation**: Parallel discovery across major boards (Naukri, LinkedIn, Indeed, Glassdoor, Foundit, Apna, Shine, Hirist) and native enterprise ATS boards (Greenhouse, Lever, Workday, Ashby, iCIMS, Rippling).
 2. **Contextual Normalization & ATS Scoring**: Real-time extraction of structured JD attributes, responsibilities, compensation, and deterministic 0–100 ATS match scoring.
 3. **Adaptive Resume Selection**: Selection of master PDF resumes vs. dynamic LLM-tailored resumes fine-tuned for specific JD keywords.

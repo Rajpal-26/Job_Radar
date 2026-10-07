@@ -4,7 +4,7 @@
 # ==============================================================================
 
 """
-JobRadar / ApplyCove - Multi-Portal Intelligent Auto-Apply & Automation Engine
+JobRadar AutoPilot AI - Multi-Portal Intelligent Auto-Apply & Automation Engine
 Author: Rajpal Singh Tanwar
 Copyright (c) 2026 Rajpal Singh Tanwar. All rights reserved.
 

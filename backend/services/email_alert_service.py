@@ -412,7 +412,7 @@ def generate_auto_apply_email_html(schedule_data, applied_jobs, candidate_profil
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ApplyCove / JobRadar - Auto-Apply Execution Digest</title>
+    <title>JobRadar AutoPilot - Autonomous Auto-Apply Execution Digest</title>
 </head>
 <body style="margin: 0; padding: 0; background-color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #1e293b;">
     <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #f8fafc; padding: 24px 12px;">
@@ -427,7 +427,7 @@ def generate_auto_apply_email_html(schedule_data, applied_jobs, candidate_profil
                                 <tr>
                                     <td>
                                         <div style="font-size: 24px; font-weight: 900; letter-spacing: -0.5px; color: #ffffff; margin-bottom: 4px;">
-                                            Apply<span style="color: #38bdf8;">Cove</span> <span style="font-size: 12px; font-weight: 800; background: rgba(16, 185, 129, 0.2); color: #10b981; padding: 3px 8px; border-radius: 4px; border: 1px solid rgba(16, 185, 129, 0.4); vertical-align: middle; margin-left: 6px;">AUTO-APPLY REPORT</span>
+                                            Job<span style="color: #38bdf8;">Radar</span> <span style="color: #10b981;">AutoPilot</span> <span style="font-size: 12px; font-weight: 800; background: rgba(16, 185, 129, 0.2); color: #10b981; padding: 3px 8px; border-radius: 4px; border: 1px solid rgba(16, 185, 129, 0.4); vertical-align: middle; margin-left: 6px;">AUTONOMOUS REPORT</span>
                                         </div>
                                         <div style="font-size: 13px; color: #94a3b8; font-weight: 500;">
                                             Scheduled Session Batch &bull; {today_str}
@@ -495,7 +495,7 @@ def generate_auto_apply_email_html(schedule_data, applied_jobs, candidate_profil
                     <tr>
                         <td style="background-color: #0f172a; padding: 24px 28px; text-align: center; color: #64748b; font-size: 12px; border-top: 1px solid #1e293b;">
                             <div style="color: #94a3b8; font-size: 13px; font-weight: 600; margin-bottom: 6px;">
-                                ApplyCove / JobRadar Automated Engine by <a href="https://mail.google.com/mail/?view=cm&fs=1&to=rajpaltanwar2608@gmail.com" style="color: #38bdf8; text-decoration: none;">Rajpal Singh Tanwar</a>
+                                JobRadar AutoPilot Automated Engine by <a href="https://mail.google.com/mail/?view=cm&fs=1&to=rajpaltanwar2608@gmail.com" style="color: #38bdf8; text-decoration: none;">Rajpal Singh Tanwar</a>
                             </div>
                             <div>
                                 Full JD markdown, screening Q&A, and tailored cover letters are persisted in your local <a href="http://127.0.0.1:5000/history" style="color: #10b981; text-decoration: none; font-weight: 700;">Applied History Ledger</a>.
@@ -550,11 +550,11 @@ def send_auto_apply_run_email(schedule_data, applied_jobs, candidate_profile, re
     try:
         today_formatted = datetime.now().strftime("%A, %d %b %Y - %I:%M %p")
         sched_name = (schedule_data or {}).get("name") or "Scheduled Automation"
-        subject = f"⚡ ApplyCove Auto-Apply Report: {len(applied_jobs)} Jobs Applied ({sched_name}) - {today_formatted}"
+        subject = f"⚡ JobRadar AutoPilot Report: {len(applied_jobs)} Jobs Applied ({sched_name}) - {today_formatted}"
         
         msg = MIMEMultipart("alternative")
         msg["Subject"] = subject
-        msg["From"] = f"ApplyCove Auto-Apply <{smtp_user}>"
+        msg["From"] = f"JobRadar AutoPilot <{smtp_user}>"
         msg["To"] = recipient
         msg.attach(MIMEText(html_content, "html", "utf-8"))
         
