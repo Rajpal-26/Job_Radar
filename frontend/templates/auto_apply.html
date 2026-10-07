@@ -352,10 +352,10 @@
 <body>
 
   <!-- Top Navigation Bar -->
-  <nav class="app-navbar">
+  <nav class="app-navbar" style="position: sticky; top: 0.75rem; z-index: 1000; width: 100%; max-width: 1440px; margin: 0 auto 1.5rem auto; box-sizing: border-box;">
     <a href="/" class="nav-brand">
       <div class="radar-dot"></div>
-      Apply<span>Cove</span> <span style="font-size: 0.72rem; background: var(--primary-soft); color: var(--primary); border: 1px solid var(--primary); padding: 0.15rem 0.5rem; border-radius: 999px; margin-left: 0.4rem;">AI Assistant</span>
+      Job<span>Radar</span> <span style="font-size: 0.72rem; background: linear-gradient(135deg, rgba(78, 163, 255, 0.15), rgba(47, 178, 130, 0.15)); color: var(--primary); border: 1px solid var(--primary); padding: 0.18rem 0.6rem; border-radius: 999px; margin-left: 0.35rem; font-weight: 800; letter-spacing: 0.04em;">AUTOPILOT</span>
     </a>
     <div class="nav-tabs">
       <a href="/unified" class="nav-tab">⚡ Multi-Portal Search</a>
@@ -365,14 +365,6 @@
       <a href="/" class="nav-tab">🌐 Single Scrapers</a>
     </div>
     <div class="nav-tools">
-      <div style="display: flex; gap: 0.4rem; align-items: center;">
-        <span class="portal-status-chip" style="font-size: 0.75rem; padding: 0.25rem 0.6rem; border-radius: 999px; background: var(--accent-soft); border-color: var(--accent); color: var(--accent);">
-          <span class="pulse-green"></span> Naukri Active
-        </span>
-        <span class="portal-status-chip" style="font-size: 0.75rem; padding: 0.25rem 0.6rem; border-radius: 999px; background: var(--accent-soft); border-color: var(--accent); color: var(--accent);">
-          <span class="pulse-green"></span> LinkedIn Active
-        </span>
-      </div>
       <button class="nav-theme-btn" onclick="toggleTheme()" aria-label="Toggle theme">
         <span class="theme-icon">🌙</span>
         <span class="theme-label" id="themeLabel">Dark Mode</span>
@@ -380,7 +372,7 @@
     </div>
   </nav>
 
-  <div class="container" style="max-width: 1440px; margin: 0 auto; padding: 1.5rem;">
+  <div class="container" style="width: 100%; max-width: 1440px; margin: 0 auto; padding: 0.5rem 0 1.5rem 0; box-sizing: border-box;">
     
     <!-- AutoPilot Hero Banner -->
     <div class="cove-hero-banner">
