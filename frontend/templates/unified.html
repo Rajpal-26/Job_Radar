@@ -17,6 +17,7 @@
   <!-- Three.js 3D Library & Engine -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="{{ url_for('static', filename='radar3d.js') }}" defer></script>
+  <script src="{{ url_for('static', filename='auth.js') }}" defer></script>
   <style>
     .nav-bar {
       display: flex;
@@ -226,6 +227,121 @@
       color: #ffffff;
       box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
     }
+
+    /* Cohesive Theme Button System */
+    .cove-btn-primary,
+    .btn-primary,
+    .btn-gradient-primary {
+      background: linear-gradient(135deg, var(--primary, #0a66c2) 0%, var(--accent, #2fb282) 100%) !important;
+      color: #ffffff !important;
+      border: 1px solid rgba(255, 255, 255, 0.15) !important;
+      border-radius: 0.75rem !important;
+      font-family: inherit;
+      font-weight: 800 !important;
+      font-size: 0.98rem !important;
+      padding: 0.85rem 2rem !important;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      box-shadow: 0 4px 18px rgba(10, 102, 194, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.1) inset !important;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+      text-decoration: none;
+      white-space: nowrap;
+      line-height: 1.3;
+    }
+    .cove-btn-primary:hover,
+    .btn-primary:hover,
+    .btn-gradient-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 26px rgba(10, 102, 194, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.2) inset !important;
+      filter: brightness(1.1);
+      color: #ffffff !important;
+    }
+    .cove-btn-primary:active,
+    .btn-primary:active {
+      transform: translateY(0);
+      box-shadow: 0 2px 10px rgba(10, 102, 194, 0.4) !important;
+    }
+    .cove-btn-primary:disabled,
+    .btn-primary:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none !important;
+    }
+
+    .cove-btn-accent,
+    .btn-accent {
+      background: linear-gradient(135deg, var(--accent, #2fb282) 0%, #059669 100%) !important;
+      color: #ffffff !important;
+      border: 1px solid rgba(255, 255, 255, 0.15) !important;
+      border-radius: 0.75rem !important;
+      font-family: inherit;
+      font-weight: 800 !important;
+      font-size: 0.98rem !important;
+      padding: 0.85rem 1.8rem !important;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      box-shadow: 0 4px 18px rgba(47, 178, 130, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.1) inset !important;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+      text-decoration: none;
+      white-space: nowrap;
+      line-height: 1.3;
+    }
+    .cove-btn-accent:hover,
+    .btn-accent:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 26px rgba(47, 178, 130, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.2) inset !important;
+      filter: brightness(1.1);
+      color: #ffffff !important;
+    }
+
+    .cove-btn-soft,
+    .btn-soft {
+      background: var(--panel-soft, #0f1523) !important;
+      border: 1px solid var(--line, #21314a) !important;
+      color: var(--text, #e7edf8) !important;
+      border-radius: 0.65rem;
+      font-family: inherit;
+      font-weight: 700;
+      font-size: 0.92rem;
+      padding: 0.75rem 1.4rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      text-decoration: none;
+      white-space: nowrap;
+      line-height: 1.3;
+    }
+    .cove-btn-soft:hover,
+    .btn-soft:hover {
+      background: rgba(255, 255, 255, 0.06) !important;
+      border-color: var(--primary, #4ea3ff) !important;
+      color: var(--primary, #4ea3ff) !important;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 14px rgba(78, 163, 255, 0.2);
+    }
+    html[data-theme="light"] .cove-btn-soft,
+    html[data-theme="light"] .btn-soft {
+      background: var(--panel-soft, #f7f9fd) !important;
+      border-color: var(--line, #dde3ee) !important;
+      color: var(--text, #131826) !important;
+    }
+    html[data-theme="light"] .cove-btn-soft:hover,
+    html[data-theme="light"] .btn-soft:hover {
+      background: var(--primary-soft, #dcecff) !important;
+      border-color: var(--primary, #0a66c2) !important;
+      color: var(--primary, #0a66c2) !important;
+    }
   </style>
 </head>
 <body>
@@ -241,6 +357,8 @@
       <a href="/auto-apply" class="nav-tab">🚀 Auto Apply Studio</a>
       <a href="/history" class="nav-tab">📜 Applied History</a>
       <a href="/recruiters" class="nav-tab">🎯 Recruiter Radar</a>
+      <a href="/tracker" class="nav-tab">📋 Kanban Tracker</a>
+      <a href="/analytics" class="nav-tab">📊 Market Analytics</a>
       <a href="/" class="nav-tab">🌐 Single Scrapers</a>
     </div>
     <div class="nav-tools">
@@ -261,16 +379,16 @@
           <p style="color: var(--subtext); margin-top: 0.35rem; font-size: clamp(0.95rem, 1.1vw, 1.05rem);">Search, deduplicate, and AI-match jobs across 8 platforms simultaneously.</p>
         </div>
         <div style="display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap;">
-          <button type="button" class="nav-theme-btn" onclick="openResumeStudioModal()" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(59, 130, 246, 0.15)); border-color: rgba(16, 185, 129, 0.4); color: #10b981; font-weight: 700; padding: 0.5rem 1rem;" title="Upload Resume & AI Auto-Apply">
+          <button type="button" class="nav-theme-btn" onclick="requireAuthOrRegister(openResumeStudioModal, 'Resume &amp; AI Auto-Apply')" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(59, 130, 246, 0.15)); border-color: rgba(16, 185, 129, 0.4); color: #10b981; font-weight: 700; padding: 0.5rem 1rem;" title="Upload Resume & AI Auto-Apply">
             <span id="navResumeBadge">📄 Resume & AI Auto-Apply</span>
           </button>
-          <button type="button" class="nav-theme-btn" onclick="openAlertsModal()" style="background: rgba(14, 165, 233, 0.15); border-color: rgba(14, 165, 233, 0.4); color: var(--primary); font-weight: 700; padding: 0.5rem 1rem;" title="Configure Daily Email Job Alerts">
+          <button type="button" class="nav-theme-btn" onclick="requireAuthOrRegister(openAlertsModal, 'Daily Job Alerts')" style="background: rgba(14, 165, 233, 0.15); border-color: rgba(14, 165, 233, 0.4); color: var(--primary); font-weight: 700; padding: 0.5rem 1rem;" title="Configure Daily Email Job Alerts">
             <span>⏰ Daily Alerts</span>
           </button>
         </div>
       </div>
 
-      <form id="unifiedForm" onsubmit="event.preventDefault(); runUnifiedSearch();">
+      <form id="unifiedForm" onsubmit="event.preventDefault(); requireAuthOrRegister(runUnifiedSearch, 'Launch Aggregated Search');">
         
         <!-- Primary Search Inputs Row -->
         <div class="search-grid-primary" style="display: grid; grid-template-columns: repeat(12, 1fr); gap: 1.25rem; margin-bottom: 1.5rem; align-items: start;">
@@ -469,10 +587,10 @@
 
         <!-- Action Button Row -->
         <div style="margin-top: 1.5rem; display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
-          <button type="submit" id="searchBtn" class="cove-btn-accent" style="padding: 0.8rem 2.25rem; font-size: 1rem;">
+          <button type="submit" id="searchBtn" class="cove-btn-primary" style="padding: 0.9rem 2.25rem; background: linear-gradient(135deg, var(--primary, #0a66c2) 0%, var(--accent, #2fb282) 100%); color: #ffffff; border: none; border-radius: 0.75rem; font-weight: 800; font-size: 1rem; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; box-shadow: 0 4px 16px rgba(10, 102, 194, 0.35); transition: all 0.2s ease;">
             <span>🚀 Launch Aggregated Search</span>
           </button>
-          <button type="button" onclick="exportResultsCSV()" class="cove-btn-soft" style="padding: 0.8rem 1.5rem; font-size: 0.95rem;">
+          <button type="button" onclick="requireAuthOrRegister(exportResultsCSV, 'Export Results (CSV)')" class="cove-btn-soft" style="padding: 0.9rem 1.6rem; background: var(--panel-soft, #0f1523); border: 1px solid var(--line, #21314a); color: var(--text, #e7edf8); border-radius: 0.75rem; font-weight: 700; font-size: 0.95rem; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2); transition: all 0.2s ease;">
             <span>📥 Export Results (CSV)</span>
           </button>
         </div>
@@ -910,6 +1028,12 @@
     }
 
     async function runUnifiedSearch() {
+      if (typeof window.requireAuthOrRegister === "function" && (!currentAuthUser || !currentAuthUser.email)) {
+        if (!window.requireAuthOrRegister(runUnifiedSearch, "Launch Aggregated Search")) {
+          return;
+        }
+      }
+
       const form = document.getElementById("unifiedForm");
       const statusBox = document.getElementById("statusBox");
       const jobsContainer = document.getElementById("jobsContainer");
@@ -1286,6 +1410,12 @@
     // ==========================================
 
     async function openSmartApplyModal(index) {
+      if (typeof window.requireAuthOrRegister === "function" && (!currentAuthUser || !currentAuthUser.email)) {
+        if (!window.requireAuthOrRegister(() => openSmartApplyModal(index), "Auto Apply Studio")) {
+          return;
+        }
+      }
+
       const job = currentJobsList[index];
       if (!job) return;
       activeSmartJob = job;
@@ -1778,7 +1908,7 @@
   </script>
 
   <!-- Daily Job Alert Modal -->
-  <div id="alertsModal" class="modal-overlay" style="display: none;">
+  <div id="alertsModal" class="modal" style="display: none;">
     <div class="modal-content" style="max-width: 580px;">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
         <h3 style="margin: 0; font-size: 1.25rem; font-weight: 800; color: var(--text);">

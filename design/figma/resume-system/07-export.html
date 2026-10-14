@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Resume · Export</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Raleway:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="resume-theme.css">
+</head>
+<body>
+<div class="app">
+  <aside class="rail">
+    <div class="brand"><span class="m">JR</span> Resume System</div>
+    <nav class="nav">
+      <div class="grp">Resume</div>
+      <a href="01-resume-library.html">Library</a>
+      <a href="02-upload.html">Upload</a>
+      <div class="grp">AI</div>
+      <a href="03-optimize.html">Optimize</a>
+      <a href="04-diff.html">Diff &amp; Accept</a>
+      <div class="grp">Manage</div>
+      <a href="05-versions.html">Versions</a>
+      <a href="06-compare.html">Compare</a>
+      <a class="on" href="07-export.html">Export</a>
+      <div class="grp">Context</div>
+      <a href="08-resume-overview.html">Overview</a>
+    </nav>
+  </aside>
+  <div class="main">
+    <div class="top">
+      <div><h1>Export</h1><div class="sub">ATS-safe templates · PDF &amp; DOCX</div></div>
+      <div class="r"><a class="btn" href="01-resume-library.html">Back</a></div>
+    </div>
+    <div class="content">
+      <div class="grid c2">
+        <div class="card reveal">
+          <b>Select version</b>
+          <select style="margin-top:8px;border:1px solid var(--line);border-radius:10px;padding:8px 10px;font:inherit">
+            <option>v4 · AI optimized (86%)</option>
+            <option>v3 · default (78%)</option>
+            <option>v2 (81%)</option>
+          </select>
+          <div style="margin-top:12px"><b>Template</b></div>
+          <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+            <button class="btn on">ATS Classic</button>
+            <button class="btn">Minimal</button>
+            <button class="btn">Clean</button>
+          </div>
+          <div style="display:flex;gap:10px;margin-top:16px">
+            <button class="btn pri">Download PDF</button>
+            <button class="btn">Download DOCX</button>
+          </div>
+        </div>
+        <div class="card reveal d1">
+          <b>Export notes</b>
+          <div class="mut" style="font-size:12px;line-height:1.8;margin-top:6px">
+            Single column · standard headings · no tables/headers with images · ATS-safe.<br>
+            Uses structured JSON (source of truth).<br>
+            Files stored privately; access via signed URLs.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

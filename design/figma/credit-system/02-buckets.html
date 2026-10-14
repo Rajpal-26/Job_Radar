@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Credit System · Buckets &amp; Expiry</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Raleway:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="credit-theme.css">
+<style>
+  .bucket{position:relative;overflow:hidden}
+  .bucket .top{display:flex;align-items:flex-start;gap:11px}
+  .bucket .dot{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;flex:none;font:800 15px 'Raleway',serif}
+  .bucket .dot.pri{background:var(--pritint);color:var(--pri)}
+  .bucket .dot.ok{background:var(--okbg);color:var(--ok)}
+  .bucket .dot.gold{background:var(--goldbg);color:var(--gold)}
+  .bucket .cd{font:800 22px/1 'Raleway',serif;letter-spacing:-.5px}
+  .bucket .cd small{font:600 11px 'Instrument Sans',sans-serif;color:var(--mut);letter-spacing:0}
+  .tl{position:relative;height:88px;margin-top:6px}
+  .tl .axis{position:absolute;left:0;right:0;top:44px;height:3px;border-radius:3px;background:linear-gradient(90deg,#2a9bff,#0b4fc2 60%,#c7dbff)}
+  .tl .mk{position:absolute;top:0;display:flex;flex-direction:column;align-items:center;gap:6px;transform:translateX(-50%)}
+  .tl .mk .pt{width:15px;height:15px;border-radius:50%;background:#fff;border:3px solid var(--pri);box-shadow:0 3px 8px rgba(21,101,216,.35);margin-top:38px}
+  .tl .mk .lb{font:700 10.5px 'Instrument Sans',sans-serif;white-space:nowrap;text-align:center}
+  .tl .mk .dt{font-size:9.5px;color:var(--mut2);white-space:nowrap}
+  .tl .mk.now .pt{background:var(--pri);box-shadow:0 0 0 6px rgba(42,155,255,.18)}
+  .tokenrow{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .tok{display:flex;align-items:center;gap:9px;border:1.5px solid var(--line);border-radius:13px;padding:10px 13px;background:#fff;position:relative}
+  .tok .ord{width:24px;height:24px;border-radius:50%;background:var(--pritint);color:var(--pri);display:grid;place-items:center;font:800 11px 'Instrument Sans',sans-serif}
+  .tok.live{border-color:var(--pri);box-shadow:0 10px 24px rgba(21,101,216,.18);background:linear-gradient(180deg,#fff,#f6faff)}
+  .tok.live .ord{background:var(--pri);color:#fff}
+  .tok .t{font:700 12px 'Instrument Sans',sans-serif}
+  .tok .s{font-size:10px;color:var(--mut2)}
+</style>
+</head>
+<body data-nav="02-buckets">
+<div class="stage">
+  <div class="app">
+    <aside data-rail></aside>
+
+    <div class="main">
+      <div class="topbar">
+        <div>
+          <h1>Credit buckets &amp; expiry</h1>
+          <div class="sub">Spending order: expiring soonest first → promotional → subscription → top-up</div>
+        </div>
+        <div class="right">
+          <span class="bal-pill"><span class="gem"></span><b data-count="142">0</b> cr</span>
+          <a class="btn ghost sm" href="07-ledger.html">Ledger</a>
+          <a class="btn gold" href="04-topup.html">Top up</a>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="grid c3" style="margin-bottom:14px">
+          <div class="card bucket reveal">
+            <div class="top">
+              <div class="dot pri">S</div>
+              <div style="flex:1">
+                <b style="font-size:13.5px">Subscription credits</b>
+                <div class="hint">Reset or expire at period end</div>
+              </div>
+              <span class="chip pri">Pro</span>
+            </div>
+            <div class="cd" style="margin:14px 0 8px"><b data-count="92">0</b><small> cr</small></div>
+            <div class="meter"><i data-w="64"></i></div>
+            <div class="kv" style="margin-top:8px;padding-bottom:0"><span>Resets in</span><b>21 days · Oct 31</b></div>
+          </div>
+
+          <div class="card bucket reveal d1">
+            <div class="top">
+              <div class="dot ok">T</div>
+              <div style="flex:1">
+                <b style="font-size:13.5px">Top-up credits</b>
+                <div class="hint">Valid 12 months from purchase</div>
+              </div>
+              <span class="chip ok">+50 pack</span>
+            </div>
+            <div class="cd" style="margin:14px 0 8px"><b data-count="40">0</b><small> cr</small></div>
+            <div class="meter ok"><i data-w="28"></i></div>
+            <div class="kv" style="margin-top:8px;padding-bottom:0"><span>Valid to</span><b>Mar 15, 2027</b></div>
+          </div>
+
+          <div class="card bucket reveal d2" id="promoCard">
+            <div class="top">
+              <div class="dot gold">P</div>
+              <div style="flex:1">
+                <b style="font-size:13.5px">Promotional credits</b>
+                <div class="hint">Short expiry · launch bonus</div>
+              </div>
+              <span class="chip warn">Expiring</span>
+            </div>
+            <div class="cd" style="margin:14px 0 8px"><b data-count="10">0</b><small> cr</small></div>
+            <div class="meter gold"><i data-w="7"></i></div>
+            <div class="kv" style="margin-top:8px;padding-bottom:0"><span>Expires in</span><b style="color:var(--warn)">2 days · 47h</b></div>
+          </div>
+        </div>
+
+        <div class="card reveal d2" style="margin-bottom:14px">
+          <div class="card-h"><b>Spend order</b><span class="chip">spent automatically, no user choice</span></div>
+          <div class="tokenrow" id="orderRow">
+            <div class="tok live" data-k="0"><span class="ord">1</span><div><div class="t">Expiring soonest</div><div class="s">promotional · 10 cr</div></div></div>
+            <span class="arr">→</span>
+            <div class="tok" data-k="1"><span class="ord">2</span><div><div class="t">Promotional</div><div class="s">launch bonus</div></div></div>
+            <span class="arr">→</span>
+            <div class="tok" data-k="2"><span class="ord">3</span><div><div class="t">Subscription</div><div class="s">Pro · 92 cr</div></div></div>
+            <span class="arr">→</span>
+            <div class="tok" data-k="3"><span class="ord">4</span><div><div class="t">Top-up</div><div class="s">+50 pack · 40 cr</div></div></div>
+          </div>
+          <div class="hint" style="margin-top:10px">Expiring-soonest prioritises promotional credits, then subscription, then top-up — so nothing you paid for lapses unnecessarily.</div>
+        </div>
+
+        <div class="grid" style="grid-template-columns:1.5fr 1fr;align-items:start">
+          <div class="card reveal d3">
+            <div class="card-h"><b>Expiry timeline</b></div>
+            <div class="tl">
+              <div class="axis"></div>
+              <div class="mk now" style="left:6%"><span class="lb" style="color:var(--pri)">Today</span><span class="pt"></span><span class="dt">Oct 10</span></div>
+              <div class="mk" style="left:26%"><span class="lb">Promo expires</span><span class="pt" style="border-color:var(--gold)"></span><span class="dt">Oct 12 · 10 cr</span></div>
+              <div class="mk" style="left:56%"><span class="lb">Subscription resets</span><span class="pt"></span><span class="dt">Oct 31 · 92 cr</span></div>
+              <div class="mk" style="left:88%"><span class="lb">Top-up expires</span><span class="pt" style="border-color:var(--ok)"></span><span class="dt">Mar 15 '27 · 40 cr</span></div>
+            </div>
+          </div>
+
+          <div class="card reveal d4">
+            <div class="card-h"><b>Bucket rules</b></div>
+            <div class="note warn" style="margin-bottom:9px"><b>Promotional</b> — short expiry, spent first. 10 cr lapse in 2 days.</div>
+            <div class="note info" style="margin-bottom:9px"><b>Subscription</b> — resets or expires at period end. Unused amounts lapse; downgrades make over-limit features read-only.</div>
+            <div class="note ok"><b>Top-up</b> — valid 12 months, never expire on cancellation. 40 cr stay usable after the plan ends.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+<div id="toasts" style="position:fixed;right:26px;bottom:26px;width:300px;z-index:150"></div>
+<script src="rail.js"></script>
+<script src="credit.js"></script>
+<script>
+  /* cycle the "live" highlight through the spend order to show priority */
+  var toks = document.querySelectorAll('#orderRow .tok');
+  var k = 0;
+  setInterval(function () { k = (k + 1) % toks.length;
+    toks.forEach(function (t, i) { t.classList.toggle('live', i === k); });
+  }, 1400);
+  setTimeout(function () { crToast({ kind: '', title: '10 promotional credits expiring in 2 days', msg: 'They are spent first, automatically.', ms: 4000 }); }, 1200);
+</script>
+</body>
+</html>

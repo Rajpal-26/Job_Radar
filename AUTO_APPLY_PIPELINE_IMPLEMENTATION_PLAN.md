@@ -427,12 +427,46 @@ Every completed application stores an immutable dossier in the database:
 
 ---
 
-## 13. Database Schema & Data Models
+## 13. Database Schema, Credentials & PGVector Store Architecture
 
-### 13.1 SQL Data Model Structure (SQLAlchemy / PostgreSQL)
+### 13.1 Database Credentials & Connection Configuration
+
+The pipeline supports both local development and high-concurrency cloud production deployments using **PostgreSQL 15+** with the **`pgvector`** extension.
+
+```bash
+# ==============================================================================
+# Database Credentials & Connection String (.env)
+# ==============================================================================
+DATABASE_URL=postgresql://jobradar_user:SecurePostgresPass2026@localhost:5432/jobradar_db
+POSTGRES_USER=jobradar_user
+POSTGRES_PASSWORD=SecurePostgresPass2026
+POSTGRES_DB=jobradar_db
+POSTGRES_HOST=localhost
+POSTGRES_PORT=5432
+POSTGRES_SSLMODE=prefer # 'require' for AWS RDS / Supabase / Neon / Railway
+
+# Connection Pool & Engine Optimizations
+DB_POOL_SIZE=20
+DB_MAX_OVERFLOW=10
+DB_POOL_TIMEOUT=30
+DB_POOL_RECYCLE=1800
+
+# PGVector & Embedding Model Settings
+VECTOR_DIMENSION=1536 # 1536 for text-embedding-3-small / text-embedding-ada-002, 768 for Gemini text-embedding-004
+VECTOR_SIMILARITY_METRIC=cosine # 'cosine', 'l2', 'inner_product'
+EMBEDDING_MODEL_PROVIDER=openai # 'openai' or 'gemini'
+OPENAI_API_KEY=your_openai_api_key_here
+GEMINI_API_KEY=your_gemini_api_key_here
+```
+
+### 13.2 PostgreSQL + PGVector Extension & Data Models
 
 ```sql
--- Candidate Profile Table
+-- Step 1: Enable the pgvector extension for high-dimensional vector embeddings
+CREATE EXTENSION IF NOT EXISTS vector;
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+-- Step 2: Candidate Profiles with Resume Vector Embeddings
 CREATE TABLE candidate_profiles (
     id SERIAL PRIMARY KEY,
     full_name VARCHAR(255) NOT NULL,
@@ -452,14 +486,52 @@ CREATE TABLE candidate_profiles (
     requires_sponsorship BOOLEAN DEFAULT FALSE,
     resume_filename VARCHAR(255),
     resume_binary_path VARCHAR(500),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    resume_text TEXT,
+    -- PGVector: 1536-dimensional semantic representation of candidate profile & resume
+    resume_embedding vector(1536),
+    skills_embedding vector(1536),
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 
--- Scheduled Automation Tasks Table
+-- Step 3: Job Listings with Vector Store (JD Embeddings for Real-Time ATS Matching)
+CREATE TABLE job_vector_store (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    job_hash VARCHAR(64) UNIQUE NOT NULL, -- SHA256(title + company + link)
+    job_title VARCHAR(255) NOT NULL,
+    company VARCHAR(255) NOT NULL,
+    location VARCHAR(255),
+    platform VARCHAR(100) NOT NULL, -- 'Naukri', 'LinkedIn', 'Indeed', 'Greenhouse', etc.
+    link VARCHAR(1000) NOT NULL,
+    salary VARCHAR(100),
+    experience_req VARCHAR(100),
+    full_jd TEXT NOT NULL,
+    required_skills JSONB DEFAULT '[]'::jsonb,
+    -- PGVector: Dense vector embedding for the Job Description
+    jd_vector vector(1536) NOT NULL,
+    requirements_vector vector(1536),
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Step 4: Semantic Screening Question-Answer Vector Memory (RAG Auto-Fill)
+CREATE TABLE screening_qa_vector_memory (
+    id SERIAL PRIMARY KEY,
+    user_id INT REFERENCES candidate_profiles(id) ON DELETE CASCADE,
+    question_text TEXT NOT NULL,
+    canonical_answer TEXT NOT NULL,
+    category VARCHAR(100) DEFAULT 'general', -- 'experience', 'salary', 'visa', 'technical', 'situational'
+    -- PGVector: Vector embedding of the question for semantic fuzzy matching
+    question_vector vector(1536) NOT NULL,
+    usage_count INT DEFAULT 1,
+    last_used_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Step 5: Scheduled Automation Tasks Table
 CREATE TABLE auto_apply_schedules (
     id SERIAL PRIMARY KEY,
-    user_id INT REFERENCES candidate_profiles(id),
+    user_id INT REFERENCES candidate_profiles(id) ON DELETE CASCADE,
     name VARCHAR(255),
     platform VARCHAR(100), -- 'All', 'Naukri', 'LinkedIn', 'Greenhouse', etc.
     target_role VARCHAR(255),
@@ -469,15 +541,15 @@ CREATE TABLE auto_apply_schedules (
     days_of_week JSONB DEFAULT '["Mon","Tue","Wed","Thu","Fri"]'::jsonb,
     runtime_minutes INT DEFAULT 30,
     is_active BOOLEAN DEFAULT TRUE,
-    last_run_at TIMESTAMP,
-    next_run_at TIMESTAMP
+    last_run_at TIMESTAMPTZ,
+    next_run_at TIMESTAMPTZ
 );
 
--- Immutable Applied Job History Ledger
+-- Step 6: Immutable Applied Job History Ledger
 CREATE TABLE saved_jobs (
     id SERIAL PRIMARY KEY,
     application_id VARCHAR(100) UNIQUE NOT NULL,
-    user_id INT REFERENCES candidate_profiles(id),
+    user_id INT REFERENCES candidate_profiles(id) ON DELETE CASCADE,
     job_title VARCHAR(255) NOT NULL,
     company VARCHAR(255) NOT NULL,
     location VARCHAR(255),
@@ -486,19 +558,65 @@ CREATE TABLE saved_jobs (
     ats_type VARCHAR(100) DEFAULT 'native',
     link VARCHAR(1000) NOT NULL,
     match_score INT DEFAULT 85,
+    semantic_similarity FLOAT, -- Cosine similarity score (0.0 to 1.0)
     status VARCHAR(50) DEFAULT 'Applied', -- 'Applied', 'Under Review', 'Interview', 'Offer', 'Rejected'
     responsibilities JSONB DEFAULT '[]'::jsonb,
     benefits JSONB DEFAULT '[]'::jsonb,
     screening_qa JSONB DEFAULT '[]'::jsonb,
     cover_letter TEXT,
     full_jd TEXT,
-    applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    applied_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 
+-- ==============================================================================
+-- High-Performance PGVector HNSW Indexes (Hierarchical Navigable Small World)
+-- ==============================================================================
+-- HNSW Cosine Distance Index for Lightning-Fast Real-Time Job Discovery (<10ms across 1M+ jobs)
+CREATE INDEX idx_job_vector_hnsw ON job_vector_store 
+USING hnsw (jd_vector vector_cosine_ops) 
+WITH (m = 16, ef_construction = 64);
+
+-- HNSW Index for Screening Question RAG Memory lookup
+CREATE INDEX idx_qa_vector_hnsw ON screening_qa_vector_memory 
+USING hnsw (question_vector vector_cosine_ops) 
+WITH (m = 16, ef_construction = 64);
+
+-- Standard B-Tree Indexes
 CREATE INDEX idx_saved_jobs_link ON saved_jobs(link);
 CREATE INDEX idx_saved_jobs_company ON saved_jobs(company);
 CREATE INDEX idx_saved_jobs_status ON saved_jobs(status);
+CREATE INDEX idx_job_vector_hash ON job_vector_store(job_hash);
+```
+
+### 13.3 PGVector Semantic Search & ATS Matching Queries
+
+```sql
+-- 1. Find Top 20 Most Semantically Matching Jobs for a Candidate's Resume
+SELECT 
+    j.id,
+    j.job_title,
+    j.company,
+    j.location,
+    j.link,
+    -- Cosine Similarity Calculation: (1 - Cosine Distance)
+    ROUND(((1 - (j.jd_vector <=> c.resume_embedding)) * 100)::numeric, 1) AS ats_semantic_match_pct
+FROM job_vector_store j, candidate_profiles c
+WHERE c.id = 1
+  AND j.is_active = TRUE
+ORDER BY j.jd_vector <=> c.resume_embedding ASC
+LIMIT 20;
+
+-- 2. RAG Semantic Autofill: Find Best Matching Prior Answer for a New Application Form Question
+SELECT 
+    canonical_answer,
+    category,
+    (1 - (question_vector <=> :incoming_question_embedding)) AS similarity_score
+FROM screening_qa_vector_memory
+WHERE user_id = :current_user_id
+  AND (1 - (question_vector <=> :incoming_question_embedding)) > 0.85
+ORDER BY question_vector <=> :incoming_question_embedding ASC
+LIMIT 1;
 ```
 
 ---

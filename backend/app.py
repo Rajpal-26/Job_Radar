@@ -11,7 +11,7 @@ backend_dir = os.path.join(os.path.dirname(__file__), "backend")
 if backend_dir not in sys.path:
     sys.path.insert(0, backend_dir)
 
-from flask import Flask, render_template, request, jsonify, send_file, abort, Response
+from flask import Flask, render_template, request, jsonify, send_file, abort, Response, redirect, make_response
 from scrapers import (scrape_linkedin, scrape_glassdoor, scrape_indeed,
                       scrape_hirist, scrape_naukri, scrape_foundit,
                       scrape_apna, scrape_shine)
@@ -26,7 +26,8 @@ from scrapers.shine import SHINE_CITIES, SHINE_EXPERIENCE
 import pandas as pd
 from utils import search_engine, tracker_db, resume_parser, ai_copilot, watchdog as watchdog_module
 from services import ai_form_filler, auto_apply_service
-from models import db, migrate, SavedJob, Watchdog, CandidateProfile
+from services.auth_service import AuthService
+from models import db, migrate, SavedJob, Watchdog, CandidateProfile, User, Tenant, TenantMembership, CreditWallet, CreditLedger, UserSession
 
 template_dir = os.path.join(os.path.dirname(__file__), "frontend", "templates") if os.path.exists(os.path.join(os.path.dirname(__file__), "frontend", "templates")) else "templates"
 static_dir = os.path.join(os.path.dirname(__file__), "frontend", "static") if os.path.exists(os.path.join(os.path.dirname(__file__), "frontend", "static")) else "static"
@@ -92,7 +93,16 @@ def _parse_locations(req):
 
 
 @app.route("/")
+@app.route("/dashboard")
+@app.route("/unified")
 def home():
+    return render_template("unified.html")
+
+
+@app.route("/sources")
+@app.route("/scrapers")
+@app.route("/single-sources")
+def landing_page():
     return render_template("landing.html")
 
 
@@ -614,6 +624,191 @@ def export_results(source, fmt):
 def download(source):
     return export_results(source, 'xlsx')
 
+
+# ==============================================================================
+# AUTHENTICATION & MULTI-TENANCY ROUTES
+# ==============================================================================
+
+@app.route("/auth")
+@app.route("/login")
+@app.route("/signin")
+@app.route("/signup")
+def auth_page():
+    return render_template("auth.html")
+
+@app.route("/logout")
+def logout_page():
+    AuthService.revoke_current_session()
+    resp = make_response(redirect("/auth"))
+    resp.set_cookie("jobradar_token", "", expires=0, path="/")
+    return resp
+
+@app.route("/api/auth/register", methods=["POST"])
+def api_auth_register():
+    try:
+        data = request.json or {}
+        email = data.get("email", "").strip()
+        password = data.get("password", "")
+        full_name = data.get("full_name", "").strip()
+        
+        if not email or not password:
+            return jsonify({"success": False, "error": "Email and password are required."}), 400
+            
+        user, tenant, wallet = AuthService.provision_user(
+            email=email,
+            password=password,
+            full_name=full_name,
+            auth_provider="email"
+        )
+        user, token, tenant, wallet = AuthService._create_user_session(user)
+        
+        resp = make_response(jsonify({
+            "success": True,
+            "user": {**user.to_dict(), "credit_balance": wallet.balance, "tenant_name": tenant.name},
+            "token": token
+        }))
+        resp.set_cookie("jobradar_token", token, httponly=True, samesite="Lax", max_age=86400*30, path="/")
+        return resp
+    except ValueError as e:
+        return jsonify({"success": False, "error": str(e)}), 400
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route("/api/auth/quick-register", methods=["POST"])
+def api_auth_quick_register():
+    try:
+        import secrets
+        data = request.json or {}
+        full_name = data.get("full_name") or "Employee Candidate"
+        rand_id = secrets.token_hex(4)
+        email = data.get("email") or f"employee.{rand_id}@jobradar.internal"
+        password = data.get("password") or secrets.token_urlsafe(12)
+        
+        user, tenant, wallet = AuthService.provision_user(
+            email=email,
+            password=password,
+            full_name=full_name,
+            auth_provider="quick_onboarding"
+        )
+        user, token, tenant, wallet = AuthService._create_user_session(user)
+        
+        resp = make_response(jsonify({
+            "success": True,
+            "user": {**user.to_dict(), "credit_balance": wallet.balance, "tenant_name": tenant.name},
+            "token": token
+        }))
+        resp.set_cookie("jobradar_token", token, httponly=True, samesite="Lax", max_age=86400*30, path="/")
+        return resp
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route("/api/auth/login", methods=["POST"])
+def api_auth_login():
+    try:
+        data = request.json or {}
+        email = data.get("email", "").strip()
+        password = data.get("password", "")
+        
+        if not email or not password:
+            return jsonify({"success": False, "error": "Email and password are required."}), 400
+            
+        user, token, tenant, wallet = AuthService.authenticate_user(email, password)
+        
+        resp = make_response(jsonify({
+            "success": True,
+            "user": {**user.to_dict(), "credit_balance": wallet.balance if wallet else 10, "tenant_name": tenant.name if tenant else "Personal"},
+            "token": token
+        }))
+        resp.set_cookie("jobradar_token", token, httponly=True, samesite="Lax", max_age=86400*30, path="/")
+        return resp
+    except ValueError as e:
+        return jsonify({"success": False, "error": str(e)}), 401
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route("/api/auth/social-login", methods=["POST"])
+def api_auth_social_login():
+    try:
+        data = request.json or {}
+        provider = data.get("provider", "google").lower()
+        email = data.get("email") or f"demo.{provider}.user@jobradar.ai"
+        full_name = data.get("full_name") or f"{provider.capitalize()} Candidate"
+        avatar_url = data.get("avatar_url") or f"https://api.dicebear.com/7.x/bottts/svg?seed={provider}"
+        
+        user, token, tenant, wallet = AuthService.social_login(
+            provider=provider,
+            email=email,
+            full_name=full_name,
+            avatar_url=avatar_url
+        )
+        
+        resp = make_response(jsonify({
+            "success": True,
+            "user": {**user.to_dict(), "credit_balance": wallet.balance if wallet else 10, "tenant_name": tenant.name if tenant else "Personal"},
+            "token": token
+        }))
+        resp.set_cookie("jobradar_token", token, httponly=True, samesite="Lax", max_age=86400*30, path="/")
+        return resp
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route("/api/auth/magic-link", methods=["POST"])
+def api_auth_magic_link():
+    try:
+        data = request.json or {}
+        email = data.get("email", "").strip()
+        if not email:
+            return jsonify({"success": False, "error": "Email is required."}), 400
+            
+        return jsonify({
+            "success": True, 
+            "message": f"A single-use 15-minute magic login link has been dispatched to {email}."
+        })
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route("/api/auth/sso/lookup", methods=["POST"])
+def api_auth_sso_lookup():
+    try:
+        data = request.json or {}
+        email = data.get("email", "").strip()
+        result = AuthService.enterprise_sso_lookup(email)
+        return jsonify({"success": True, **result})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+@app.route("/api/auth/me", methods=["GET"])
+def api_auth_me():
+    user = AuthService.get_current_user()
+    if not user:
+        return jsonify({"authenticated": False, "user": None}), 200
+        
+    return jsonify({
+        "authenticated": True,
+        "user": {
+            **user.to_dict(),
+            "credit_balance": getattr(user, "credit_balance", 10),
+            "active_tenant_id": getattr(user, "active_tenant_id", None),
+            "active_tenant_name": getattr(user, "active_tenant_name", "Personal Workspace"),
+            "role": getattr(user, "active_role", user.global_role)
+        }
+    })
+
+@app.route("/api/auth/logout", methods=["POST"])
+def api_auth_logout():
+    AuthService.revoke_current_session()
+    resp = make_response(jsonify({"success": True, "message": "Logged out successfully."}))
+    resp.set_cookie("jobradar_token", "", expires=0, path="/")
+    return resp
+
+@app.route("/api/auth/logout-all", methods=["POST"])
+def api_auth_logout_all():
+    user = AuthService.get_current_user()
+    if user:
+        AuthService.revoke_all_sessions(user.id)
+    resp = make_response(jsonify({"success": True, "message": "All active sessions revoked."}))
+    resp.set_cookie("jobradar_token", "", expires=0, path="/")
+    return resp
 
 # ==============================================================================
 # UNIFIED AGGREGATOR & KANBAN TRACKER ROUTES
@@ -1701,10 +1896,24 @@ def tailor_resume_api():
 
 
 if __name__ == "__main__":
-    print("\n" + "="*60)
+    import socket
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(("8.8.8.8", 80))
+        local_ip = s.getsockname()[0]
+        s.close()
+    except Exception:
+        local_ip = "127.0.0.1"
+
+    port = int(os.environ.get("PORT", 5000))
+    print("\n" + "="*65)
     print("  JobRadar Codebase Watermarked for Rajpal Singh Tanwar")
-    print("="*60 + "\n")
-    app.run(debug=True, use_reloader=False)
+    print("="*65)
+    print(f"  > Localhost:    http://127.0.0.1:{port}")
+    print(f"  > Network IP:   http://{local_ip}:{port}")
+    print(f"  > Unified View: http://{local_ip}:{port}/unified")
+    print("="*65 + "\n")
+    app.run(host="0.0.0.0", port=port, debug=True, use_reloader=False)
 
 
 

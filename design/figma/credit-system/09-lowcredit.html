@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Credit System · Low Credit / Upgrade</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Raleway:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="credit-theme.css">
+<style>
+  .glow{animation:pulse 2.2s ease infinite}
+</style>
+</head>
+<body data-nav="09-lowcredit">
+<div class="stage">
+  <div class="app">
+    <aside data-rail></aside>
+
+    <div class="main">
+      <div class="topbar">
+        <div>
+          <h1>Low credit</h1>
+          <div class="sub">Auto apply pauses below 10 credits · upgrade or top up to continue</div>
+        </div>
+        <div class="right">
+          <span class="bal-pill">Balance <b>12</b> cr</span>
+          <a class="btn ghost sm" href="03-plans.html">Plans</a>
+          <a class="btn gold" href="04-topup.html">Top up</a>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="grid c2" style="align-items:start">
+
+          <div class="stack">
+            <div class="card pad-lg reveal" style="text-align:center;position:relative">
+              <div style="position:absolute;inset:0;opacity:.06;background:radial-gradient(circle at 50% 10%,#2a9bff,transparent)"></div>
+              <div style="position:relative">
+                <div class="gauge" data-v="8" style="margin:0 auto">
+                  <svg viewBox="0 0 120 120"><circle class="g-bg" cx="60" cy="60" r="52" pathLength="100"/><circle class="g-fg" cx="60" cy="60" r="52" pathLength="100" style="stroke:#e0574d"/></svg>
+                  <div class="g-wrap"><div><b data-count="12">0</b><small>credits left</small></div></div>
+                </div>
+                <h2 style="margin-top:16px">You're below the threshold</h2>
+                <div class="hint" style="margin-top:6px">Auto apply pauses below <b>10 cr</b>. Run, optimize or apply actions will be blocked until recharged.</div>
+                <div class="grid c2" style="gap:10px;margin-top:18px">
+                  <a class="btn gold lg block" href="04-topup.html"><span class="gem"></span>Top up credits</a>
+                  <a class="btn pri lg block" href="03-plans.html">Upgrade to Pro</a>
+                </div>
+                <div class="note err" style="margin-top:12px;text-align:left"><b>Why</b> — avoids running half-cost flows. Policy: 402 (insufficient credits) shown before hold.</div>
+              </div>
+            </div>
+
+            <div class="card reveal d1">
+              <div class="card-h"><b>Recommendations</b></div>
+              <div class="kv"><span>ATS score</span><b style="color:var(--ok)">1 cr — cheap</b></div>
+              <div class="kv"><span>Resume parse</span><b style="color:var(--ok)">FREE</b></div>
+              <div class="kv"><span>AI optimization</span><b>5 cr — save for high-fit jobs</b></div>
+              <div class="kv"><span>Auto apply (tailored)</span><b>8 cr — do only for 80%+</b></div>
+              <div class="hint" style="margin-top:10px">See your <a href="07-ledger.html" style="color:var(--pri)">ledger</a> for spend history.</div>
+            </div>
+          </div>
+
+          <div class="stack">
+            <div class="card reveal d1">
+              <div class="card-h"><b>Plan comparison (quick)</b></div>
+              <div class="kv"><span><b>Free</b></span><span>10 cr · 1 slot · ATS basic only</span></div>
+              <div class="kv"><span><b>Pro</b></span><span>150 cr · 10 apply/day · recruiter 10/mo</span></div>
+              <div class="kv"><span><b>Premium</b></span><span>500 cr · 30 apply/day · recruiter 50/mo</span></div>
+              <div class="kv"><span><b>Team</b></span><span>pooled per seat · SSO · audit</span></div>
+              <a class="btn ghost block" href="03-plans.html" style="margin-top:12px">Compare full matrix →</a>
+            </div>
+
+            <div class="toast err reveal d2 glow">
+              <span class="gem" style="background:linear-gradient(135deg,#e0574d,#b3261e)"></span>
+              <div><b>Auto apply paused</b><div class="m">Below 10 cr threshold. Complete the upgrade or top up.</div></div>
+              <a class="btn gold sm" href="04-topup.html">Fix now</a>
+            </div>
+
+            <div class="card reveal d3">
+              <div class="card-h"><b>What happens on top-up</b></div>
+              <div class="code">payment_intent.succeeded
+→ purchase +N cr
+→ ledger append
+→ threshold un-paused
+→ resume queue automatically</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+<div id="toasts" style="position:fixed;right:26px;bottom:26px;width:300px;z-index:150"></div>
+<script src="rail.js"></script>
+<script src="credit.js"></script>
+</body>
+</html>

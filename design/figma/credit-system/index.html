@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Credit System Flow — Gallery</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Raleway:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="credit-theme.css">
+<style>
+  .grid-x{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+  .tile{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px;box-shadow:var(--soft);transition:all .18s;display:flex;flex-direction:column;gap:8px}
+  .tile:hover{transform:translateY(-4px);box-shadow:0 16px 32px rgba(16,40,90,.14);border-color:var(--pri3)}
+  .tile .th{height:130px;border-radius:10px;background:repeating-linear-gradient(45deg,#f7f9fc,#f7f9fc 10px,#eef2f7 10px,#eef2f7 20px);overflow:hidden;position:relative;border:1px solid var(--line2)}
+  .tile .lab{font:700 12.5px 'Instrument Sans',sans-serif}
+  .tile .sub{font-size:10.5px;color:var(--mut2)}
+  .flow-mini{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+</style>
+</head>
+<body style="padding:0;display:block;align-items:stretch;min-height:100vh">
+<div style="max-width:100%;margin:0;width:100%;padding:20px">
+  <div style="display:flex;align-items:flex-start;gap:16px;margin-bottom:20px">
+    <div>
+      <h1 style="font-size:28px">Credit system flow — separate screens</h1>
+      <div class="hint" style="margin-top:4px">Built in line with auth theme. Each window (screen) is a file with proper features &amp; animations.</div>
+    </div>
+    <div class="flow-mini" style="margin-left:auto">
+      <span class="chip">hold → capture → ledger</span>
+      <span class="chip">buckets · expiry order</span>
+      <span class="chip">plans · trial · proration</span>
+      <span class="chip">top-ups 12m</span>
+      <span class="chip">receipts</span>
+      <span class="chip">low-credit guard (402)</span>
+    </div>
+  </div>
+
+  <div class="grid-x reveal">
+    <a class="tile" href="01-wallet.html">
+      <div class="th" style="background:radial-gradient(200px 80px at 80% 10%,#eaf3ff,transparent),repeating-linear-gradient(45deg,#f7f9fc,#f7f9fc 10px,#eef2f7 10px,#eef2f7 20px)"></div>
+      <div class="lab">01 · Wallet &amp; Credits</div>
+      <div class="sub">Gauge · bucket usage · live ledger · spend flow · low-credit toast</div>
+    </a>
+    <a class="tile" href="02-buckets.html">
+      <div class="th" style="background:radial-gradient(200px 80px at 20% 10%,#fff7e6,transparent),repeating-linear-gradient(45deg,#f7f9fc,#f7f9fc 10px,#eef2f7 10px,#eef2f7 20px)"></div>
+      <div class="lab">02 · Buckets &amp; Expiry</div>
+      <div class="sub">Spend order animation · expiry timeline · bucket rules</div>
+    </a>
+    <a class="tile" href="03-plans.html">
+      <div class="th" style="background:radial-gradient(200px 80px at 50% 10%,#eaf3ff,transparent),repeating-linear-gradient(45deg,#f7f9fc,#f7f9fc 10px,#eef2f7 10px,#eef2f7 20px)"></div>
+      <div class="lab">03 · Plans &amp; Pricing</div>
+      <div class="sub">Monthly ⇄ yearly · proration · downgrade/cancel notes</div>
+    </a>
+    <a class="tile" href="04-topup.html">
+      <div class="th" style="background:radial-gradient(200px 80px at 70% 10%,#e8f6ee,transparent),repeating-linear-gradient(45deg,#f7f9fc,#f7f9fc 10px,#eef2f7 10px,#eef2f7 20px)"></div>
+      <div class="lab">04 · Top-up Packs</div>
+      <div class="sub">Pack cards · custom slider · volume-based calc · 12-month validity</div>
+    </a>
+    <a class="tile" href="05-checkout.html">
+      <div class="th" style="background:radial-gradient(200px 80px at 40% 10%,#eff6ff,transparent),repeating-linear-gradient(45deg,#f7f9fc,#f7f9fc 10px,#eef2f7 10px,#eef2f7 20px)"></div>
+      <div class="lab">05 · Checkout</div>
+      <div class="sub">Card/PayPal toggle · trial banner · payment success → confetti</div>
+    </a>
+    <a class="tile" href="06-spend.html">
+      <div class="th" style="background:radial-gradient(200px 80px at 60% 10%,#fff4e5,transparent),repeating-linear-gradient(45deg,#f7f9fc,#f7f9fc 10px,#eef2f7 10px,#eef2f7 20px)"></div>
+      <div class="lab">06 · Spend Credit (hold → capture)</div>
+      <div class="sub">Animated stepper · idempotency · 402 guard · release/retry logic</div>
+    </a>
+    <a class="tile" href="07-ledger.html">
+      <div class="th" style="background:radial-gradient(200px 80px at 30% 10%,#eaf3ff,transparent),repeating-linear-gradient(45deg,#f7f9fc,#f7f9fc 10px,#eef2f7 10px,#eef2f7 20px)"></div>
+      <div class="lab">07 · Transaction Ledger</div>
+      <div class="sub">Append-only filter · simulate events · CSV export · holds visible</div>
+    </a>
+    <a class="tile" href="08-receipt.html">
+      <div class="th" style="background:radial-gradient(200px 80px at 50% 10%,#eef2ff,transparent),repeating-linear-gradient(45deg,#f7f9fc,#f7f9fc 10px,#eef2f7 10px,#eef2f7 20px)"></div>
+      <div class="lab">08 · Spend Receipt</div>
+      <div class="sub">Receipt with flow, bucket, refs, balance · print/PDF</div>
+    </a>
+    <a class="tile" href="09-lowcredit.html">
+      <div class="th" style="background:radial-gradient(200px 80px at 80% 10%,#fdecea,transparent),repeating-linear-gradient(45deg,#f7f9fc,#f7f9fc 10px,#eef2f7 10px,#eef2f7 20px)"></div>
+      <div class="lab">09 · Low Credit / Upgrade</div>
+      <div class="sub">Red gauge · threshold (10 cr) · quick actions · block explanation</div>
+    </a>
+  </div>
+
+  <div class="card" style="margin-top:18px">
+    <div class="card-h"><b>Maps to spec</b><span class="chip">§4 Credits · §5 Plans · §4 Spend flow</span></div>
+    <div class="grid c3" style="gap:14px">
+      <div><div class="hint">Ledger</div><b>grant, purchase, hold, capture, release, refund, expire, adjust · append-only</b></div>
+      <div><div class="hint">Order</div><b>expiring soonest → promotional → subscription → top-up</b></div>
+      <div><div class="hint">Guards</div><b>Idempotency-Key · row-lock · policy (role+plan) · 402/403/401</b></div>
+    </div>
+  </div>
+</div>
+<script src="credit.js"></script>
+</body>
+</html>

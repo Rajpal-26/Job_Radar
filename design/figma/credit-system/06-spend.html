@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Credit System · Spend a Credit</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Raleway:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="credit-theme.css">
+<style>
+  .act{border:1.5px solid var(--line);border-radius:13px;padding:12px 13px;background:#fff;cursor:pointer;transition:all .18s;text-align:left;display:flex;align-items:center;gap:11px;width:100%}
+  .act:hover{border-color:var(--pri3);transform:translateY(-2px)}
+  .act.on{border-color:var(--pri);background:linear-gradient(180deg,#fff,#f6faff);box-shadow:0 10px 24px rgba(21,101,216,.15)}
+  .act .ic{width:34px;height:34px;border-radius:10px;background:var(--pritint);color:var(--pri);display:grid;place-items:center;flex:none}
+  .act .ic svg{width:17px;height:17px}
+  .act .t{font:700 12.5px 'Instrument Sans',sans-serif}
+  .act .s{font-size:10.5px;color:var(--mut2)}
+  .act .cost{margin-left:auto;font:800 13px 'Raleway',serif;color:var(--priink)}
+  .logline{font-size:11px;color:#475569;display:flex;gap:8px}
+  .logline .tm{color:var(--mut2);font-family:ui-monospace,monospace}
+</style>
+</head>
+<body data-nav="06-spend">
+<div class="stage">
+  <div class="app">
+    <aside data-rail></aside>
+
+    <div class="main">
+      <div class="topbar">
+        <div>
+          <h1>Spend a credit</h1>
+          <div class="sub">Hold → job runs → capture on success / release on failure · idempotent</div>
+        </div>
+        <div class="right">
+          <span class="bal-pill">Balance <b id="balTop">142</b> cr</span>
+          <a class="btn ghost sm" href="07-ledger.html">Ledger</a>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="grid" style="grid-template-columns:1.5fr 1fr;align-items:start">
+
+          <div class="stack">
+            <div class="card reveal">
+              <div class="card-h"><b>Choose an action</b><span class="chip mono">credit_price · effective-dated</span></div>
+              <div class="grid c2" style="gap:10px">
+                <button class="act on" data-cost="1" data-name="ATS score (basic)"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16M4 12h16M4 19h10"/></svg></span><div><div class="t">ATS score</div><div class="s">basic · per resume × job</div></div><span class="cost">1 cr</span></button>
+                <button class="act" data-cost="5" data-name="AI resume optimization"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l4-1 10-10-3-3L5 16z"/><path d="M14 6l3 3"/></svg></span><div><div class="t">AI optimization</div><div class="s">job-targeted rewrite</div></div><span class="cost">5 cr</span></button>
+                <button class="act" data-cost="3" data-name="Auto apply · standard"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l14-7-4 14-3-5z"/></svg></span><div><div class="t">Auto apply</div><div class="s">standard</div></div><span class="cost">3 cr</span></button>
+                <button class="act" data-cost="8" data-name="Auto apply · tailored"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l14-7-4 14-3-5z"/><path d="M12 3l1.5 1.5"/></svg></span><div><div class="t">Auto apply</div><div class="s">tailored (opt + apply)</div></div><span class="cost">8 cr</span></button>
+                <button class="act" data-cost="2" data-name="Recruiter profile check"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.4"/><path d="M5 20c0-3.6 3-5.6 7-5.6s7 2 7 5.6"/></svg></span><div><div class="t">Recruiter check</div><div class="s">cached 7 days</div></div><span class="cost">2 cr</span></button>
+                <button class="act" data-cost="0" data-name="Resume parse &amp; storage"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M5 21h14"/></svg></span><div><div class="t">Parse &amp; store</div><div class="s">free · limited by slots</div></div><span class="cost">0 cr</span></button>
+              </div>
+            </div>
+
+            <div class="card pad-lg reveal d1" id="pipeCard">
+              <div class="card-h"><b id="pipeTitle">Run pipeline</b><span class="chip pri" id="pipeState">idle</span></div>
+              <div class="steps" style="margin:8px 0 16px">
+                <div class="stepdot" id="s1"><i>1</i><span>Policy check</span></div><div class="stepline" id="l1"></div>
+                <div class="stepdot" id="s2"><i>2</i><span>Hold</span></div><div class="stepline" id="l2"></div>
+                <div class="stepdot" id="s3"><i>3</i><span>Job runs</span></div><div class="stepline" id="l3"></div>
+                <div class="stepdot" id="s4"><i>4</i><span>Capture</span></div>
+              </div>
+              <div class="code" id="pipeLog" style="min-height:104px">waiting to start the run…</div>
+              <div style="display:flex;gap:10px;align-items:center;margin-top:14px">
+                <button class="btn pri lg" id="runBtn" style="flex:1">Run action</button>
+                <label class="chk" style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--mut)"><input type="checkbox" id="force402"> simulate insufficient credits</label>
+              </div>
+            </div>
+          </div>
+
+          <div class="stack">
+            <div class="card reveal d1">
+              <div class="card-h"><b>This run · credits</b></div>
+              <div class="kv"><span>Action</span><b id="sumName">ATS score (basic)</b></div>
+              <div class="kv"><span>Cost</span><b id="sumCost">1 cr</b></div>
+              <div class="kv"><span>Balance before</span><b id="sumBefore">142 cr</b></div>
+              <div class="kv"><span>Active hold</span><b id="sumHold" style="color:var(--warn)">—</b></div>
+              <div class="kv"><b>Available after</b><b id="sumAfter" style="font-size:15px;color:var(--pri)">141 cr</b></div>
+            </div>
+
+            <div class="card reveal d2">
+              <div class="card-h"><b>Guards</b></div>
+              <div class="kv"><span>Idempotency-Key</span><b class="chip mono">8f3a-92d1-…</b></div>
+              <div class="kv"><span>Wallet lock</span><b>AUTO on hold</b></div>
+              <div class="kv"><span>Per-action rate limit</span><b>OK</b></div>
+              <div class="kv"><span>Daily spend cap</span><b>12 / 40</b></div>
+              <div class="note info" style="margin-top:10px">A feature call proceeds only if <b>permission</b>, <b>entitlement</b> and <b>credits</b> all pass. 401 unauth · 403 plan/role · 402 insufficient credits.</div>
+            </div>
+
+            <div class="card reveal d3" id="resultCard" style="display:none">
+              <div class="card-h"><b id="resTitle">Captured</b></div>
+              <div class="hint" id="resMsg">—</div>
+              <a class="btn ok block" href="08-receipt.html" id="resLink" style="margin-top:12px">View receipt →</a>
+            </div>
+
+            <div class="toast reveal d4">
+              <span class="gem"></span>
+              <div><b>Failed jobs refund automatically</b><div class="m">Platform-side errors and timeouts release the hold; employer rejections do not.</div></div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+<div id="toasts" style="position:fixed;right:26px;bottom:26px;width:300px;z-index:150"></div>
+<script src="rail.js"></script>
+<script src="credit.js"></script>
+<script>
+  var balance = 142;
+  var sel = { cost: 1, name: 'ATS score (basic)' };
+  var run = false;
+
+  function fmt(n){ return n.toLocaleString(); }
+  function refresh() {
+    document.getElementById('sumName').textContent = sel.name;
+    document.getElementById('sumCost').textContent = sel.cost + ' cr';
+    document.getElementById('sumBefore').textContent = fmt(balance) + ' cr';
+    document.getElementById('sumAfter').textContent = fmt(Math.max(0, balance - sel.cost)) + ' cr';
+    document.getElementById('balTop').textContent = fmt(balance);
+  }
+  document.querySelectorAll('.act').forEach(function (a) {
+    a.addEventListener('click', function () {
+      if (run) return;
+      document.querySelectorAll('.act').forEach(function (x) { x.classList.remove('on'); });
+      a.classList.add('on');
+      sel = { cost: +a.dataset.cost, name: a.dataset.name };
+      refresh();
+    });
+  });
+
+  function setStep(id, cls, num) {
+    var el = document.getElementById(id);
+    el.classList.remove('done', 'act'); if (cls) el.classList.add(cls);
+    if (num) el.querySelector('i').textContent = num;
+  }
+  function reset() {
+    ['s1', 's2', 's3', 's4'].forEach(function (id, i) { setStep(id, '', String(i + 1)); });
+    ['l1', 'l2', 'l3'].forEach(function (id) { document.getElementById(id).classList.remove('done', 'act'); });
+    document.getElementById('pipeLog').textContent = '';
+    document.getElementById('resultCard').style.display = 'none';
+  }
+  function log(msg) {
+    var el = document.getElementById('pipeLog');
+    var t = new Date();
+    var tm = String(t.getHours()).padStart(2, '0') + ':' + String(t.getMinutes()).padStart(2, '0') + ':' + String(t.getSeconds()).padStart(2, '0');
+    el.innerHTML += '<div class="logline"><span class="tm">' + tm + '</span><span>' + msg + '</span></div>';
+  }
+
+  document.getElementById('runBtn').addEventListener('click', function () {
+    if (run) return;
+    var force402 = document.getElementById('force402').checked;
+    var insufficient = force402 || sel.cost > balance;
+    run = true;
+    reset();
+    document.getElementById('pipeState').textContent = 'running';
+    document.getElementById('pipeState').className = 'chip warn';
+    var before = balance;
+
+    /* 1 · policy check */
+    setStep('s1', 'act');
+    setTimeout(function () {
+      log('Idempotency-Key received · checking role · plan · limits');
+      setStep('s1', 'done', '✓');
+      if (insufficient) {
+        setStep('s1', 'done', '✓');
+        document.getElementById('pipeState').textContent = '402';
+        document.getElementById('pipeState').className = 'chip err';
+        log('<span style="color:#b91c1c">402 — insufficient credits · need ' + sel.cost + ', have ' + before + '</span>');
+        document.getElementById('pipeCard').classList.add('shake');
+        setTimeout(function () { document.getElementById('pipeCard').classList.remove('shake'); }, 500);
+        showResult(false, 'Payment required (402)', 'Not enough credits for ' + sel.name + '. Top up or upgrade to continue.', '04-topup.html', 'Top up credits');
+        crToast({ kind: 'err', title: 'Insufficient credits (402)', msg: 'Need ' + sel.cost + ' cr · balance ' + before + ' cr.', ms: 4200 });
+        run = false;
+        return;
+      }
+      /* 2 · hold */
+      document.getElementById('l1').classList.add('done');
+      setStep('s2', 'act');
+      document.getElementById('sumHold').textContent = '−' + sel.cost + ' cr';
+      setTimeout(function () {
+        log('<span style="color:#b45309">hold placed · ' + sel.cost + ' cr · wallet row-locked</span>');
+        setStep('s2', 'done', '✓');
+        document.getElementById('l2').classList.add('done');
+        /* 3 · job runs */
+        setStep('s3', 'act');
+        setTimeout(function () {
+          log('worker running · facts-only guardrail active');
+          setStep('s3', 'done', '✓');
+          document.getElementById('l3').classList.add('done');
+          /* 4 · capture */
+          setStep('s4', 'act');
+          setTimeout(function () {
+            balance = before - sel.cost;
+            setStep('s4', 'done', '✓');
+            document.getElementById('sumHold').textContent = '0 cr (captured)';
+            document.getElementById('pipeState').textContent = 'captured';
+            document.getElementById('pipeState').className = 'chip ok';
+            log('<span style="color:#047857">capture −' + sel.cost + ' cr · usage event emitted</span>');
+            refresh();
+            crConfetti();
+            showResult(true, 'Captured', sel.name + ' completed. ' + sel.cost + ' cr captured · balance ' + balance + ' cr.', '08-receipt.html', 'View receipt →');
+            crToast({ kind: 'ok', title: 'Captured ' + sel.cost + ' credit' + (sel.cost === 1 ? '' : 's'), msg: 'Balance now ' + balance + ' cr.', ms: 3200 });
+            run = false;
+          }, 900);
+        }, 1100);
+      }, 800);
+    }, 500);
+  });
+
+  function showResult(ok, title, msg, href, label) {
+    var c = document.getElementById('resultCard');
+    c.style.display = '';
+    document.getElementById('resTitle').textContent = title;
+    document.getElementById('resMsg').textContent = msg;
+    var a = document.getElementById('resLink');
+    a.href = href; a.textContent = label;
+    a.className = ok ? 'btn ok block' : 'btn gold block';
+    c.classList.remove('reveal'); void c.offsetWidth; c.classList.add('reveal');
+  }
+
+  refresh();
+</script>
+</body>
+</html>

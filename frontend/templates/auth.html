@@ -1,0 +1,581 @@
+<!--
+  WATERMARK: Rajpal Singh Tanwar
+  Copyright (c) 2026 Rajpal Singh Tanwar. All rights reserved.
+-->
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sign In &bull; JobRadar Career Platform</title>
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+  <script src="{{ url_for('static', filename='theme.js') }}"></script>
+  <style>
+    body {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.5rem 1rem;
+      background-color: var(--bg) !important;
+      background-image: var(--bg-accent) !important;
+      font-family: 'Plus Jakarta Sans', 'Manrope', system-ui, sans-serif;
+      color: var(--text);
+    }
+
+    .auth-container {
+      width: 100%;
+      max-width: 480px;
+      margin: auto;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 1.25rem;
+      padding: 2.25rem 2rem;
+      box-shadow: var(--shadow), 0 0 40px rgba(10, 102, 194, 0.12);
+      backdrop-filter: blur(12px);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .auth-header {
+      text-align: center;
+      margin-bottom: 1.75rem;
+    }
+
+    .auth-logo {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      font-size: 1.6rem;
+      font-weight: 800;
+      color: var(--text);
+      text-decoration: none;
+      margin-bottom: 0.5rem;
+    }
+
+    .auth-logo span {
+      color: var(--primary);
+    }
+
+    .auth-subtitle {
+      font-size: 0.9rem;
+      color: var(--subtext);
+      margin-top: 0.25rem;
+    }
+
+    .auth-tabs {
+      display: flex;
+      background: var(--panel-soft);
+      border: 1px solid var(--line);
+      border-radius: 0.75rem;
+      padding: 0.3rem;
+      gap: 0.3rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .auth-tab {
+      flex: 1;
+      padding: 0.6rem 0.5rem;
+      border-radius: 0.5rem;
+      font-size: 0.85rem;
+      font-weight: 700;
+      text-align: center;
+      color: var(--subtext);
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .auth-tab.active {
+      background: var(--panel);
+      color: var(--primary);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    .social-btn-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .social-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+      width: 100%;
+      padding: 0.75rem 1rem;
+      border-radius: 0.75rem;
+      font-size: 0.92rem;
+      font-weight: 700;
+      cursor: pointer;
+      background: var(--panel-soft);
+      border: 1px solid var(--line);
+      color: var(--text);
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      text-decoration: none;
+    }
+
+    .social-btn:hover {
+      border-color: var(--primary);
+      background: rgba(78, 163, 255, 0.08);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
+    }
+
+    .social-btn svg {
+      width: 20px;
+      height: 20px;
+      flex-shrink: 0;
+    }
+
+    .divider {
+      display: flex;
+      align-items: center;
+      text-align: center;
+      margin: 1.25rem 0;
+      color: var(--subtext);
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .divider::before, .divider::after {
+      content: '';
+      flex: 1;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .divider:not(:empty)::before { margin-right: .75em; }
+    .divider:not(:empty)::after { margin-left: .75em; }
+
+    .form-group {
+      margin-bottom: 1rem;
+      text-align: left;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 700;
+      margin-bottom: 0.4rem;
+      color: var(--text);
+    }
+
+    .input-field {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      background: var(--panel-soft);
+      border: 1px solid var(--line);
+      border-radius: 0.65rem;
+      color: var(--text);
+      font-size: 0.92rem;
+      font-family: inherit;
+      transition: all 0.2s ease;
+      box-sizing: border-box;
+    }
+
+    .input-field:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(78, 163, 255, 0.2);
+      background: var(--panel);
+    }
+
+    .password-wrapper {
+      position: relative;
+    }
+
+    .password-toggle {
+      position: absolute;
+      right: 0.85rem;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: var(--subtext);
+      cursor: pointer;
+      font-size: 1rem;
+      padding: 0;
+    }
+
+    .welcome-credit-badge {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      background: linear-gradient(135deg, rgba(47, 178, 130, 0.15) 0%, rgba(10, 102, 194, 0.15) 100%);
+      border: 1px solid rgba(47, 178, 130, 0.4);
+      padding: 0.65rem 0.9rem;
+      border-radius: 0.75rem;
+      margin-bottom: 1.25rem;
+      font-size: 0.84rem;
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    .welcome-credit-badge span.highlight {
+      color: var(--accent);
+      font-weight: 800;
+    }
+
+    .btn-submit {
+      width: 100%;
+      padding: 0.85rem 1.5rem;
+      background: linear-gradient(135deg, var(--primary, #0a66c2) 0%, var(--accent, #2fb282) 100%);
+      color: #ffffff;
+      border: none;
+      border-radius: 0.75rem;
+      font-weight: 800;
+      font-size: 1rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      box-shadow: 0 4px 16px rgba(10, 102, 194, 0.35);
+      transition: all 0.2s ease;
+      margin-top: 0.5rem;
+    }
+
+    .btn-submit:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(10, 102, 194, 0.5);
+      filter: brightness(1.1);
+    }
+
+    .btn-submit:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .alert-box {
+      display: none;
+      padding: 0.75rem 1rem;
+      border-radius: 0.65rem;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      text-align: center;
+    }
+
+    .alert-error {
+      background: rgba(239, 110, 117, 0.15);
+      border: 1px solid var(--error);
+      color: var(--error);
+    }
+
+    .alert-success {
+      background: rgba(47, 178, 130, 0.15);
+      border: 1px solid var(--success);
+      color: var(--success);
+    }
+
+    .footer-links {
+      text-align: center;
+      font-size: 0.82rem;
+      color: var(--subtext);
+      margin-top: 1.5rem;
+    }
+
+    .footer-links a {
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 700;
+    }
+
+    .footer-links a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Theme Toggle Link -->
+  <div style="width: 100%; max-width: 480px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+    <a href="/" style="color: var(--subtext); text-decoration: none; font-size: 0.88rem; font-weight: 700; display: inline-flex; align-items: center; gap: 0.35rem;">
+      &larr; Back to App
+    </a>
+    <button class="nav-theme-btn" onclick="toggleTheme()" aria-label="Toggle theme" style="padding: 0.35rem 0.75rem; border-radius: 999px; background: var(--panel); border: 1px solid var(--line); color: var(--text); font-weight: 700; font-size: 0.82rem; cursor: pointer;">
+      <span class="theme-icon">🌙</span> <span id="themeLabel">Dark Mode</span>
+    </button>
+  </div>
+
+  <div class="auth-container">
+    <div class="auth-header">
+      <a href="/" class="auth-logo">
+        <div class="radar-dot" style="width: 10px; height: 10px; background: var(--accent); border-radius: 50%; box-shadow: 0 0 10px var(--accent);"></div>
+        Job<span>Radar</span>
+      </a>
+      <div class="auth-subtitle" id="authSubtitle">AI Job Search &amp; Autonomous Auto-Apply Studio</div>
+    </div>
+
+    <!-- Free Welcome Credits Banner -->
+    <div class="welcome-credit-badge">
+      <span style="font-size: 1.2rem;">🎁</span>
+      <div>
+        <span class="highlight">10 Free Credits</span> granted instantly on signup for AI ATS Matching &amp; Auto-Apply.
+      </div>
+    </div>
+
+    <!-- Alert Box -->
+    <div id="alertBox" class="alert-box"></div>
+
+    <!-- Navigation Tabs -->
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="tabSignIn" onclick="switchAuthTab('signin')">Sign In</button>
+      <button class="auth-tab" id="tabSignUp" onclick="switchAuthTab('signup')">Create Account</button>
+      <button class="auth-tab" id="tabMagic" onclick="switchAuthTab('magic')">Magic Link</button>
+      <button class="auth-tab" id="tabSSO" onclick="switchAuthTab('sso')">Work SSO</button>
+    </div>
+
+    <!-- Social 1-Click SSO Buttons -->
+    <div class="social-btn-group" id="socialBtnGroup">
+      <button type="button" class="social-btn" onclick="handleSocialLogin('google')">
+        <!-- Google SVG Icon -->
+        <svg viewBox="0 0 24 24">
+          <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+          <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+          <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+          <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+        </svg>
+        <span>Continue with Google</span>
+      </button>
+
+      <button type="button" class="social-btn" onclick="handleSocialLogin('github')">
+        <!-- GitHub SVG Icon -->
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/>
+        </svg>
+        <span>Continue with GitHub</span>
+      </button>
+    </div>
+
+    <div class="divider" id="authDivider">or continue with email</div>
+
+    <!-- Main Auth Form -->
+    <form id="authForm" onsubmit="handleAuthSubmit(event)">
+      <!-- Name field (Sign Up only) -->
+      <div class="form-group" id="nameGroup" style="display: none;">
+        <label for="fullName">Full Name</label>
+        <input type="text" id="fullName" class="input-field" placeholder="e.g. Alex Mercer" />
+      </div>
+
+      <!-- Email field -->
+      <div class="form-group">
+        <label for="email" id="emailLabel">Email Address</label>
+        <input type="email" id="email" class="input-field" placeholder="name@company.com" required />
+      </div>
+
+      <!-- Password field (Sign In & Sign Up only) -->
+      <div class="form-group" id="passwordGroup">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
+          <label for="password" style="margin: 0;">Password</label>
+          <a href="#" onclick="switchAuthTab('magic'); return false;" id="forgotPwdLink" style="font-size: 0.78rem; color: var(--primary); text-decoration: none; font-weight: 600;">Forgot / Use Magic Link?</a>
+        </div>
+        <div class="password-wrapper">
+          <input type="password" id="password" class="input-field" placeholder="••••••••••••" minlength="6" />
+          <button type="button" class="password-toggle" onclick="togglePasswordVisibility()">👁️</button>
+        </div>
+      </div>
+
+      <button type="submit" id="submitBtn" class="btn-submit">
+        <span id="submitBtnText">Sign In to JobRadar</span>
+      </button>
+    </form>
+
+    <div class="footer-links" id="footerPrompt">
+      Don't have an account? <a href="#" onclick="switchAuthTab('signup'); return false;">Sign up for free</a>
+    </div>
+  </div>
+
+  <div style="margin-top: 2rem; font-size: 0.8rem; color: var(--subtext); text-align: center;">
+    JobRadar &copy; 2026 &bull; Developed by <span style="color: var(--primary); font-weight: 700;">Rajpal Singh Tanwar</span>
+  </div>
+
+  <script>
+    let currentMode = "signin"; // "signin", "signup", "magic", "sso"
+
+    function switchAuthTab(mode) {
+      currentMode = mode;
+      const alertBox = document.getElementById("alertBox");
+      alertBox.style.display = "none";
+
+      document.querySelectorAll(".auth-tab").forEach(t => t.classList.remove("active"));
+      
+      const nameGroup = document.getElementById("nameGroup");
+      const passwordGroup = document.getElementById("passwordGroup");
+      const socialGroup = document.getElementById("socialBtnGroup");
+      const divider = document.getElementById("authDivider");
+      const submitText = document.getElementById("submitBtnText");
+      const emailLabel = document.getElementById("emailLabel");
+      const footerPrompt = document.getElementById("footerPrompt");
+
+      if (mode === "signin") {
+        document.getElementById("tabSignIn").classList.add("active");
+        nameGroup.style.display = "none";
+        passwordGroup.style.display = "block";
+        socialGroup.style.display = "flex";
+        divider.style.display = "flex";
+        submitText.textContent = "Sign In to JobRadar";
+        emailLabel.textContent = "Email Address";
+        footerPrompt.innerHTML = `Don't have an account? <a href="#" onclick="switchAuthTab('signup'); return false;">Sign up for free</a>`;
+      } else if (mode === "signup") {
+        document.getElementById("tabSignUp").classList.add("active");
+        nameGroup.style.display = "block";
+        passwordGroup.style.display = "block";
+        socialGroup.style.display = "flex";
+        divider.style.display = "flex";
+        submitText.textContent = "Create Account & Get 10 Credits";
+        emailLabel.textContent = "Email Address";
+        footerPrompt.innerHTML = `Already have an account? <a href="#" onclick="switchAuthTab('signin'); return false;">Sign in</a>`;
+      } else if (mode === "magic") {
+        document.getElementById("tabMagic").classList.add("active");
+        nameGroup.style.display = "none";
+        passwordGroup.style.display = "none";
+        socialGroup.style.display = "none";
+        divider.style.display = "none";
+        submitText.textContent = "Send 15-Minute Magic Link ✨";
+        emailLabel.textContent = "Your Account Email";
+        footerPrompt.innerHTML = `Remember your password? <a href="#" onclick="switchAuthTab('signin'); return false;">Sign in</a>`;
+      } else if (mode === "sso") {
+        document.getElementById("tabSSO").classList.add("active");
+        nameGroup.style.display = "none";
+        passwordGroup.style.display = "none";
+        socialGroup.style.display = "none";
+        divider.style.display = "none";
+        submitText.textContent = "Continue with Enterprise SSO 🏢";
+        emailLabel.textContent = "Work / Organization Email";
+        footerPrompt.innerHTML = `Personal account? <a href="#" onclick="switchAuthTab('signin'); return false;">Sign in</a>`;
+      }
+    }
+
+    function togglePasswordVisibility() {
+      const pwd = document.getElementById("password");
+      pwd.type = pwd.type === "password" ? "text" : "password";
+    }
+
+    function showAlert(msg, isError = true) {
+      const alertBox = document.getElementById("alertBox");
+      alertBox.textContent = msg;
+      alertBox.className = `alert-box ${isError ? 'alert-error' : 'alert-success'}`;
+      alertBox.style.display = "block";
+    }
+
+    async function handleAuthSubmit(e) {
+      e.preventDefault();
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value;
+      const fullName = document.getElementById("fullName").value.trim();
+      const btn = document.getElementById("submitBtn");
+      const btnText = document.getElementById("submitBtnText");
+
+      if (!email) {
+        showAlert("Please enter your email address.");
+        return;
+      }
+
+      btn.disabled = true;
+      btnText.textContent = "Authenticating...";
+
+      try {
+        let endpoint = "/api/auth/login";
+        let payload = { email, password };
+
+        if (currentMode === "signup") {
+          endpoint = "/api/auth/register";
+          payload = { email, password, full_name: fullName };
+        } else if (currentMode === "magic") {
+          endpoint = "/api/auth/magic-link";
+          payload = { email };
+        } else if (currentMode === "sso") {
+          endpoint = "/api/auth/sso/lookup";
+          payload = { email };
+        }
+
+        const res = await fetch(endpoint, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+
+        if (!res.ok || !data.success) {
+          showAlert(data.error || "Authentication failed. Please check your credentials.");
+          btn.disabled = false;
+          switchAuthTab(currentMode);
+          return;
+        }
+
+        if (currentMode === "magic") {
+          showAlert("✨ Magic Link sent! Check your inbox to complete sign-in.", false);
+          btn.disabled = false;
+          return;
+        }
+
+        if (currentMode === "sso") {
+          if (data.sso_enforced && data.idp_redirect_url) {
+            showAlert(`Redirecting to ${data.tenant_name || 'Enterprise'} SSO Provider...`, false);
+            setTimeout(() => { window.location.href = data.idp_redirect_url; }, 800);
+            return;
+          } else {
+            showAlert(`No enterprise SSO policy enforced for ${data.domain || 'this domain'}. Please use standard password or social login.`);
+            btn.disabled = false;
+            switchAuthTab("signin");
+            return;
+          }
+        }
+
+        showAlert(`Welcome ${data.user?.full_name || 'back'}! Redirecting to JobRadar...`, false);
+        
+        // Save session details
+        localStorage.setItem("jobradar_user", JSON.stringify(data.user || {}));
+        
+        const params = new URLSearchParams(window.location.search);
+        const redirectUrl = params.get("redirect") || "/unified";
+        
+        setTimeout(() => {
+          window.location.href = redirectUrl;
+        }, 600);
+
+      } catch (err) {
+        showAlert("Network error connecting to auth service. Please try again.");
+        btn.disabled = false;
+        switchAuthTab(currentMode);
+      }
+    }
+
+    async function handleSocialLogin(provider) {
+      showAlert(`Connecting to ${provider.toUpperCase()} 1-Click SSO...`, false);
+      try {
+        const res = await fetch("/api/auth/social-login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ provider })
+        });
+        const data = await res.json();
+        if (data.success) {
+          localStorage.setItem("jobradar_user", JSON.stringify(data.user || {}));
+          showAlert(`Signed in with ${provider}! Redirecting...`, false);
+          const params = new URLSearchParams(window.location.search);
+          const redirectUrl = params.get("redirect") || "/unified";
+          setTimeout(() => { window.location.href = redirectUrl; }, 600);
+        } else {
+          showAlert(data.error || "Social authentication failed.");
+        }
+      } catch (e) {
+        showAlert("Error connecting to OAuth gateway.");
+      }
+    }
+  </script>
+</body>
+</html>

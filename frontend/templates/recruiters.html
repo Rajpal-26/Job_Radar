@@ -17,6 +17,7 @@
   <!-- Three.js 3D Library & Engine -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="{{ url_for('static', filename='radar3d.js') }}" defer></script>
+  <script src="{{ url_for('static', filename='auth.js') }}" defer></script>
   <style>
     .role-chip-btn {
       padding: 0.45rem 0.95rem;
@@ -187,6 +188,8 @@
       <a href="/auto-apply" class="nav-tab">🚀 Auto Apply Studio</a>
       <a href="/history" class="nav-tab">📜 Applied History</a>
       <a href="/recruiters" class="nav-tab active">🎯 Recruiter Radar</a>
+      <a href="/tracker" class="nav-tab">📋 Kanban Tracker</a>
+      <a href="/analytics" class="nav-tab">📊 Market Analytics</a>
       <a href="/" class="nav-tab">🌐 Single Scrapers</a>
     </div>
     <div class="nav-tools">

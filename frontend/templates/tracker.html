@@ -15,6 +15,7 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
   <script src="{{ url_for('static', filename='theme.js') }}"></script>
   <script src="{{ url_for('static', filename='radar3d.js') }}" defer></script>
+  <script src="{{ url_for('static', filename='auth.js') }}" defer></script>
   <style>
     .nav-bar {
       display: flex;
@@ -113,6 +114,36 @@
       cursor: pointer;
     }
     .card-btn:hover { background: var(--primary); color: white; border-color: var(--primary); }
+
+    /* Cohesive Theme Button System */
+    .cove-btn-accent,
+    .btn-accent {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+      color: #ffffff !important;
+      border: 1px solid rgba(255, 255, 255, 0.15) !important;
+      border-radius: 0.65rem;
+      font-family: inherit;
+      font-weight: 800;
+      font-size: 0.95rem;
+      padding: 0.75rem 1.6rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      box-shadow: 0 4px 16px rgba(16, 185, 129, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.1) inset;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      text-decoration: none;
+      white-space: nowrap;
+      line-height: 1.3;
+    }
+    .cove-btn-accent:hover,
+    .btn-accent:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(16, 185, 129, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.2) inset;
+      filter: brightness(1.08);
+      color: #ffffff !important;
+    }
   </style>
 </head>
 <body>
@@ -128,6 +159,8 @@
       <a href="/auto-apply" class="nav-tab">🚀 Auto Apply Studio</a>
       <a href="/history" class="nav-tab">📜 Applied History</a>
       <a href="/recruiters" class="nav-tab">🎯 Recruiter Radar</a>
+      <a href="/tracker" class="nav-tab active">📋 Kanban Tracker</a>
+      <a href="/analytics" class="nav-tab">📊 Market Analytics</a>
       <a href="/" class="nav-tab">🌐 Single Scrapers</a>
     </div>
     <div class="nav-tools">
@@ -307,7 +340,8 @@
       return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
     }
 
-  </div>
+    document.addEventListener("DOMContentLoaded", loadTrackerData);
+  </script>
 
   <footer style="margin-top: 48px; text-align: center; font-size: 13.5px; color: var(--subtext); font-family: 'Plus Jakarta Sans', sans-serif; letter-spacing: 0.03em; border-top: 1px solid var(--line); padding-top: 24px; padding-bottom: 24px;">
     JobRadar &copy; 2026 &bull; Developed by <a href="https://mail.google.com/mail/?view=cm&fs=1&to=rajpaltanwar2608@gmail.com&su=JobRadar%20Query%20%2F%20Feature%20Request&body=Hi%20Rajpal%2C%0A%0AI%20have%20a%20query%2Frequest%20regarding%20JobRadar%3A%0A%0A" target="_blank" style="font-weight: 700; color: var(--primary); text-decoration: none;" title="Send email query to Rajpal Singh Tanwar">Rajpal Singh Tanwar ✉️</a>
@@ -315,6 +349,5 @@
 
   <a href="https://mail.google.com/mail/?view=cm&fs=1&to=rajpaltanwar2608@gmail.com&su=JobRadar%20Query%20%2F%20Feature%20Request&body=Hi%20Rajpal%2C%0A%0AI%20have%20a%20query%2Frequest%20regarding%20JobRadar%3A%0A%0A" target="_blank" class="watermark-badge" style="text-decoration: none; color: var(--text);" title="Send email query to Rajpal Singh Tanwar">Developed by <span style="font-weight: 700; color: var(--primary);">Rajpal Singh Tanwar ✉️</span></a>
 
-  <script>
 </body>
 </html>

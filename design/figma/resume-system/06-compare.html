@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Resume · Compare</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Raleway:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="resume-theme.css">
+</head>
+<body>
+<div class="app">
+  <aside class="rail">
+    <div class="brand"><span class="m">JR</span> Resume System</div>
+    <nav class="nav">
+      <div class="grp">Resume</div>
+      <a href="01-resume-library.html">Library</a>
+      <a href="02-upload.html">Upload</a>
+      <div class="grp">AI</div>
+      <a href="03-optimize.html">Optimize</a>
+      <a href="04-diff.html">Diff &amp; Accept</a>
+      <div class="grp">Manage</div>
+      <a href="05-versions.html">Versions</a>
+      <a class="on" href="06-compare.html">Compare</a>
+      <a href="07-export.html">Export</a>
+      <div class="grp">Context</div>
+      <a href="08-resume-overview.html">Overview</a>
+    </nav>
+  </aside>
+  <div class="main">
+    <div class="top">
+      <div><h1>Version Compare</h1><div class="sub">Side-by-side diff with ATS change</div></div>
+      <div class="r"><a class="btn" href="05-versions.html">← Versions</a></div>
+    </div>
+    <div class="content">
+      <div class="card reveal">
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+          <span class="chip">Left: v3 · default (78%)</span>
+          <span class="chip">Right: v4 · AI optimized (86%)</span>
+          <span class="chip">Δ +8%</span>
+        </div>
+      </div>
+      <div class="grid c2">
+        <div class="card reveal d1">
+          <b>v3 — Original</b>
+          <div style="margin-top:8px;border:1px solid var(--line);border-radius:10px;padding:10px;font-size:12px;line-height:1.8;height:320px;overflow:auto" class="mut">
+            Drove user activation initiatives across product surfaces.<br>
+            Ran A/B experiments to improve onboarding conversion.<br>
+            Collaborated with engineering to ship features on time.
+          </div>
+        </div>
+        <div class="card reveal d1">
+          <b>v4 — Optimized</b>
+          <div style="margin-top:8px;border:1px solid var(--line2);border-radius:10px;padding:10px;font-size:12px;line-height:1.8;height:320px;overflow:auto">
+            <div class="diff add">Drove growth loops and payments UX improvements to lift activation.</div>
+            <div class="diff add">Ran A/B tests focused on activation &amp; early retention.</div>
+            <div class="diff">Collaborated with engineering to ship features on time.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

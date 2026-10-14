@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Resume · Overview</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Raleway:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="resume-theme.css">
+</head>
+<body>
+<div class="app">
+  <aside class="rail">
+    <div class="brand"><span class="m">JR</span> Resume System</div>
+    <nav class="nav">
+      <div class="grp">Resume</div>
+      <a href="01-resume-library.html">Library</a>
+      <a href="02-upload.html">Upload</a>
+      <div class="grp">AI</div>
+      <a href="03-optimize.html">Optimize</a>
+      <a href="04-diff.html">Diff &amp; Accept</a>
+      <div class="grp">Manage</div>
+      <a href="05-versions.html">Versions</a>
+      <a href="06-compare.html">Compare</a>
+      <a href="07-export.html">Export</a>
+      <div class="grp">Context</div>
+      <a class="on" href="08-resume-overview.html">Overview</a>
+    </nav>
+  </aside>
+  <div class="main">
+    <div class="top">
+      <div><h1>Resume Overview</h1><div class="sub">Flow: Upload → Parse → Optimize (diff) → Version → Compare → Export</div></div>
+      <div class="r"><a class="btn pri" href="01-resume-library.html">Go to Library</a></div>
+    </div>
+    <div class="content">
+      <div class="grid c2">
+        <div class="card reveal">
+          <b>Key features</b>
+          <div class="mut" style="font-size:12px;line-height:1.8;margin-top:6px">
+            PDF/DOCX upload with validation &amp; scan.<br>
+            Parsed to structured JSON (source of truth).<br>
+            AI optimization with facts-only guardrail.<br>
+            Per-change diff with accept/reject.<br>
+            Versioning, compare, restore, default.<br>
+            ATS-safe PDF/DOCX export.<br>
+            Encrypted at rest, signed URLs.<br>
+            Slots enforced by plan.
+          </div>
+        </div>
+        <div class="card reveal d1">
+          <b>Flow diagram</b>
+          <div class="stages" style="margin-top:12px">
+            <div class="st done"><div class="dot">1</div><div class="mut2" style="font-size:10.5px">Upload</div></div>
+            <div class="line done"></div>
+            <div class="st done"><div class="dot">2</div><div class="mut2" style="font-size:10.5px">Parse</div></div>
+            <div class="line done"></div>
+            <div class="st act"><div class="dot">3</div><div class="mut2" style="font-size:10.5px">Optimize</div></div>
+            <div class="line"></div>
+            <div class="st"><div class="dot">4</div><div class="mut2" style="font-size:10.5px">Version</div></div>
+            <div class="line"></div>
+            <div class="st"><div class="dot">5</div><div class="mut2" style="font-size:10.5px">Export</div></div>
+          </div>
+          <div class="mut2" style="font-size:11px;margin-top:12px">Credits: AI optimization 5 cr · ATS score 1 cr · storage free.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

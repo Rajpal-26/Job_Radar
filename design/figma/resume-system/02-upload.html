@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Resume · Upload</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Raleway:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="resume-theme.css">
+<style>
+.dz{border:2px dashed var(--priline);border-radius:14px;background:linear-gradient(180deg,#fff,#f6faff);padding:24px;display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center}
+.prog{height:8px;border-radius:99px;background:#eef2f7;overflow:hidden;width:420px}
+.prog i{display:block;height:100%;background:linear-gradient(90deg,#2a9bff,#0b4fc2);width:0;transition:width .4s}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="rail">
+    <div class="brand"><span class="m">JR</span> Resume System</div>
+    <nav class="nav">
+      <div class="grp">Resume</div>
+      <a href="01-resume-library.html">Library</a>
+      <a class="on" href="02-upload.html">Upload</a>
+      <div class="grp">AI</div>
+      <a href="03-optimize.html">Optimize</a>
+      <a href="04-diff.html">Diff &amp; Accept</a>
+      <div class="grp">Manage</div>
+      <a href="05-versions.html">Versions</a>
+      <a href="06-compare.html">Compare</a>
+      <a href="07-export.html">Export</a>
+      <div class="grp">Context</div>
+      <a href="08-resume-overview.html">Overview</a>
+    </nav>
+  </aside>
+  <div class="main">
+    <div class="top">
+      <div><h1>Upload resume</h1><div class="sub">Drag &amp; drop or browse</div></div>
+      <div class="r"><a class="btn" href="01-resume-library.html">← Back to library</a></div>
+    </div>
+    <div class="content">
+      <div class="card reveal dz" id="dz">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--pri)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>
+        <b>Drop your PDF or DOCX here</b>
+        <div class="mut2" style="font-size:12px">Up to 5 MB · Accepts .pdf, .docx</div>
+        <button class="btn pri sm" id="pick">Browse files</button>
+        <input type="file" id="file" accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document" hidden>
+      </div>
+      <div class="card reveal d1" id="progCard" style="display:none">
+        <div style="display:flex;justify-content:space-between"><b>Uploading &amp; scanning</b><span class="chip" id="pct">0%</span></div>
+        <div class="prog" style="margin-top:10px;width:100%"><i id="bar"></i></div>
+        <div class="mut2" style="font-size:11px;margin-top:8px">MIME + magic-byte check · antivirus scan · parsing next</div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+var dz=document.getElementById('dz'), pick=document.getElementById('pick'), file=document.getElementById('file'), pc=document.getElementById('progCard'), bar=document.getElementById('bar'), pct=document.getElementById('pct');
+pick.onclick=function(){file.click()};
+file.onchange=function(e){start(e.target.files[0])};
+dz.addEventListener('dragover',function(e){e.preventDefault();dz.style.borderColor='var(--pri3)';});
+dz.addEventListener('dragleave',function(){dz.style.borderColor='var(--priline)';});
+dz.addEventListener('drop',function(e){e.preventDefault();dz.style.borderColor='var(--priline)';if(e.dataTransfer.files[0])start(e.dataTransfer.files[0])});
+function start(f){if(!f)return;pc.style.display='';var n=0;var t=setInterval(function(){n=Math.min(100,n+8);bar.style.width=n+'%';pct.textContent=n+'%';if(n>=100){clearInterval(t);setTimeout(function(){location.href='01-resume-library.html'},600)}},150)}
+</script>
+</body>
+</html>

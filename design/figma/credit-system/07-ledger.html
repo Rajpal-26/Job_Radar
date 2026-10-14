@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Credit System · Ledger</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Raleway:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="credit-theme.css">
+<style>
+  .filters{display:flex;gap:7px;flex-wrap:wrap}
+  .f{border:1.5px solid var(--line);border-radius:99px;padding:5px 12px;font:600 11.5px 'Instrument Sans',sans-serif;color:var(--mut);background:#fff;transition:all .15s;cursor:pointer}
+  .f:hover{border-color:var(--pri3)}
+  .f.on{background:var(--pritint);border-color:var(--pri);color:var(--priink)}
+  .type{display:inline-flex;align-items:center;gap:5px;font:700 10px 'Instrument Sans',sans-serif;border-radius:6px;padding:3px 8px}
+</style>
+</head>
+<body data-nav="07-ledger">
+<div class="stage">
+  <div class="app">
+    <aside data-rail></aside>
+
+    <div class="main">
+      <div class="topbar">
+        <div>
+          <h1>Credit ledger</h1>
+          <div class="sub">Append-only · never edited · balance = &Sigma; entries</div>
+        </div>
+        <div class="right">
+          <span class="bal-pill"><span class="gem"></span><b data-count="142">0</b> cr</span>
+          <button class="btn pri sm" id="simBtn">Simulate event</button>
+          <button class="btn ghost sm" id="csvBtn">Export CSV</button>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="grid c4" style="margin-bottom:14px">
+          <div class="card reveal"><div class="hint">Current balance</div><div class="big-num" style="margin-top:4px"><b data-count="142">0</b><small> cr</small></div></div>
+          <div class="card reveal d1"><div class="hint">Granted this month</div><div class="big-num" style="margin-top:4px;color:var(--ok)">+150<small> cr</small></div></div>
+          <div class="card reveal d2"><div class="hint">Captured this month</div><div class="big-num" style="margin-top:4px;color:var(--err)">−27<small> cr</small></div></div>
+          <div class="card reveal d3"><div class="hint">Active holds</div><div class="big-num" style="margin-top:4px;color:var(--warn)">1<small> · 5 cr</small></div></div>
+        </div>
+
+        <div class="card reveal d1">
+          <div class="card-h">
+            <b>Transactions</b>
+            <div class="filters" style="margin-left:auto" id="filters">
+              <button class="f on" data-f="all">All</button>
+              <button class="f" data-f="grant">grant</button>
+              <button class="f" data-f="purchase">purchase</button>
+              <button class="f" data-f="hold">hold</button>
+              <button class="f" data-f="capture">capture</button>
+              <button class="f" data-f="release">release</button>
+              <button class="f" data-f="refund">refund</button>
+              <button class="f" data-f="expire">expire</button>
+              <button class="f" data-f="adjust">adjust</button>
+            </div>
+          </div>
+          <div class="tbl ledger" id="ledger">
+            <div class="tr thr"><span>Time</span><span>Type</span><span>Action</span><span>Credits</span><span>Balance</span><span>Ref</span></div>
+            <div class="tr" data-t="capture"><span class="mutd">14:02:11</span><span><span class="chip pri type">capture</span></span><span class="td1">ATS score — PM v3 × Fintech Co</span><span class="neg">−1</span><span>141</span><span class="mutd">—</span></div>
+            <div class="tr" data-t="hold"><span class="mutd">13:58:40</span><span><span class="chip warn type">hold</span></span><span class="td1">AI optimization — v3 → draft v4</span><span style="color:var(--warn);font-weight:700">−5 ⏳</span><span>142</span><span class="mutd">row-locked</span></div>
+            <div class="tr" data-t="release"><span class="mutd">13:58:02</span><span><span class="chip err type">release</span></span><span class="td1">Auto apply timed out — release hold</span><span class="pos">+3</span><span>147</span><span class="mutd">auto</span></div>
+            <div class="tr" data-t="refund"><span class="mutd">Oct 07</span><span><span class="chip ok type">refund</span></span><span class="td1">Auto apply failed at employer portal</span><span class="pos">+8</span><span>150</span><span class="mutd">platform error</span></div>
+            <div class="tr" data-t="purchase"><span class="mutd">Oct 07</span><span><span class="chip type">purchase</span></span><span class="td1">Top-up pack +50 · Visa ••4242</span><span class="pos">+50</span><span>158</span><span class="mutd">INV-0107</span></div>
+            <div class="tr" data-t="grant"><span class="mutd">Oct 01</span><span><span class="chip type">grant</span></span><span class="td1">Pro subscription — monthly allotment</span><span class="pos">+150</span><span>120</span><span class="mutd">—</span></div>
+            <div class="tr" data-t="adjust"><span class="mutd">Sep 30</span><span><span class="chip type">adjust</span></span><span class="td1">Super-admin credit adjustment</span><span class="pos">+2</span><span>12</span><span class="mutd">audited</span></div>
+            <div class="tr" data-t="expire"><span class="mutd">Sep 30</span><span><span class="chip err type">expire</span></span><span class="td1">Unused September subscription credits</span><span class="neg">−12</span><span>0</span><span class="mutd">—</span></div>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;margin-top:12px">
+            <span class="chip pri"><span class="dotc"></span>1 active hold</span>
+            <span class="chip mono">Idempotency-Key: 8f3a…</span>
+            <span class="hint" style="margin-left:auto">New rows append at the top · existing entries are immutable</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+<div id="toasts" style="position:fixed;right:26px;bottom:26px;width:300px;z-index:150"></div>
+<script src="rail.js"></script>
+<script src="credit.js"></script>
+<script>
+  var ledger = document.getElementById('ledger');
+  var rows = function () { return Array.prototype.slice.call(ledger.querySelectorAll('.tr[data-t]')); };
+  var typeStyle = {
+    grant: { cls: '', sign: '+', val: 150, text: 'Subscription grant — monthly allotment' },
+    purchase: { cls: '', sign: '+', val: 50, text: 'Top-up pack +50 · Visa ••4242' },
+    capture: { cls: 'pri', sign: '−', val: 5, text: 'AI optimization — capture' },
+    hold: { cls: 'warn', sign: '−', val: 8, text: 'Auto apply tailored — hold' },
+    release: { cls: 'err', sign: '+', val: 8, text: 'Auto apply timed out — release hold' },
+    refund: { cls: 'ok', sign: '+', val: 3, text: 'Platform error refund' },
+    expire: { cls: 'err', sign: '−', val: 10, text: 'Promotional credits expired' },
+    adjust: { cls: '', sign: '+', val: 5, text: 'Super-admin adjustment' }
+  };
+  var keys = Object.keys(typeStyle), ki = 0;
+
+  document.getElementById('simBtn').addEventListener('click', function () {
+    var k = keys[ki++ % keys.length];
+    var d = typeStyle[k];
+    var now = new Date();
+    var tm = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0') + ':' + String(now.getSeconds()).padStart(2, '0');
+    var tr = document.createElement('div');
+    tr.className = 'tr rowIn';
+    tr.setAttribute('data-t', k);
+    tr.innerHTML = '<span class="mutd">' + tm + '</span><span><span class="chip ' + d.cls + ' type">' + k + '</span></span>' +
+      '<span class="td1">' + d.text + '</span><span class="' + (d.sign === '−' ? 'neg' : 'pos') + '">' + d.sign + d.val + '</span><span>142</span><span class="mutd">live</span>';
+    ledger.insertBefore(tr, ledger.children[1]);
+    crToast({ title: k + ' entry appended', msg: d.text, ms: 2400 });
+  });
+
+  document.getElementById('filters').addEventListener('click', function (e) {
+    var b = e.target.closest('.f'); if (!b) return;
+    document.querySelectorAll('#filters .f').forEach(function (x) { x.classList.remove('on'); });
+    b.classList.add('on');
+    var f = b.dataset.f;
+    rows().forEach(function (r) {
+      var show = f === 'all' || r.dataset.t === f;
+      r.style.display = show ? '' : 'none';
+    });
+  });
+
+  document.getElementById('csvBtn').addEventListener('click', function () {
+    var lines = ['time,type,action,credits,balance,ref'];
+    rows().forEach(function (r) {
+      var c = Array.prototype.map.call(r.children, function (td) { return '"' + td.textContent.trim().replace(/"/g, '""') + '"'; });
+      lines.push(c.join(','));
+    });
+    var blob = new Blob([lines.join('\n')], { type: 'text/csv' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'credit-ledger.csv';
+    a.click();
+    crToast({ kind: 'ok', title: 'CSV exported', msg: 'credit-ledger.csv (' + rows().length + ' rows)', ms: 2600 });
+  });
+</script>
+</body>
+</html>

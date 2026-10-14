@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Credit System · Plans &amp; Pricing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Raleway:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="credit-theme.css">
+<style>
+  .plan{display:flex;flex-direction:column;position:relative}
+  .plan .name{font:800 16px 'Raleway',serif}
+  .plan .price{font:800 32px 'Raleway',serif;letter-spacing:-1px;display:flex;align-items:baseline;gap:4px}
+  .plan .price small{font:600 12px 'Instrument Sans',sans-serif;color:var(--mut);letter-spacing:0}
+  .plan ul{list-style:none;font-size:11.5px;color:#334155;line-height:1.9;margin-top:12px}
+  .plan ul li{display:flex;gap:8px;align-items:flex-start}
+  .plan ul li svg{width:14px;height:14px;flex:none;margin-top:3px;color:var(--ok)}
+  .plan .cta{margin-top:auto;padding-top:14px}
+  .plan .pnl{background:linear-gradient(180deg,#0f172a,#1e293b);border:0;color:#fff}
+  .flip{animation:flip .4s ease}
+  @keyframes flip{from{opacity:0;transform:translateY(8px) scale(.97)}to{opacity:1;transform:none}}
+</style>
+</head>
+<body data-nav="03-plans">
+<div class="stage">
+  <div class="app">
+    <aside data-rail></aside>
+
+    <div class="main">
+      <div class="topbar">
+        <div>
+          <h1>Plans &amp; pricing</h1>
+          <div class="sub">Credits granted by plan or bought as top-ups · figures live in configuration</div>
+        </div>
+        <div class="right">
+          <div class="seg" data-seg="bill">
+            <button class="on" data-v="m">Monthly</button>
+            <button data-v="y">Yearly</button>
+          </div>
+          <span class="chip ok" id="saveChip">Yearly saves 20%</span>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="grid c4" style="align-items:stretch">
+
+          <div class="card plan reveal">
+            <div style="display:flex;justify-content:space-between;align-items:center"><span class="name">Free</span><span class="chip">Community</span></div>
+            <div class="price" style="margin-top:12px"><span data-price data-m="$0" data-y="$0">$0</span><small>/mo</small></div>
+            <div style="display:flex;align-items:center;gap:7px;margin-top:8px;font-size:12px"><span class="gem" style="width:10px;height:10px;border-radius:3px;background:linear-gradient(135deg,#2a9bff,#0b4fc2)"></span><b>10 credits</b>&nbsp;monthly</div>
+            <ul>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg>1 resume slot</li>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg>Basic ATS scoring</li>
+              <li style="color:var(--mut2)"><svg viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6L6 18"/></svg>Auto apply — off</li>
+              <li style="color:var(--mut2)"><svg viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 6l12 12M18 6L6 18"/></svg>Recruiter checks — off</li>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg>Essential notifications</li>
+            </ul>
+            <div class="cta"><button class="btn ghost block plan-current">Current plan</button></div>
+          </div>
+
+          <div class="card plan reveal d1" style="border:2px solid var(--pri);box-shadow:0 18px 44px rgba(21,101,216,.22)">
+            <span class="chip pri badge-star">★ Most popular</span>
+            <div style="display:flex;justify-content:space-between;align-items:center"><span class="name" style="color:var(--pri)">Pro</span><span class="chip gold">7-day trial</span></div>
+            <div class="price" style="margin-top:12px"><span data-price data-m="$19" data-y="$15">$19</span><small>/mo</small></div>
+            <div style="display:flex;align-items:center;gap:7px;margin-top:8px;font-size:12px"><span class="gem" style="width:10px;height:10px;border-radius:3px;background:linear-gradient(135deg,#2a9bff,#0b4fc2)"></span><b>150 credits</b>&nbsp;monthly</div>
+            <ul>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg>5 resume slots</li>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg>Full ATS report</li>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg>10 auto-applies / day</li>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg>10 recruiter checks / mo</li>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg>All notifications · email support</li>
+            </ul>
+            <div class="cta"><a class="btn pri block pulse" href="05-checkout.html">Start free trial</a></div>
+          </div>
+
+          <div class="card plan reveal d2">
+            <div style="display:flex;justify-content:space-between;align-items:center"><span class="name">Premium</span><span class="chip info">Priority support</span></div>
+            <div class="price" style="margin-top:12px"><span data-price data-m="$49" data-y="$39">$49</span><small>/mo</small></div>
+            <div style="display:flex;align-items:center;gap:7px;margin-top:8px;font-size:12px"><span class="gem" style="width:10px;height:10px;border-radius:3px;background:linear-gradient(135deg,#2a9bff,#0b4fc2)"></span><b>500 credits</b>&nbsp;monthly</div>
+            <ul>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg>20 resume slots</li>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg>ATS + keyword plan</li>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg>30 auto-applies / day</li>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg>50 recruiter checks / mo</li>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg>All notifications</li>
+            </ul>
+            <div class="cta"><a class="btn ghost block" href="05-checkout.html">Choose Premium</a></div>
+          </div>
+
+          <div class="card plan pnl reveal d3">
+            <div style="display:flex;justify-content:space-between;align-items:center"><span class="name">Team / Enterprise</span><span class="chip" style="background:rgba(255,255,255,.15);color:#c7d2fe">SSO · SCIM · audit</span></div>
+            <div class="price" style="margin-top:12px"><span>Custom</span></div>
+            <div style="display:flex;align-items:center;gap:7px;margin-top:8px;font-size:12px"><span class="gem" style="width:10px;height:10px;border-radius:3px;background:#6ee7b7"></span><b>Per-seat pooled</b>&nbsp;credits</div>
+            <ul style="color:#cbd5e1">
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="#6ee7b7" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg>Unlimited resume slots</li>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="#6ee7b7" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg>Full ATS + API access</li>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="#6ee7b7" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg>Custom auto-apply caps</li>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="#6ee7b7" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg>Custom recruiter checks</li>
+              <li><svg viewBox="0 0 24 24" fill="none" stroke="#6ee7b7" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg>Digests · dedicated support</li>
+            </ul>
+            <div class="cta"><button class="btn block" style="background:#fff;color:#0f172a">Talk to sales</button></div>
+          </div>
+
+        </div>
+
+        <div class="card reveal d3" style="margin-top:14px">
+          <div class="grid c3" style="gap:16px">
+            <div style="display:flex;gap:10px"><span class="chip gold" style="align-self:flex-start">⚡</span><div><b style="font-size:12.5px">Upgrade</b><div class="hint">Immediate · prorated charge · credits granted proportionally</div></div></div>
+            <div style="display:flex;gap:10px"><span class="chip info" style="align-self:flex-start">⏳</span><div><b style="font-size:12.5px">Downgrade</b><div class="hint">At period end — over-limit features become read-only, never deleted</div></div></div>
+            <div style="display:flex;gap:10px"><span class="chip err" style="align-self:flex-start">🚪</span><div><b style="font-size:12.5px">Cancel</b><div class="hint">Access to period end · unused subscription credits expire · top-ups remain</div></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+<div id="toasts" style="position:fixed;right:26px;bottom:26px;width:300px;z-index:150"></div>
+<script src="rail.js"></script>
+<script src="credit.js"></script>
+<script>
+  document.addEventListener('segchange', function (e) {
+    var yearly = e.detail.value === 'y';
+    document.querySelectorAll('[data-price]').forEach(function (el) {
+      el.textContent = yearly ? el.getAttribute('data-y') : el.getAttribute('data-m');
+      el.classList.remove('flip'); void el.offsetWidth; el.classList.add('flip');
+    });
+    document.getElementById('saveChip').textContent = yearly ? 'Billed yearly · save 20%' : 'Yearly saves 20%';
+    crToast({ title: yearly ? 'Showing yearly pricing' : 'Showing monthly pricing',
+      msg: yearly ? 'Billed once a year — credits granted monthly.' : 'Switch any time; upgrade is prorated.', ms: 2400 });
+  });
+</script>
+</body>
+</html>
